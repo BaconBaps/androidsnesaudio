@@ -15,14 +15,17 @@ Executed in the managed Linux cloud environment on 21 October 2026.
 
 ## Automated tests
 
-Ten JUnit/Robolectric tests, zero failures and zero skipped:
+Seventeen JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Persistent library restoration, track names/durations, and paused-player progress.
 - Format recognition and time labels.
 - Theme-picker selection and persistence across activity recreation.
 - Readable text/button contrast across all 12 palettes, plus stable preference IDs.
-- Four-color Game Boy scenery.
+- Tagged-track straight/loop controls and per-track preference overrides.
+- Shuffle next-track behavior and playback-mode persistence across service restart.
+- xid6 loop-tag parsing, padded fields, intro-only tags, and malformed metadata.
+- FFT tone-band placement, silence, amplitude response, and stereo phase handling.
 - Media service creation, binding, and teardown on Android API 35.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
@@ -40,6 +43,11 @@ Results:
 - Street Fighter II Turbo RSN (solid RAR4): 36 SPC files extracted and decoded.
 - All 65 tracks passed Java/JNI metadata, non-silent 44.1 kHz stereo PCM, seeking
   to 15 seconds, position reporting, and subsequent rendering checks.
+- One representative SPC from each sample set also passed a continuity comparison:
+  enabling Loop during playback produced identical PCM to an uninterrupted,
+  unfaded reference for over 12 seconds, past an artificial 1-second ending time
+  and the ordinary fade boundary. Disabling Loop restored the fade and ending;
+  backwards seeking followed by mode reapplication preserved looping.
 - Corrupt SPC and RSN rejected.
 - Oversized extraction rejected and partial files cleaned up.
 - Archive paths could not escape the destination directory.
@@ -50,8 +58,11 @@ These samples remain outside the repository and APK.
 
 `docs/screenshots/` contains native-graphics Robolectric renders of the real Java
 view hierarchy. The soundtrack images use a seven-track metadata fixture; the
-paused player and theme images use a service-state fixture at 1:13. All 12
-theme renders retain the selected track and progress and omit the removed footer. These are not emulator
+paused player image uses a service-state fixture at 1:13. Theme images additionally
+use synthetic multitone PCM passed through the actual FFT and visualizer, rather
+than captured device audio. The track-row loop tag shown for the fixture is
+synthetic too; sample music is not modified. All 12 theme renders retain the
+selected track and progress and omit the removed footer and adventure text. These are not emulator
 or physical-device captures, and do not establish Android speaker output.
 
 No emulator or physical Android device was used. A device listening pass remains

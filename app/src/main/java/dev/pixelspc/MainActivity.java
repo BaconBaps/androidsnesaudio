@@ -23,6 +23,8 @@ public class MainActivity extends Activity {
     private LinearLayout root,trackList;
     private TextView gameTitle,gameMeta,nowTitle,nowArtist,playButton,time,shuffleButton,repeatButton,libraryButton,status;
     private SeekBar seek;
+    private PixelVisualizer visualizer;
+    private long lastPlayerUpdate;
     private boolean seeking=false,busy=false,bound=false;
     private final Handler main=new Handler(Looper.getMainLooper());
     private final ExecutorService importer=Executors.newSingleThreadExecutor();
@@ -42,7 +44,7 @@ public class MainActivity extends Activity {
     @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); main.post(tick); } }
     @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
     @Override protected void onDestroy() { importer.shutdown(); super.onDestroy(); }
-    private final Runnable tick=new Runnable() { public void run() { updatePlayer(); main.postDelayed(this,350); } };
+    private final Runnable tick=new Runnable() { public void run() { updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
     private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setFontFeatureSettings("kern"); return t; }
     private TextView pixel(String s,int size,int color) { TextView t=text(s,size,color); t.setTypeface(pixel); return t; }
@@ -66,33 +68,33 @@ public class MainActivity extends Activity {
         LinearLayout tabs=row(); TextView tab=pixel("YOUR SOUNDTRACKS",8,accentColor); tabs.addView(tab,new LinearLayout.LayoutParams(0,-2,1)); libraryButton=button("LIBRARY ▾",accentColor,backgroundColor); add(tabs,libraryButton,112,34); libraryButton.setOnClickListener(v->chooseGame()); add(root,tabs,-1,36); gap(root,12);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=column(); scroll.addView(content); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        LinearLayout artwork=column(); artwork.setBackground(bg(theme.surface,borderColor)); PixelScene scene=new PixelScene(this); scene.setPlayerTheme(theme); add(artwork,scene,-1,158); add(content,artwork,-1,-2); gap(content,16);
-        LinearLayout titleRow=row(); gameTitle=text("Your next adventure",25,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); titleRow.addView(gameTitle,new LinearLayout.LayoutParams(0,-2,1)); TextView chip=pixel("16-BIT",7,theme.chipText); chip.setPadding(dp(9),dp(9),dp(9),dp(9)); chip.setBackground(bg(secondaryColor,0)); add(titleRow,chip,-2,-2); add(content,titleRow,-1,-2); gap(content,5);
-        gameMeta=text("Import a game. Rediscover its world.",12,mutedColor); add(content,gameMeta,-1,-2); gap(content,17);
+        LinearLayout artwork=column(); artwork.setBackground(bg(theme.surface,borderColor)); visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(theme); add(artwork,visualizer,-1,158); add(content,artwork,-1,-2); gap(content,16);
+        LinearLayout titleRow=row(); gameTitle=text("Your music library",25,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); titleRow.addView(gameTitle,new LinearLayout.LayoutParams(0,-2,1)); TextView chip=pixel("16-BIT",7,theme.chipText); chip.setPadding(dp(9),dp(9),dp(9),dp(9)); chip.setBackground(bg(secondaryColor,0)); add(titleRow,chip,-2,-2); add(content,titleRow,-1,-2); gap(content,5);
+        gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2); gap(content,17);
         LinearLayout listHeader=row(); TextView tracks=pixel("TRACKLIST",8,textColor); listHeader.addView(tracks,new LinearLayout.LayoutParams(0,-2,1)); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,26); rule(content);
         trackList=column(); add(content,trackList,-1,-2); gap(content,14);
         TextView importButton=button("+  IMPORT MUSIC",accentColor,theme.surface); add(content,importButton,-1,48); importButton.setContentDescription("Import music file or game set"); importButton.setOnClickListener(v->pickFile()); gap(content,10);
         TextView formats=text("SPC  /  RSN  /  ZIP  +  more retro formats",10,mutedColor); formats.setGravity(Gravity.CENTER); add(content,formats,-1,24); gap(content,16);
         rule(root); gap(root,12);
         LinearLayout playerHeading=row(); TextView tag=pixel("NOW PLAYING",7,accentColor); playerHeading.addView(tag,new LinearLayout.LayoutParams(0,-2,1)); TextView quality=pixel("♪  44.1 kHz",6,mutedColor); add(playerHeading,quality,-2,-2); add(root,playerHeading,-1,18);
-        nowTitle=text("The adventure starts here",17,textColor); nowTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); nowTitle.setSingleLine(true); nowTitle.setEllipsize(android.text.TextUtils.TruncateAt.END); add(root,nowTitle,-1,26);
+        nowTitle=text("No track selected",17,textColor); nowTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); nowTitle.setSingleLine(true); nowTitle.setEllipsize(android.text.TextUtils.TruncateAt.END); add(root,nowTitle,-1,26);
         nowArtist=text("Choose a track to press play",11,mutedColor); nowArtist.setSingleLine(true); add(root,nowArtist,-1,22);
         seek=new SeekBar(this); seek.setPadding(0,0,0,0); seek.setProgressTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(borderColor)); seek.setThumbTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setContentDescription("Playback position"); add(root,seek,-1,24);
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { public void onProgressChanged(SeekBar s,int p,boolean user) { if(user) updateTime(p); } public void onStartTrackingTouch(SeekBar s) { seeking=true; } public void onStopTrackingTouch(SeekBar s) { seeking=false; if(player!=null) player.seek(s.getProgress()); } });
         time=text("0:00                                                      --:--",10,mutedColor); time.setTypeface(Typeface.MONOSPACE); add(root,time,-1,18);
         LinearLayout controls=row(); controls.setGravity(Gravity.CENTER);
-        shuffleButton=button("⇄",mutedColor,backgroundColor); shuffleButton.setTypeface(Typeface.DEFAULT); shuffleButton.setTextSize(24); shuffleButton.setContentDescription("Toggle shuffle"); add(controls,shuffleButton,44,44); shuffleButton.setOnClickListener(v->{ if(player!=null) { player.shuffle=!player.shuffle; updatePlayer(); } });
+        shuffleButton=button("⇄",mutedColor,backgroundColor); shuffleButton.setTypeface(Typeface.DEFAULT); shuffleButton.setTextSize(10); shuffleButton.setContentDescription("Toggle shuffle"); add(controls,shuffleButton,50,54); shuffleButton.setOnClickListener(v->{ if(player!=null) { player.setShuffle(!player.shuffle); updatePlayer(); Toast.makeText(this,player.shuffle?"Shuffle on · next track is random":"Shuffle off · play in order",Toast.LENGTH_SHORT).show(); } });
         TextView prev=button("|◀",textColor,backgroundColor); prev.setContentDescription("Previous track"); add(controls,prev,54,44); prev.setOnClickListener(v->{ if(player!=null) player.next(-1); });
         playButton=button("▶",theme.onAccent,accentColor); playButton.setTextSize(19); playButton.setContentDescription("Play"); LinearLayout.LayoutParams playParams=new LinearLayout.LayoutParams(dp(66),dp(54)); playParams.setMargins(dp(12),0,dp(12),0); controls.addView(playButton,playParams); playButton.setOnClickListener(v->toggle());
         TextView next=button("▶|",textColor,backgroundColor); next.setContentDescription("Next track"); add(controls,next,54,44); next.setOnClickListener(v->{ if(player!=null) player.next(1); });
-        repeatButton=button("↻",mutedColor,backgroundColor); repeatButton.setTypeface(Typeface.DEFAULT); repeatButton.setTextSize(25); repeatButton.setContentDescription("Toggle repeat track"); add(controls,repeatButton,44,44); repeatButton.setOnClickListener(v->{ if(player!=null) { player.repeat=!player.repeat; updatePlayer(); } }); add(root,controls,-1,64);
+        repeatButton=button("↻",mutedColor,backgroundColor); repeatButton.setTypeface(Typeface.DEFAULT); repeatButton.setTextSize(10); repeatButton.setContentDescription("Toggle repeat track"); add(controls,repeatButton,50,54); repeatButton.setOnClickListener(v->{ if(player!=null) { player.setLoop(!player.repeat); updatePlayer(); Toast.makeText(this,player.repeat?"Loop on · keep the sound program running":"Loop off · fade and advance",Toast.LENGTH_SHORT).show(); } }); add(root,controls,-1,64);
         gap(root,10);
         renderTracks(); updatePlayer();
     }
     public void renderTracks() {
         if(trackList==null) return;
-        trackList.removeAllViews(); gameTitle.setText(selected==null?"Your next adventure":selected.name);
-        gameMeta.setText(selected==null?"Import a game. Rediscover its world.":systemLabel(selected)+"  ·  "+selected.tracks.size()+" tracks  ·  Local files");
+        trackList.removeAllViews(); gameTitle.setText(selected==null?"Your music library":selected.name);
+        gameMeta.setText(selected==null?"Import a track or a game set.":systemLabel(selected)+"  ·  "+selected.tracks.size()+" tracks  ·  Local files");
         status.setText(busy?"IMPORTING…":selected==null?"READY":String.format(Locale.ROOT,"%02d TRACKS",selected.tracks.size()));
         if(selected==null) {
             LinearLayout empty=column(); empty.setGravity(Gravity.CENTER); empty.setPadding(dp(16),dp(22),dp(16),dp(22)); add(empty,pixel("INSERT SOUNDTRACK",9,textColor),-2,-2); gap(empty,10); TextView hint=text("Open an SPC track or a whole game set.\nYour music stays on your device.",12,mutedColor); hint.setGravity(Gravity.CENTER); add(empty,hint,-1,-2); add(trackList,empty,-1,-2); return;
@@ -102,6 +104,13 @@ public class MainActivity extends Activity {
             LinearLayout line=row(); line.setPadding(dp(10),dp(7),dp(10),dp(7)); if(active) line.setBackground(bg(theme.surface,0));
             TextView number=pixel(active && player.playing?"▮▮":String.format(Locale.ROOT,"%02d",i+1),8,active?accentColor:mutedColor); add(line,number,34,26);
             LinearLayout names=column(); TextView title=text(track.title,14,active?accentColor:textColor); title.setSingleLine(true); title.setEllipsize(android.text.TextUtils.TruncateAt.END); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(track.artist.isEmpty()?track.system:track.artist,10,mutedColor); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            if(track.loopLength>0) {
+                boolean looping=player!=null && player.isLooping(track);
+                TextView mode=button(looping?"LOOP":"STRAIGHT",looping?theme.onAccent:accentColor,looping?accentColor:theme.surface);
+                mode.setTextSize(6); mode.setContentDescription("Loop mode for "+track.title+": "+(looping?"looping":"straight")); mode.setEnabled(player!=null);
+                add(line,mode,74,34);
+                mode.setOnClickListener(v->{ if(player!=null) { player.setTrackLoop(track,!player.isLooping(track)); renderTracks(); updatePlayer(); } });
+            }
             TextView duration=text(clock(track.length),11,mutedColor); duration.setGravity(Gravity.END|Gravity.CENTER_VERTICAL); add(line,duration,43,30); add(trackList,line,-1,57); rule(trackList);
             line.setContentDescription("Play "+track.title); line.setClickable(true); line.setFocusable(true); line.setOnClickListener(v->{ if(player!=null) { notifyPermission(); player.play(selected.tracks,index); } });
         }
@@ -117,15 +126,28 @@ public class MainActivity extends Activity {
     private void updatePlayer() {
         if(nowTitle==null) return;
         boolean loaded=player!=null && player.current!=null;
-        seek.setEnabled(loaded); shuffleButton.setAlpha(loaded?1f:.45f); repeatButton.setAlpha(loaded?1f:.45f);
+        seek.setEnabled(loaded);
+        styleMode(shuffleButton,player!=null && player.shuffle,"⇄","Shuffle");
+        styleMode(repeatButton,player!=null && player.repeat,"↻","Continuous loop");
+        shuffleButton.setEnabled(player!=null); repeatButton.setEnabled(player!=null);
+        updateVisualizer();
         if(!loaded) return;
         Library.Track t=player.current; nowTitle.setText(t.title); nowArtist.setText(getString(R.string.artist_and_game,t.artist.isEmpty()?"Unknown artist":t.artist,t.game));
         playButton.setText(player.playing?"Ⅱ":"▶"); playButton.setContentDescription(player.playing?"Pause":"Play");
-        shuffleButton.setTextColor(player.shuffle?accentColor:mutedColor); shuffleButton.setContentDescription("Shuffle "+(player.shuffle?"on":"off")); repeatButton.setTextColor(player.repeat?accentColor:mutedColor); repeatButton.setContentDescription("Repeat track "+(player.repeat?"on":"off"));
-        if(!seeking) { seek.setMax(t.length); seek.setProgress(Math.min(player.position,t.length)); updateTime(player.position); }
+        if(!seeking) { seek.setMax(player.repeat?Math.max(t.length,player.position):t.length); seek.setProgress(Math.min(player.position,seek.getMax())); updateTime(player.position); }
         if(!player.error.isEmpty() && !player.error.equals(shownError)) { shownError=player.error; dialog().setTitle("Playback interrupted").setMessage(player.error).setPositiveButton("OK",null).show(); }
     }
-    private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":clock(player.current.length); time.setText(getString(R.string.position_and_duration,clock(ms),end)); }
+    private void styleMode(TextView button,boolean enabled,String icon,String name) {
+        android.text.SpannableString label=new android.text.SpannableString(icon+"\n"+(enabled?"ON":"OFF"));
+        label.setSpan(new android.text.style.RelativeSizeSpan(2f),0,icon.length(),0);
+        button.setText(label); button.setTextColor(enabled?theme.onAccent:mutedColor);
+        button.setBackground(bg(enabled?accentColor:backgroundColor,borderColor));
+        button.setSelected(enabled); button.setContentDescription(name+" "+(enabled?"on":"off"));
+    }
+    private void updateVisualizer() {
+        if(visualizer!=null && player!=null) visualizer.setFrame(player.levels,player.playing,player.current!=null);
+    }
+    private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":player.repeat?"∞ LOOP":clock(player.current.length); time.setText(getString(R.string.position_and_duration,clock(ms),end)); }
     public static String clock(int ms) { return String.format(Locale.ROOT,"%d:%02d",Math.max(ms,0)/60000,(Math.max(ms,0)/1000)%60); }
     private void chooseGame() {
         if(library.games.isEmpty()) { pickFile(); return; }
@@ -183,7 +205,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("PixelSPC · v1.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

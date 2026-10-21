@@ -3,6 +3,27 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 public class NativeSmoke {
+    private static void checkContinuousLoop(File file) throws Exception {
+        long reference=Engine.open(file.getAbsolutePath()),toggled=Engine.open(file.getAbsolutePath());
+        try {
+            Engine.start(reference,0,1000); Engine.setLoop(reference,true,1000);
+            Engine.start(toggled,0,1000);
+            short[] a=new short[4096],b=new short[4096];
+            for(int block=0;block<260;block++) {
+                if(block==5) { int before=Engine.tell(toggled); Engine.setLoop(toggled,true,1000); if(Engine.tell(toggled)!=before) throw new AssertionError("Loop toggle changed position"); }
+                boolean endedA=Engine.render(reference,a),endedB=Engine.render(toggled,b);
+                if(endedA || endedB || !Arrays.equals(a,b)) throw new AssertionError("Looping interrupted or faded PCM at block "+block);
+            }
+            if(Engine.tell(toggled)<12000) throw new AssertionError("Did not pass tagged end and fade boundary");
+            Engine.setLoop(toggled,false,1000);
+            boolean ended=false; for(int i=0;i<260;i++) ended|=Engine.render(toggled,b);
+            if(!ended) throw new AssertionError("Disabling loop did not restore timed ending");
+            // Backwards seeks reset GME track variables; the playback service reapplies the mode.
+            Engine.seek(reference,0); Engine.setLoop(reference,true,1000);
+            for(int i=0;i<260;i++) if(Engine.render(reference,a)) throw new AssertionError("Seek lost continuous loop mode");
+            System.out.println("PASS: "+file.getName()+" continuous PCM matches uninterrupted reference beyond tagged end; loop-off fade and seek reapplication verified");
+        } finally { Engine.close(reference); Engine.close(toggled); }
+    }
     public static void main(String[] args) throws Exception {
         File root=Files.createTempDirectory("pixelspc-native").toFile(); int count=0;
         try {
@@ -20,6 +41,7 @@ public class NativeSmoke {
                     } finally { Engine.close(h); }
                 }
                 System.out.println("PASS: "+source.getName()+" — "+entries.size()+" songs imported, metadata read, PCM rendered and seek verified via JNI");
+                checkContinuousLoop(entries.get(Math.min(2,entries.size()-1)).file);
             }
             File corrupt=new File(root,"invalid.spc"); Files.write(corrupt.toPath(),new byte[]{1,2,3});
             boolean rejected=false; try { long h=Engine.open(corrupt.getAbsolutePath()); Engine.close(h); } catch(IOException expected) { rejected=true; }

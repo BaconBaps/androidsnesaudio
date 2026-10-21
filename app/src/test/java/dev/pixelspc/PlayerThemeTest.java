@@ -17,9 +17,4 @@ public class PlayerThemeTest {
         }
         assertSame(PlayerTheme.ALL[0],PlayerTheme.find("retired-theme"));
     }
-    @Test public void gameBoySceneryUsesOnlyItsFourColors() {
-        PlayerTheme t=PlayerTheme.find("game-boy");
-        Set<Integer> allowed=new HashSet<>(Arrays.asList(t.background,t.text,t.accent,t.secondary));
-        for(int color:new int[]{0xffc8b7ed,0xffffeab7,0xff76529b,0xff694d83,0xff98c776}) assertTrue(allowed.contains(t.sceneColor(color)));
-    }
 }

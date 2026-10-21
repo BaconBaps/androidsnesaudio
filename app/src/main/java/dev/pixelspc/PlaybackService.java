@@ -19,7 +19,11 @@ public class PlaybackService extends Service {
     private AudioManager manager;
     private AudioFocusRequest focus;
     private boolean resumeOnFocus;
+    private boolean defaultLoop;
+    private volatile boolean destroyed;
     private final short[] pcm=new short[4096];
+    private final AudioSpectrum spectrum=new AudioSpectrum();
+    public volatile float[] levels=new float[AudioSpectrum.BANDS];
     public volatile boolean playing=false,repeat=false,shuffle=false;
     public volatile int position=0,index=-1;
     public volatile String error="";
@@ -29,6 +33,8 @@ public class PlaybackService extends Service {
 
     @Override public void onCreate() {
         super.onCreate(); main=new Handler(getMainLooper()); thread=new HandlerThread("SPC audio"); thread.start(); worker=new Handler(thread.getLooper());
+        shuffle=getSharedPreferences("playback",MODE_PRIVATE).getBoolean("shuffle",false);
+        repeat=defaultLoop=getSharedPreferences("playback",MODE_PRIVATE).getBoolean("loop",false);
         manager=(AudioManager)getSystemService(AUDIO_SERVICE);
         focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setOnAudioFocusChangeListener(change->{
             if(change==AudioManager.AUDIOFOCUS_GAIN) { if(resumeOnFocus) { resumeOnFocus=false; toggle(); } }
@@ -55,13 +61,14 @@ public class PlaybackService extends Service {
         if(selected<0 || selected>=tracks.size()) return;
         queue=new ArrayList<>(tracks); index=selected; current=queue.get(selected); error="";
         final Library.Track track=current;
+        repeat=isLooping(track);
         startService(new Intent(this,PlaybackService.class));
         startForeground(1,notification());
         if(manager.requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED) { error="Audio is in use by another app"; changed(); return; }
         worker.post(()->{
             worker.removeCallbacks(pump); releaseAudio();
             try {
-                handle=Engine.open(track.path); Engine.start(handle,track.index,track.length);
+                handle=Engine.open(track.path); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
                 int minimum=AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_16BIT);
                 audio=new AudioTrack.Builder().setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(new AudioFormat.Builder().setSampleRate(44100).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build()).setBufferSizeInBytes(Math.max(minimum,16384)).setTransferMode(AudioTrack.MODE_STREAM).build();
                 position=0; playing=true; audio.play(); worker.post(pump); changed();
@@ -76,15 +83,36 @@ public class PlaybackService extends Service {
         worker.post(()->{ if(audio!=null) { playing=true; audio.play(); worker.removeCallbacks(pump); worker.post(pump); changed(); } });
     }
     public void pause() { worker.post(()->{ playing=false; worker.removeCallbacks(pump); if(audio!=null) audio.pause(); changed(); }); }
+    public void setShuffle(boolean enabled) {
+        shuffle=enabled; getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean("shuffle",enabled).apply(); changed();
+    }
+    public void setLoop(boolean enabled) {
+        defaultLoop=enabled; getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean("loop",enabled).apply();
+        if(current!=null && current.loopLength>0) getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean(loopKey(current),enabled).apply();
+        applyLoop(enabled);
+    }
+    private String loopKey(Library.Track track) { return "track-loop:"+track.path+":"+track.index; }
+    public boolean isLooping(Library.Track track) { return getSharedPreferences("playback",MODE_PRIVATE).getBoolean(loopKey(track),defaultLoop); }
+    public void setTrackLoop(Library.Track track,boolean enabled) {
+        getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean(loopKey(track),enabled).apply();
+        if(current!=null && current.path.equals(track.path) && current.index==track.index) applyLoop(enabled);
+        else changed();
+    }
+    private void applyLoop(boolean enabled) {
+        repeat=enabled;
+        worker.post(()->{ if(handle!=0 && current!=null) Engine.setLoop(handle,enabled,current.length); changed(); });
+    }
+    public int nextIndex(int delta) {
+        if(queue.isEmpty()) return -1;
+        return shuffle && delta>0 && queue.size()>1 ? (index+1+new Random().nextInt(queue.size()-1))%queue.size() : (index+delta+queue.size())%queue.size();
+    }
     public void next(int delta) {
-        if(queue.isEmpty()) return;
-        int n=shuffle && delta>0 && queue.size()>1 ? (index+1+new Random().nextInt(queue.size()-1))%queue.size() : (index+delta+queue.size())%queue.size();
-        play(queue,n);
+        int n=nextIndex(delta); if(n>=0) play(queue,n);
     }
     public void seek(int ms) {
         worker.post(()->{
             if(handle==0 || current==null) return;
-            try { if(audio!=null) { audio.pause(); audio.flush(); } Engine.seek(handle,Math.max(0,Math.min(ms,current.length))); position=Engine.tell(handle); if(playing && audio!=null) audio.play(); changed(); }
+            try { if(audio!=null) { audio.pause(); audio.flush(); } Engine.seek(handle,Math.max(0,Math.min(ms,repeat?Math.max(current.length,position):current.length))); Engine.setLoop(handle,repeat,current.length); position=Engine.tell(handle); if(playing && audio!=null) audio.play(); changed(); }
             catch(Exception e) { failed(e); }
         });
     }
@@ -92,6 +120,7 @@ public class PlaybackService extends Service {
         if(!playing || handle==0) return;
         try {
             boolean ended=Engine.render(handle,pcm);
+            levels=spectrum.analyze(pcm);
             int offset=0; while(offset<pcm.length) { int n=audio.write(pcm,offset,pcm.length-offset); if(n<=0) throw new java.io.IOException("Audio output unavailable ("+n+")"); offset+=n; }
             position=Engine.tell(handle);
             if(ended) { playing=false; main.post(()->{ if(repeat) play(queue,index); else next(1); }); }
@@ -99,10 +128,11 @@ public class PlaybackService extends Service {
         } catch(Exception e) { failed(e); }
     }};
     private void failed(Exception e) { error="Cannot play this track: "+e.getMessage(); playing=false; releaseAudio(); changed(); }
-    private void releaseAudio() { playing=false; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
+    private void releaseAudio() { playing=false; levels=new float[AudioSpectrum.BANDS]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
     private void changed() { main.post(()->{
+        if(destroyed) return;
         if(current!=null) {
-            session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,current.title).putString(MediaMetadata.METADATA_KEY_ARTIST,current.artist).putString(MediaMetadata.METADATA_KEY_ALBUM,current.game).putLong(MediaMetadata.METADATA_KEY_DURATION,current.length).build());
+            session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,current.title).putString(MediaMetadata.METADATA_KEY_ARTIST,current.artist).putString(MediaMetadata.METADATA_KEY_ALBUM,current.game).putLong(MediaMetadata.METADATA_KEY_DURATION,repeat?-1:current.length).build());
             session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS|PlaybackState.ACTION_SEEK_TO).setState(playing?PlaybackState.STATE_PLAYING:PlaybackState.STATE_PAUSED,position,playing?1:0).build());
             ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification());
         }
@@ -113,6 +143,7 @@ public class PlaybackService extends Service {
         return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setContentTitle(current==null?"PixelSPC":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(0,1,2)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
+        destroyed=true;
         unregisterReceiver(noisy); listener=null; manager.abandonAudioFocusRequest(focus); session.release();
         worker.removeCallbacksAndMessages(null); worker.post(()->{ releaseAudio(); thread.quitSafely(); }); super.onDestroy();
     }

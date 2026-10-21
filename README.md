@@ -1,9 +1,9 @@
 # PixelSPC
 
-A small Android player for big retro soundtracks. Original pixel scenery,
+A small Android player for big retro soundtracks. A live pixel spectrum,
 lavender controls, and a local library for the games you grew up with.
 
-<img src="docs/screenshots/player-paused.png" width="300" alt="PixelSPC soundtrack library and paused player" />
+<img src="docs/screenshots/theme-dark.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
 
 ## Install without Android Studio
 
@@ -14,8 +14,10 @@ for emulators). This is a debug-signed development build, not a Play Store relea
 
 Tap **Import music**, or **Library → Import another soundtrack**, and select your
 file using Android's file picker. Tap a track to play. Use the fixed player panel
-for pause, previous/next, seeking, shuffle, and repeat-one. Playback continues in
-the background with notification and lock-screen controls. Headphone disconnect
+for pause, previous/next, seeking, shuffle, and continuous looping. The outer
+buttons show ON/OFF states: left is Shuffle (changes the next track), right is
+Loop (lets the current sound program keep running). Both preferences are saved.
+Playback continues in the background with notification and lock-screen controls. Headphone disconnect
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
 
@@ -26,10 +28,10 @@ for development. The app requests no Internet or broad storage permission.
 
 Tap the **diamond button (◈)** beside About to choose a palette. The choice is saved
 between launches and updates the controls, dialogs, system-bar icons, and pixel
-scenery without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
+spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
 10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
 Mega Drive / Genesis, Dreamcast, PlayStation, Nintendo 64, and GameCube.
-Game Boy scenery uses only four LCD-inspired colors.
+The spectrum uses each theme’s accent and secondary colors.
 
 [Browse all 12 theme screenshots](docs/THEMES.md).
 
@@ -53,8 +55,27 @@ flattened so entries cannot write outside the library.
 
 Track duration uses embedded timing when available, or two loops where tagged;
 otherwise it defaults to 3 minutes. GME adds its ending fade. Auto-next wraps the
-current set; repeat loops the selected song. There is no playlist editor, track
-deletion, or configurable default duration in this first version.
+current set. With Loop enabled, the SPC emulator keeps executing the original
+sound program: no timed fade, seek to zero, or audio-device restart occurs at the
+musical loop boundary. This preserves natural SPC loops, rather than replaying
+the introduction. One-shot tracks without a programmed loop can still become
+silent. Loop cannot invent missing musical loop points.
+
+An SPC with an explicit **xid6 loop-length tag (0x31)** also gets a **STRAIGHT /
+LOOP** button in its track row. This saved per-track choice overrides the default
+loop setting when the track starts. Straight uses its ordinary tagged duration
+(or the fallback duration); Loop plays continuously. A total-duration or intro
+length tag alone does not establish a loop, so untagged tracks only have the
+bottom-right manual control. Existing imported SPC files are checked for tags
+when an older library is loaded.
+
+The graphic is a **24-band, logarithmic pixel spectrum** calculated from the actual
+44.1 kHz stereo PCM using a Hann-windowed FFT. It handles either stereo channel,
+including opposite-phase signals. Pixel peaks fall after sounds stop; pausing
+settles the display. It never simulates activity when audio is silent and needs
+no microphone or system-audio-capture permission.
+
+There is no playlist editor, track deletion, or configurable default duration yet.
 
 ## Build
 
@@ -85,7 +106,9 @@ Robolectric runs the Android 15 UI without an emulator. Tests cover empty-state
 import/file-picker behavior, saved-library restoration, player progress layout,
 service initialization, and archive handling. Native-graphics tests render
 the screenshots in `docs/screenshots/`. Screenshots use a small metadata fixture
-and a paused player state; they are **Robolectric renders, not device captures**.
+and paused/live service-state fixtures. Live-spectrum images feed synthetic
+multitone PCM through the actual FFT. They are **Robolectric renders, not device
+captures**.
 
 The supplied Donkey Kong Country ZIP and Street Fighter II Turbo RSN were tested
 separately: **29 + 36 SPC tracks** extracted, metadata read, and decoded to
@@ -106,7 +129,7 @@ in GME but have not been checked against user-supplied sample files.
 
 ## Implementation and licenses
 
-Java Android views + original Canvas pixel art, an AudioTrack foreground service
+Java Android views + Canvas pixel spectrum, an AudioTrack foreground service
 with MediaSession controls, unmodified Game Music Emu linked as a shared library,
 and Junrar for RSN extraction. See [THIRD_PARTY.md](THIRD_PARTY.md) for licenses,
 source provenance, and rebuilding/replacing the LGPL decoder.

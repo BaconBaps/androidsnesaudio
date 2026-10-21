@@ -12,9 +12,9 @@ import java.util.*;
 public final class Library {
     public static final class Track {
         public String path,title,game,artist,system;
-        public int index,length;
-        JSONObject json() throws JSONException { return new JSONObject().put("path",path).put("title",title).put("game",game).put("artist",artist).put("system",system).put("index",index).put("length",length); }
-        static Track from(JSONObject o) throws JSONException { Track t=new Track(); t.path=o.getString("path"); t.title=o.getString("title"); t.game=o.getString("game"); t.artist=o.getString("artist"); t.system=o.getString("system"); t.index=o.getInt("index"); t.length=o.getInt("length"); return t; }
+        public int index,length,loopLength;
+        JSONObject json() throws JSONException { return new JSONObject().put("path",path).put("title",title).put("game",game).put("artist",artist).put("system",system).put("index",index).put("length",length).put("loopLength",loopLength); }
+        static Track from(JSONObject o) throws JSONException { Track t=new Track(); t.path=o.getString("path"); t.title=o.getString("title"); t.game=o.getString("game"); t.artist=o.getString("artist"); t.system=o.getString("system"); t.index=o.getInt("index"); t.length=o.getInt("length"); t.loopLength=o.has("loopLength")?o.optInt("loopLength",0):SpcTiming.loopLength(new File(t.path)); return t; }
     }
     public static final class Game {
         public String name,id; public List<Track> tracks=new ArrayList<>();
@@ -51,6 +51,7 @@ public final class Library {
                         String[] info=Engine.info(h,i); Track t=new Track(); t.path=e.file.getAbsolutePath(); t.index=i;
                         t.title=info[0].isEmpty()?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
                         t.game=info[1]; t.artist=info[2]; t.system=info[3]; t.length=Engine.length(h,i);
+                        t.loopLength=e.file.getName().endsWith(".spc")?SpcTiming.loopLength(e.file):0;
                         game.tracks.add(t);
                     }
                 } finally { Engine.close(h); }

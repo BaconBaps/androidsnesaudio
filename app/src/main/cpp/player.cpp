@@ -27,6 +27,14 @@ extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_start(JNIEnv* e,jclas
     auto emu=reinterpret_cast<Music_Emu*>(h); auto err=gme_start_track(emu,index);
     if(err) fail(e,err); else gme_set_fade(emu,length);
 }
+extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_setLoop(JNIEnv*,jclass,jlong h,jboolean enabled,jint length) {
+    auto emu=reinterpret_cast<Music_Emu*>(h);
+    // Negative fade time disables fading in GME. The SPC program keeps running:
+    // no seek, start_track, or AudioTrack recreation at a musical loop boundary.
+    gme_ignore_silence(emu,enabled?1:0);
+    int position=gme_tell(emu);
+    gme_set_fade(emu,enabled?-1:(position>length?position:length));
+}
 extern "C" JNIEXPORT jboolean JNICALL Java_dev_pixelspc_Engine_render(JNIEnv* e,jclass,jlong h,jshortArray pcm) {
     auto emu=reinterpret_cast<Music_Emu*>(h); auto p=e->GetShortArrayElements(pcm,nullptr);
     auto err=gme_play(emu,e->GetArrayLength(pcm),p); e->ReleaseShortArrayElements(pcm,p,0);

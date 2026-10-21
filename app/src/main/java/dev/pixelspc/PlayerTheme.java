@@ -1,6 +1,6 @@
 package dev.pixelspc;
 
-/** UI roles shared by the player, dialogs, system bars, and original pixel scenery. */
+/** UI roles shared by the player, dialogs, system bars, and pixel spectrum. */
 public final class PlayerTheme {
     public final String id,name,inspiration;
     public final boolean dark;
@@ -40,36 +40,4 @@ public final class PlayerTheme {
     static double luminance(int color) { return .2126*linear((color>>16)&255)+.7152*linear((color>>8)&255)+.0722*linear(color&255); }
     public static double contrast(int a,int b) { double x=luminance(a),y=luminance(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); }
 
-    int sceneColor(int original) {
-        if(id.equals("light")) return original;
-        int sky=blend(background,accent,dark?.13f:.32f);
-        // Keep the Game Boy artwork inside its hardware-inspired four-color palette.
-        if(id.equals("game-boy")) {
-            double light=luminance(original);
-            return light>.68?background:light>.40?secondary:light>.18?accent:text;
-        }
-        switch(original) {
-            case 0xffc8b7ed: return sky;
-            case 0xffdbc8ee: return blend(sky,background,.35f);
-            case 0xffeed9df: return blend(sky,secondary,.22f);
-            case 0xffffeab7: case 0xfffaf3d7: return secondary;
-            case 0xffeee4f7: return blend(sky,text,dark?.25f:.08f);
-            case 0xffb4a0d4: return blend(sky,accent,.22f);
-            case 0xffa28bc5: return blend(sky,accent,.38f);
-            case 0xff6e539a: return blend(accent,background,.48f);
-            case 0xff9470ad: return blend(accent,background,.22f);
-            case 0xff3d6458: return blend(secondary,0xff182b28,.55f);
-            case 0xff6ba66b: return blend(secondary,0xff426a48,.35f);
-            case 0xff98c776: return secondary;
-            case 0xfff0dba0: return blend(secondary,0xffffffff,.30f);
-            case 0xfff3e5cd: return dark?blend(accent,0xffffffff,.40f):blend(background,0xffffffff,.45f);
-            case 0xffe3ceb9: return blend(background,accent,dark?.55f:.18f);
-            case 0xff76529b: return accent;
-            case 0xff694d83: return dark?background:text;
-            case 0xff9776ab: return blend(accent,background,.25f);
-            case 0xffe2af69: return secondary;
-            case 0xffe093a2: return id.equals("super-famicom")?0xff2873b3:secondary;
-            default: return original;
-        }
-    }
 }

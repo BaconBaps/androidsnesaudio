@@ -5,8 +5,9 @@ changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
 
-Renders below come from the actual Android UI using Robolectric and a paused
-metadata fixture, rather than a physical device.
+Renders below come from the actual Android UI using Robolectric and a playback
+metadata fixture with synthetic multitone PCM, rather than a physical device.
+The pixel spectrum uses the selected palette’s accent and secondary colors.
 
 ## Pixel Light
 
