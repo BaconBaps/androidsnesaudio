@@ -22,7 +22,26 @@ pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
 
 No music is bundled. Import your own files, including the example sets supplied
-for development. The app requests no Internet or broad storage permission.
+for development. The app requests no Internet or broad storage permission. The supplied SNES
+artwork pack is bundled; there is no additional artwork-import step.
+
+## SNES artwork
+
+The included pack has 379 named SNES logos (336 unique, original PNG images).
+When you import an SPC or SPC set, the app joins its **game metadata** to image
+filenames, ignoring capitalization, punctuation, region/revision tags, and the
+`-marquee` suffix. Roman/numeric sequel names are normalized, so the supplied
+`Street Fighter 2 Turbo` music matches `Street Fighter II Turbo` artwork.
+Sequel numbers and meaningful subtitles stay distinct; there is no fuzzy guess.
+
+**Library** now shows artwork thumbnails for loaded games. The main panel shows
+matched artwork by default; tap **ARTWORK / VISUALIZER** beneath it to switch.
+The display preference survives restarts. Missing art falls back to the live
+visualizer. **CHOOSE IMAGE** opens a searchable picker for a saved manual match;
+**AUTO MATCH** clears that override. Associations use game titles, not song titles.
+This pack is used only for SPC/SNES sets; other systems keep the visualizer.
+
+[Artwork/library screenshot](docs/screenshots/library-artwork.png).
 
 ## Themes
 

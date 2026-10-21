@@ -15,9 +15,15 @@ Executed in the managed Linux cloud environment on 21 October 2026.
 
 ## Automated tests
 
-Seventeen JUnit/Robolectric tests, zero failures and zero skipped:
+Twenty-two JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
+- Reassembled both uploaded ZIP volumes and checked every ZIP CRC.
+- Checked all 336 distinct PNGs have valid image bounds; representative logos decode.
+- Actual sample metadata joins: Donkey Kong Country and Street Fighter 2 Turbo.
+- Artwork filename normalization, sequel separation, and strict SNES-only gating.
+- Manual association persistence, auto-match reset, library thumbnails, and the
+  artwork/visualizer switch with the supplied assets.
 - Persistent library restoration, track names/durations, and paused-player progress.
 - Format recognition and time labels.
 - Two-column theme preview grid, selected-card indication, selection and persistence
@@ -54,7 +60,8 @@ Results:
 - Oversized extraction rejected and partial files cleaned up.
 - Archive paths could not escape the destination directory.
 
-These samples remain outside the repository and APK.
+The music samples remain outside the repository and APK. User-supplied SNES
+artwork is bundled in the APK and documented in THIRD_PARTY.md.
 
 ## Screenshots and remaining device checks
 
@@ -62,7 +69,8 @@ These samples remain outside the repository and APK.
 view hierarchy. The soundtrack images use a seven-track metadata fixture; the
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
-than captured device audio. The track-row loop tag shown for the fixture is
+than captured device audio when the visualizer is selected. Artwork shown in
+these renders comes from the actual supplied SNES pack. The track-row loop tag shown for the fixture is
 synthetic too; sample music is not modified. All 12 theme renders retain the
 selected track and progress and omit the removed footer and adventure text. These are not emulator
 or physical-device captures, and do not establish Android speaker output.
