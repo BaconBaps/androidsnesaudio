@@ -15,11 +15,14 @@ Executed in the managed Linux cloud environment on 21 October 2026.
 
 ## Automated tests
 
-Seven JUnit/Robolectric tests, zero failures and zero skipped:
+Ten JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Persistent library restoration, track names/durations, and paused-player progress.
 - Format recognition and time labels.
+- Theme-picker selection and persistence across activity recreation.
+- Readable text/button contrast across all 12 palettes, plus stable preference IDs.
+- Four-color Game Boy scenery.
 - Media service creation, binding, and teardown on Android API 35.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
@@ -47,7 +50,8 @@ These samples remain outside the repository and APK.
 
 `docs/screenshots/` contains native-graphics Robolectric renders of the real Java
 view hierarchy. The soundtrack images use a seven-track metadata fixture; the
-paused player image uses a service-state fixture at 1:13. These are not emulator
+paused player and theme images use a service-state fixture at 1:13. All 12
+theme renders retain the selected track and progress and omit the removed footer. These are not emulator
 or physical-device captures, and do not establish Android speaker output.
 
 No emulator or physical Android device was used. A device listening pass remains

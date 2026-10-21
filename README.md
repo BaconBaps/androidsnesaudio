@@ -22,6 +22,17 @@ restarts; uninstalling removes imported files. Keep your original music files.
 No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
 
+## Themes
+
+Tap the **diamond button (◈)** beside About to choose a palette. The choice is saved
+between launches and updates the controls, dialogs, system-bar icons, and pixel
+scenery without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
+10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
+Mega Drive / Genesis, Dreamcast, PlayStation, Nintendo 64, and GameCube.
+Game Boy scenery uses only four LCD-inspired colors.
+
+[Browse all 12 theme screenshots](docs/THEMES.md).
+
 ## Formats
 
 | Files | Supported content |

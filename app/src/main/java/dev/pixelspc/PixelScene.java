@@ -7,10 +7,12 @@ import android.view.View;
 /** Original low-resolution artwork drawn with hard edges, never scaled with filtering. */
 public class PixelScene extends View {
     private final Paint paint=new Paint();
+    private PlayerTheme theme=PlayerTheme.ALL[0];
     private static final int[][] CLOUDS={{23,22,39},{174,37,28},{270,65,33},{53,59,23}};
     private static final int[] TREES={100,204,219}, FLOWERS={91,115,185,230};
-    public PixelScene(Context c) { super(c); setContentDescription("Pixel art: a floating green island and a castle beneath a lavender sunset"); }
-    private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
+    public PixelScene(Context c) { super(c); setContentDescription("Pixel art: a floating island and a castle beneath a sunset"); }
+    public void setPlayerTheme(PlayerTheme theme) { this.theme=theme; invalidate(); }
+    private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(theme.sceneColor(color)); c.drawRect(x,y,x+w,y+h,paint); }
     @Override protected void onDraw(Canvas screen) {
         super.onDraw(screen); screen.save(); screen.scale(getWidth()/320f,getHeight()/154f);
         Canvas c=screen;

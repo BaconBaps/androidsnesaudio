@@ -1,6 +1,7 @@
 package dev.pixelspc;
 
 import android.app.Application;
+import android.app.AlertDialog;
 import android.graphics.*;
 import android.view.*;
 import android.widget.*;
@@ -20,6 +21,7 @@ public class PlayerUiTest {
     private PlaybackService service;
     @Before public void clear() {
         app=RuntimeEnvironment.getApplication(); new File(app.getFilesDir(),"library.json").delete();
+        app.getSharedPreferences("appearance",0).edit().clear().commit();
         service=new PlaybackService();
         Shadows.shadowOf(app).setComponentNameAndServiceForBindService(new android.content.ComponentName(app,PlaybackService.class),service.onBind(new android.content.Intent()));
     }
@@ -27,6 +29,7 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get();
             assertTrue(text(a.getWindow().getDecorView()).contains("INSERT SOUNDTRACK"));
+            assertFalse(text(a.getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
             SeekBar seek=findSeek(a.getWindow().getDecorView()); assertNotNull(seek); assertFalse(seek.isEnabled());
             View importButton=findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"); assertNotNull(importButton); importButton.performClick();
             android.content.Intent picker=Shadows.shadowOf(a).getNextStartedActivityForResult().intent;
@@ -50,6 +53,26 @@ public class PlayerUiTest {
             service.listener.run();
             assertTrue(findSeek(a.getWindow().getDecorView()).isEnabled()); assertEquals(73000,findSeek(a.getWindow().getDecorView()).getProgress());
             capture(a,"player-paused.png");
+            for(PlayerTheme palette:PlayerTheme.ALL) {
+                a.selectTheme(palette.id);
+                assertEquals(73000,findSeek(a.getWindow().getDecorView()).getProgress());
+                assertTrue(text(a.getWindow().getDecorView()).contains("DK Island Swing"));
+                assertFalse(text(a.getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
+                capture(a,"theme-"+palette.id+".png");
+            }
+        }
+    }
+    @Test public void themePickerPersistsDarkModeAcrossRecreation() {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            View picker=findDescription(c.get().getWindow().getDecorView(),"Choose color theme"); assertNotNull(picker); picker.performClick();
+            AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertEquals(PlayerTheme.ALL.length,dialog.getListView().getAdapter().getCount());
+            dialog.getListView().performItemClick(null,1,1);
+            assertEquals("dark",app.getSharedPreferences("appearance",0).getString("theme",null));
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
+            c.recreate();
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
+            assertFalse(text(c.get().getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
         }
     }
     @Test public void formatsAndClockAreAccurate() {
@@ -59,6 +82,7 @@ public class PlayerUiTest {
     private String text(View v) { String s=v instanceof TextView?((TextView)v).getText().toString()+"\n":""; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) s+=text(((ViewGroup)v).getChildAt(i)); return s; }
     private SeekBar findSeek(View v) { if(v instanceof SeekBar) return (SeekBar)v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { SeekBar s=findSeek(((ViewGroup)v).getChildAt(i)); if(s!=null) return s; } return null; }
     private View findText(View v,String label) { if(v instanceof TextView && label.contentEquals(((TextView)v).getText())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findText(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
+    private View findDescription(View v,String label) { if(label.contentEquals(v.getContentDescription()==null?"":v.getContentDescription())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findDescription(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private void capture(MainActivity a,String name) throws Exception {
         View view=a.getWindow().getDecorView(); int width=822,height=1782;
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY)); view.layout(0,0,width,height);
