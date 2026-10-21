@@ -1,0 +1,4 @@
+<resources>
+    <string name="artist_and_game">%1$s  ·  %2$s</string>
+    <string name="position_and_duration">%1$s   /   %2$s</string>
+</resources>

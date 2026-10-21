@@ -1,0 +1,42 @@
+# Third-party software
+
+PixelSPC application code and original artwork are provided under the MIT license.
+No game music, ROMs, or Nintendo artwork are distributed in this repository or APK.
+
+## Game Music Emu
+
+Unmodified sources from https://github.com/libgme/game-music-emu at commit
+`f68963b1de0633149b05732113d3c3113c6f63a1` are included in
+`third_party/game-music-emu`. Game Music Emu is LGPL 2.1 or later.
+The build uses the LGPL Nuked YM2612 implementation, not the GPL MAME option.
+Individual source headers retain copyright notices. Full license text is included
+in `third_party/game-music-emu/license.txt`; the upstream GPL text is retained too.
+
+`libgme.so` is linked dynamically. Complete source and build instructions are
+included here so recipients can rebuild or replace it and rebuild the APK.
+Android permits installing a modified, re-signed APK after uninstalling the old
+one (uninstalling removes its private library). No restrictions on reverse
+engineering for debugging modifications to this library are imposed.
+
+## Junrar 7.5.5
+
+https://github.com/junrar/junrar — UnRAR license. Used for RAR-based RSN sets.
+The UnRAR restriction prohibits using its source to develop a RAR archiver.
+This application only extracts archives. See `licenses/junrar-LICENSE.txt`.
+
+## SLF4J 1.7.36
+
+https://www.slf4j.org — MIT license. Junrar logging API and no-op binding.
+See `licenses/slf4j-LICENSE.txt`.
+
+## Press Start 2P
+
+Copyright 2012 The Press Start 2P Project Authors.
+https://github.com/codeman38/PressStart2P — SIL Open Font License 1.1.
+Font and license: `app/src/main/assets/fonts/`.
+
+## Build and test tools
+
+Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
+(their respective Android/Apache licenses), JUnit (EPL 1.0), Robolectric (MIT).
+They are build dependencies and are not packaged as app functionality.

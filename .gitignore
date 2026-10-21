@@ -1,0 +1,10 @@
+.gradle/
+local.properties
+**/build/
+**/.cxx/
+*.keystore
+*.jks
+*.spc
+*.rsn
+*.zip
+!gradle/wrapper/gradle-wrapper.jar

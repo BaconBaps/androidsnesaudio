@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'dev.pixelspc'
+    compileSdk 35
+    ndkVersion '27.2.12479018'
+    defaultConfig {
+        applicationId 'dev.pixelspc'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        ndk { abiFilters 'arm64-v8a', 'x86_64' }
+        externalNativeBuild { cmake { arguments '-DANDROID_STL=c++_shared', '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'; cppFlags '-std=c++11' } }
+    }
+    externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt'; version '3.22.1' } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+    buildTypes { release { minifyEnabled false } }
+    testOptions { unitTests.includeAndroidResources = true }
+}
+tasks.withType(Test).configureEach {
+    def testHome = layout.buildDirectory.dir('test-home').get().asFile
+    doFirst { testHome.mkdirs() }
+    systemProperty 'user.home', testHome.absolutePath
+    systemProperty 'robolectric.dependency.repo.url', 'https://repo.maven.apache.org/maven2'
+    ['https.proxyHost','https.proxyPort','http.proxyHost','http.proxyPort','javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key)) systemProperty key, System.getProperty(key)
+    }
+}
+dependencies {
+    implementation 'com.github.junrar:junrar:7.5.5'
+    implementation 'org.slf4j:slf4j-nop:1.7.36'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+}
+tasks.register('copyNativeTestDependencies', Copy) {
+    from configurations.debugRuntimeClasspath
+    include '*.jar'
+    into layout.buildDirectory.dir('sample-check/deps')
+}
