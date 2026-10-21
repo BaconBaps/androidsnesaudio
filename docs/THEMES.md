@@ -1,6 +1,6 @@
 # Player themes
 
-Choose a palette with the diamond button beside About. Your selection is saved;
+Choose a palette from the image-preview grid opened by the diamond button beside About. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
@@ -8,6 +8,8 @@ logos are bundled.
 Renders below come from the actual Android UI using Robolectric and a playback
 metadata fixture with synthetic multitone PCM, rather than a physical device.
 The pixel spectrum uses the selected palette’s accent and secondary colors.
+
+<img src="screenshots/theme-picker.png" width="360" alt="Theme picker with a two-column grid of player previews" />
 
 ## Pixel Light
 

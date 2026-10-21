@@ -38,7 +38,11 @@ public class PlayerUiTest {
             View importButton=findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"); assertNotNull(importButton); importButton.performClick();
             android.content.Intent picker=Shadows.shadowOf(a).getNextStartedActivityForResult().intent;
             assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction()); assertEquals("*/*",picker.getType());
+            assertFalse(text(a.getWindow().getDecorView()).contains("A little player"));
+            assertFalse(text(a.getWindow().getDecorView()).contains("YOUR SOUNDTRACKS"));
             capture(a,"empty-library.png");
+            View library=findDescription(a.getWindow().getDecorView(),"Open music library");
+            assertEquals(((View)library.getParent()).getWidth()-((View)library.getParent()).getPaddingLeft()-((View)library.getParent()).getPaddingRight(),library.getWidth());
         }
     }
     @Test public void savedLibraryRestoresTrackNamesAndDurations() throws Exception {
@@ -96,8 +100,11 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             View picker=findDescription(c.get().getWindow().getDecorView(),"Choose color theme"); assertNotNull(picker); picker.performClick();
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertEquals(PlayerTheme.ALL.length,dialog.getListView().getAdapter().getCount());
-            dialog.getListView().performItemClick(null,1,1);
+            GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
+            assertEquals(2,grid.getColumnCount()); assertEquals(PlayerTheme.ALL.length,grid.getChildCount());
+            assertTrue(grid.getChildAt(0).isSelected());
+            try { captureView(dialog.getWindow().getDecorView(),"theme-picker.png",720,1500); } catch(Exception e) { throw new AssertionError(e); }
+            grid.getChildAt(1).performClick();
             assertEquals("dark",app.getSharedPreferences("appearance",0).getString("theme",null));
             assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
             c.recreate();
@@ -113,8 +120,9 @@ public class PlayerUiTest {
     private SeekBar findSeek(View v) { if(v instanceof SeekBar) return (SeekBar)v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { SeekBar s=findSeek(((ViewGroup)v).getChildAt(i)); if(s!=null) return s; } return null; }
     private View findText(View v,String label) { if(v instanceof TextView && label.contentEquals(((TextView)v).getText())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findText(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private View findDescription(View v,String label) { if(label.contentEquals(v.getContentDescription()==null?"":v.getContentDescription())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findDescription(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
-    private void capture(MainActivity a,String name) throws Exception {
-        View view=a.getWindow().getDecorView(); int width=822,height=1782;
+    private GridLayout findGrid(View view) { if(view instanceof GridLayout) return (GridLayout)view; if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) { GridLayout grid=findGrid(((ViewGroup)view).getChildAt(i)); if(grid!=null) return grid; } return null; }
+    private void capture(MainActivity a,String name) throws Exception { captureView(a.getWindow().getDecorView(),name,822,1782); }
+    private void captureView(View view,String name,int width,int height) throws Exception {
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY)); view.layout(0,0,width,height);
         View rowTitle=findText(view,"DK Island Swing");
         if(rowTitle!=null) assertTrue("Track name collapsed: "+rowTitle.getWidth()+"x"+rowTitle.getHeight(),rowTitle.getWidth()>100 && rowTitle.getHeight()>0);

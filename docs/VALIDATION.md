@@ -20,7 +20,9 @@ Seventeen JUnit/Robolectric tests, zero failures and zero skipped:
 - Empty library, disabled seek control, and Android document-picker launch.
 - Persistent library restoration, track names/durations, and paused-player progress.
 - Format recognition and time labels.
-- Theme-picker selection and persistence across activity recreation.
+- Two-column theme preview grid, selected-card indication, selection and persistence
+  across activity recreation.
+- Removed subtitle/section label and full-width Library button layout.
 - Readable text/button contrast across all 12 palettes, plus stable preference IDs.
 - Tagged-track straight/loop controls and per-track preference overrides.
 - Shuffle next-track behavior and playback-mode persistence across service restart.

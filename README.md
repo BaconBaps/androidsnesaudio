@@ -26,7 +26,8 @@ for development. The app requests no Internet or broad storage permission.
 
 ## Themes
 
-Tap the **diamond button (◈)** beside About to choose a palette. The choice is saved
+Tap the **diamond button (◈)** beside About to choose a palette
+from a grid of miniature player previews. The selected card has a checkmark. The choice is saved
 between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
 10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
