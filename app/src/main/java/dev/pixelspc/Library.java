@@ -64,6 +64,24 @@ public final class Library {
             if(!saved) { File[] files=dir.listFiles(); if(files!=null) for(File f:files) f.delete(); dir.delete(); }
         }
     }
+    /** Removes only this import's private copy; source documents are never touched. */
+    public synchronized void remove(Game game) throws Exception {
+        int index=games.indexOf(game); if(index<0) return;
+        File sets=new File(context.getFilesDir(),"sets").getCanonicalFile();
+        File dir=new File(sets,game.id).getCanonicalFile();
+        if(!sets.equals(dir.getParentFile())) throw new IOException("Invalid library folder");
+        games.remove(index);
+        try { save(); } catch(Exception e) { games.add(index,game); throw e; }
+        if(dir.exists()) {
+            try(java.util.stream.Stream<java.nio.file.Path> paths=java.nio.file.Files.walk(dir.toPath())) {
+                for(java.nio.file.Path path:(Iterable<java.nio.file.Path>)paths.sorted(Comparator.reverseOrder())::iterator) java.nio.file.Files.deleteIfExists(path);
+            }
+        }
+        android.content.SharedPreferences prefs=context.getSharedPreferences("playback",Context.MODE_PRIVATE);
+        android.content.SharedPreferences.Editor edit=prefs.edit();
+        for(Track track:game.tracks) edit.remove("track-loop:"+track.path+":"+track.index);
+        edit.apply();
+    }
     private void save() throws Exception {
         JSONArray a=new JSONArray(); for(Game g:games) { JSONArray ts=new JSONArray(); for(Track t:g.tracks) ts.put(t.json()); a.put(new JSONObject().put("id",g.id).put("name",g.name).put("tracks",ts)); }
         FileOutputStream out=store.startWrite();

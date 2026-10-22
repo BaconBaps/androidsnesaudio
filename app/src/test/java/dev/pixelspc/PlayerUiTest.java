@@ -35,7 +35,10 @@ public class PlayerUiTest {
             assertFalse(text(a.getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
             assertFalse(text(a.getWindow().getDecorView()).toLowerCase().contains("adventure"));
             SeekBar seek=findSeek(a.getWindow().getDecorView()); assertNotNull(seek); assertFalse(seek.isEnabled());
-            View importButton=findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"); assertNotNull(importButton); importButton.performClick();
+            View importButton=findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"); assertNotNull(importButton);
+            assertEquals(a.dp(220),importButton.getLayoutParams().width);
+            assertEquals(android.view.Gravity.CENTER,((LinearLayout)importButton.getParent()).getGravity());
+            assertNotNull(findDescription(a.getWindow().getDecorView(),"Import music")); importButton.performClick();
             android.content.Intent picker=Shadows.shadowOf(a).getNextStartedActivityForResult().intent;
             assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction()); assertEquals("*/*",picker.getType());
             assertFalse(text(a.getWindow().getDecorView()).contains("A little player"));
@@ -58,6 +61,8 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); String visible=text(a.getWindow().getDecorView());
             assertTrue(visible.contains("Donkey Kong Country")); assertTrue(visible.contains("DK Island Swing")); assertTrue(visible.contains("3:58"));
+            assertNull(findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"));
+            assertNotNull(findDescription(a.getWindow().getDecorView(),"Import music"));
             capture(a,"soundtrack-library.png");
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
             AlertDialog browser=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -122,6 +127,39 @@ public class PlayerUiTest {
             c.recreate();
             assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
             assertFalse(text(c.get().getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
+        }
+    }
+    @Test public void libraryDeleteRequiresConfirmationAndUpdatesTheEmptyView() throws Exception {
+        org.json.JSONObject t=new org.json.JSONObject().put("path","/fixture/tone.spc").put("title","Tone").put("game","Game").put("artist","").put("system","SNES").put("index",0).put("length",180000).put("loopLength",0);
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",new org.json.JSONArray().put(t))).toString().getBytes("UTF-8"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
+            AlertDialog browser=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            // Force row inflation just as a rendered library picker would.
+            captureView(browser.getWindow().getDecorView(),"library-delete.png",720,450);
+            findDescription(browser.getWindow().getDecorView(),"Delete Game from library").performClick();
+            AlertDialog confirm=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertEquals(1,new Library(app).games.size());
+            confirm.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue(new Library(app).games.isEmpty());
+            assertNotNull(findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"));
+        }
+    }
+    @Test public void appMenuOffersExitAndClosesTask() {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get(); findDescription(a.getWindow().getDecorView(),"App menu").performClick();
+            PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
+            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().getItem(0).getTitle());
+            // Selecting Exit waits for service teardown before closing the task.
+            menu.getMenu().performIdentifierAction(menu.getMenu().getItem(0).getItemId(),0);
+            try {
+                java.lang.reflect.Field worker=PlaybackService.class.getDeclaredField("worker"); worker.setAccessible(true);
+                Shadows.shadowOf(((android.os.Handler)worker.get(service)).getLooper()).idle();
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            } catch(Exception e) { throw new AssertionError(e); }
+            assertTrue(a.isFinishing()); assertNull(service.current);
         }
     }
     @Test public void formatsAndClockAreAccurate() {

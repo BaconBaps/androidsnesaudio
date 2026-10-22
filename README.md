@@ -12,7 +12,7 @@ open it, and allow installation from your browser or file manager when prompted.
 Requires **Android 8.0 or later and a 64-bit ARM device** (x86-64 is also included
 for emulators). This is a debug-signed development build, not a Play Store release.
 
-Tap **Import music**, or **Library → Import another soundtrack**, and select your
+Tap the **+** button beside the theme and help buttons, or **Library → Import music**, and select your
 file using Android's file picker. Tap a track to play. Use the fixed player panel
 for pause, previous/next, seeking, shuffle, and continuous looping. The outer
 buttons show ON/OFF states: left is Shuffle (changes the next track), right is
@@ -28,6 +28,16 @@ track can interrupt it with Loop either on or off.
 Playback continues in the background with notification and lock-screen controls. Headphone disconnect
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
+
+Open **Library** and tap **Delete** beside a soundtrack to remove that import and
+its private music files after confirmation. Duplicate imports are separate entries;
+your original files are kept. Deleting the queued soundtrack stops its playback.
+The tracklist only shows a centered Import music button when empty.
+
+Choose **⋮ → Exit app** to stop playback, release the audio device, remove the
+notification, and close the app’s task. Normal Home/Back navigation continues to
+allow background playback. Android may cache the idle process after Exit, but the
+playback service is stopped.
 
 No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
@@ -87,7 +97,7 @@ including opposite-phase signals. Pixel peaks fall after sounds stop; pausing
 settles the display. It never simulates activity when audio is silent and needs
 no microphone or system-audio-capture permission.
 
-There is no playlist editor, track deletion, or configurable default duration yet.
+There is no playlist editor, individual-song deletion, or configurable default duration yet.
 
 ## Build
 

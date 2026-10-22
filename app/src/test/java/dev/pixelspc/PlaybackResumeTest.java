@@ -46,6 +46,22 @@ public class PlaybackResumeTest {
     private static void drain(PlaybackService service) throws Exception {
         Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idle();
     }
+    @Test public void stopClearsPlaybackAndNotificationAndAllowsAnotherTrack() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();
+        PlaybackService service=c.get();
+        try {
+            Library.Track track=new Library.Track(); track.path="fixture.vgz"; track.title="Tone"; track.length=120000;
+            service.play(Collections.singletonList(track),0); drain(service);
+            final boolean[] completed={false};
+            service.stopPlayback(()->completed[0]=true); drain(service);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue(completed[0]); assertNull(service.current); assertTrue(service.queue.isEmpty());
+            assertFalse(service.playing); assertEquals(0,service.position); assertNull(field(service,"audio")); assertEquals(0L,field(service,"handle"));
+            android.app.NotificationManager manager=(android.app.NotificationManager)service.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+            assertEquals(0,manager.getActiveNotifications().length);
+            service.play(Collections.singletonList(track),0); drain(service); assertTrue(service.playing);
+        } finally { c.destroy(); }
+    }
     @Test public void arbitrarySeekResumesOutputWithoutAnExtraButtonPressAndPausedSeekStaysPaused() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();
         PlaybackService service=c.get();

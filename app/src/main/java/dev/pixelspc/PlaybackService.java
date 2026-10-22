@@ -51,7 +51,7 @@ public class PlaybackService extends Service {
             @Override public void onSkipToNext() { next(1); }
             @Override public void onSkipToPrevious() { next(-1); }
             @Override public void onSeekTo(long ms) { seek((int)ms); }
-            @Override public void onStop() { pause(); stopForeground(true); stopSelf(); }
+            @Override public void onStop() { stopPlayback(null); }
         }); session.setActive(true);
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(new NotificationChannel("music","Music playback",NotificationManager.IMPORTANCE_LOW));
         registerReceiver(noisy,new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
@@ -59,7 +59,7 @@ public class PlaybackService extends Service {
     private final BroadcastReceiver noisy=new BroadcastReceiver() { public void onReceive(Context c,Intent i) { pause(); } };
     @Override public IBinder onBind(Intent i) { return binder; }
     @Override public int onStartCommand(Intent intent,int flags,int id) {
-        if(intent!=null) { String action=intent.getAction(); if("toggle".equals(action)) toggle(); else if("next".equals(action)) next(1); else if("previous".equals(action)) next(-1); else if("stop".equals(action)) { pause(); stopForeground(true); stopSelf(); } }
+        if(intent!=null) { String action=intent.getAction(); if("toggle".equals(action)) toggle(); else if("next".equals(action)) next(1); else if("previous".equals(action)) next(-1); else if("stop".equals(action)) stopPlayback(null); }
         return START_NOT_STICKY;
     }
     public void play(List<Library.Track> tracks,int selected) {
@@ -92,6 +92,22 @@ public class PlaybackService extends Service {
         });
     }
     public void pause() { worker.post(()->{ cancelSeek(); playing=false; worker.removeCallbacks(pump); if(audio!=null) audio.pause(); changed(); }); }
+    public void stopPlayback(Runnable complete) {
+        current=null; queue=Collections.emptyList(); index=-1; playing=false; position=0; seekTarget=-1;
+        resumeOnFocus=false; manager.abandonAudioFocusRequest(focus);
+        worker.removeCallbacks(pump);
+        worker.post(()->{
+            releaseAudio(); position=0;
+            main.post(()->{
+                if(!destroyed) {
+                    session.setMetadata(null);
+                    session.setPlaybackState(new PlaybackState.Builder().setState(PlaybackState.STATE_STOPPED,0,0).build());
+                    stopForeground(true); ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(1); stopSelf(); changed();
+                }
+                if(complete!=null) complete.run();
+            });
+        });
+    }
     public void setShuffle(boolean enabled) {
         shuffle=enabled; getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean("shuffle",enabled).apply(); changed();
     }

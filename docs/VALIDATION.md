@@ -16,7 +16,7 @@ Android/UI checks updated in the managed Linux cloud environment on 22 October
 
 ## Automated tests
 
-Twenty-four JUnit/Robolectric tests, zero failures and zero skipped:
+Twenty-nine JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -41,6 +41,13 @@ Twenty-four JUnit/Robolectric tests, zero failures and zero skipped:
   paused seeking stays paused, and a subsequent play resumes output. This uses
   Robolectric shadows, not physical speaker output.
 - The time display shows and clears the SEEKING target while catching up.
+- Header Import picker, centered empty-only tracklist Import, Library Delete
+  confirmation, last-entry empty state, and Exit menu/task closure.
+- Duplicate deletion persists across library reload, removes only the chosen
+  private set and its loop preferences, retains the other import/source, and
+  rejects folder traversal.
+- Explicit Stop releases decoder/audio output, clears queue and notifications,
+  completes its callback, and permits later playback.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -78,7 +85,7 @@ matching code are removed; the APK is checked for absence of the old artwork pac
 ## Screenshots and remaining device checks
 
 `docs/screenshots/` contains native-graphics Robolectric renders of the real Java
-view hierarchy. The soundtrack images use a seven-track metadata fixture; the
+view hierarchy. The library deletion image uses a one-track fixture; the soundtrack images use a seven-track metadata fixture; the
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
 than captured device audio on every system. The track-row loop tag shown for the fixture is
