@@ -21,7 +21,7 @@ public class NativeSeekSmoke {
                 public void seek(int ms) throws IOException { Engine.seek(h,ms); }
                 public void restoreMode() { Engine.setLoop(h,loop,length); }
             };
-            for(int target:new int[]{60000,15000,0,30000}) {
+            for(int target:new int[]{60000,15000,0,30000,12347,5033,0,9981}) {
                 seek.begin(target); int steps=0;
                 while(seek.active()) { seek.step(decoder); if(++steps>1000) throw new AssertionError("Seek never finished"); }
                 if(Math.abs(Engine.tell(h)-target)>2) throw new AssertionError("Wrong seek position");
@@ -34,7 +34,7 @@ public class NativeSeekSmoke {
             long next=Engine.open(file.toString());
             try { Engine.start(next,0,length); Engine.render(next,pcm); if(Engine.tell(next)<=0) throw new AssertionError("New track stalled"); }
             finally { Engine.close(next); }
-            System.out.println("PASS: "+file.getFileName()+" loop="+loop+" forward/backward bounded seeks, audible resume and new decoder after cancellation");
+            System.out.println("PASS: "+file.getFileName()+" loop="+loop+" whole-second and arbitrary-ms forward/backward bounded seeks, audible resume and new decoder after cancellation");
         } finally { Engine.close(h); }
     }
     public static void main(String[] args) throws Exception {

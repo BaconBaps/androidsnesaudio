@@ -23,7 +23,9 @@ final class PlaybackSeek {
         decoder.seek(next);
         decoder.restoreMode();
         int after=decoder.tell();
-        if(next>before && after<=before) throw new IOException("Decoder seek made no progress");
-        if(after>=target) active=false;
+        // GME converts milliseconds to integer samples and truncates tell() back
+        // to milliseconds. An arbitrary scrub can therefore land 1 ms short.
+        if((long)after>=((long)target)-1) active=false;
+        else if(next>before && after<=before) throw new IOException("Decoder seek made no progress");
     }
 }

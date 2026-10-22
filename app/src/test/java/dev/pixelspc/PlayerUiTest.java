@@ -68,6 +68,10 @@ public class PlayerUiTest {
             service.listener.run();
             assertTrue(findSeek(a.getWindow().getDecorView()).isEnabled()); assertEquals(73000,findSeek(a.getWindow().getDecorView()).getProgress());
             capture(a,"player-paused.png");
+            service.seekTarget=123470; service.listener.run();
+            assertTrue(text(a.getWindow().getDecorView()).contains("SEEKING → 2:03"));
+            service.seekTarget=-1; service.listener.run();
+            assertFalse(text(a.getWindow().getDecorView()).contains("SEEKING"));
             assertTrue(findText(a.getWindow().getDecorView(),"DK Island Swing") instanceof BouncingTextView);
             View trackMode=findDescription(a.getWindow().getDecorView(),"Loop mode for DK Island Swing: straight");
             assertNotNull(trackMode); assertNull(findDescription(a.getWindow().getDecorView(),"Loop mode for Theme: straight"));

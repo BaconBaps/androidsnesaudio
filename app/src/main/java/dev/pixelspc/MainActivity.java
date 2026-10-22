@@ -146,9 +146,11 @@ public class MainActivity extends Activity {
         button.setSelected(enabled); button.setContentDescription(name+" "+(enabled?"on":"off"));
     }
     private void updateVisualizer() {
-        if(visualizer!=null && player!=null) visualizer.setFrame(player.levels,player.playing,player.current!=null);
+        if(visualizer!=null && player!=null) visualizer.setFrame(player.levels,player.playing && player.seekTarget<0,player.current!=null);
     }
-    private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":player.repeat?"∞ LOOP":clock(player.current.length); time.setText(getString(R.string.position_and_duration,clock(ms),end)); }
+    private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":player.repeat?"∞ LOOP":clock(player.current.length); String label=getString(R.string.position_and_duration,clock(ms),end);
+        if(player!=null && player.seekTarget>=0) label+="  ·  SEEKING → "+clock(player.seekTarget);
+        time.setText(label); }
     public static String clock(int ms) { return String.format(Locale.ROOT,"%d:%02d",Math.max(ms,0)/60000,(Math.max(ms,0)/1000)%60); }
     private View gameRow(Library.Game game) {
         LinearLayout line=row(); line.setPadding(dp(8),dp(10),dp(8),dp(10));
@@ -223,7 +225,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.5.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("PixelSPC · v1.5.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

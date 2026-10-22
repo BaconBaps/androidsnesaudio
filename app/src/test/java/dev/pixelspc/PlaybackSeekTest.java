@@ -28,6 +28,21 @@ public class PlaybackSeekTest {
         assertEquals(1000,decoder.position); assertEquals(250,decoder.largestStep);
         seek.begin(0); seek.step(decoder); assertFalse(seek.active()); assertEquals(0,decoder.position);
     }
+    @Test public void sampleRoundingCompletesArbitraryTargetsInsteadOfFailing() throws Exception {
+        PlaybackSeek seek=new PlaybackSeek();
+        Decoder decoder=new Decoder() {
+            @Override public void seek(int ms) {
+                super.seek(ms);
+                // Same 44.1 kHz sample conversion and truncated tell() as GME.
+                position=(int)((long)ms*44100/1000*1000/44100);
+            }
+        };
+        for(int target:new int[]{12347,5033,0,9981,9982}) {
+            seek.begin(target); int steps=0;
+            while(seek.active()) { seek.step(decoder); assertTrue(++steps<100); }
+            assertTrue(Math.abs(target-decoder.position)<=1);
+        }
+    }
     @Test public void stalledDecoderFailsInsteadOfSpinningForever() throws Exception {
         PlaybackSeek seek=new PlaybackSeek(); seek.begin(1000);
         try {

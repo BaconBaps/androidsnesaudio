@@ -16,7 +16,7 @@ Android/UI checks updated in the managed Linux cloud environment on 22 October
 
 ## Automated tests
 
-Twenty-two JUnit/Robolectric tests, zero failures and zero skipped:
+Twenty-four JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -34,7 +34,13 @@ Twenty-two JUnit/Robolectric tests, zero failures and zero skipped:
 - FFT tone-band placement, silence, amplitude response, and stereo phase handling.
 - Media service creation, binding, and teardown on Android API 35.
 - Incremental seeking: 250 ms maximum forward steps, cancellation/replacement,
-  backward restart with mode restoration, and rejection of stalled decoder progress.
+  backward restart with mode restoration, sample-rounded arbitrary targets,
+  and rejection of genuinely stalled decoder progress.
+- Service-level seek recovery with a sample-rounded decoder and a full audio sink:
+  output resumes automatically with Loop off/on, a pause interrupts an active seek,
+  paused seeking stays paused, and a subsequent play resumes output. This uses
+  Robolectric shadows, not physical speaker output.
+- The time display shows and clears the SEEKING target while catching up.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -58,7 +64,8 @@ Results:
   backwards seeking followed by mode reapplication preserved looping.
 - Generated original-tone Mega Drive VGZ (PSG + YM2612-enabled container) and
   upstream GME `test.vgz` both passed forward/backward incremental seeks at
-  60, 15, 0 and 30 seconds, with Loop off and on. Each jump resumed non-silent
+  60, 15, 0 and 30 seconds plus arbitrary 12347, 5033 and 9981 millisecond
+  targets, with Loop off and on. Each jump resumed non-silent
   PCM. Cancelling a pending seek allowed a new decoder to render and advance.
   Neither sample is bundled.
 - Corrupt SPC and RSN rejected.
@@ -84,7 +91,10 @@ for audio routing, Bluetooth, interruptions, notification/lock-screen controls,
 and background behavior. The exact VGZ reported by the user was not supplied,
 so its device-specific freeze has not been reproduced. A representative Mega
 Drive VGZ reproduced expensive synchronous seeking on the shared control worker;
-seeking now yields between 250 ms decoder steps. AudioTrack writes are also
+seeking now yields between 250 ms decoder steps. A follow-up native regression
+  reproduced failure at arbitrary scrub targets: GME truncates sample positions
+  to milliseconds, and the completion check incorrectly rejected a 1 ms gap.
+  The check now tolerates that conversion gap while retaining stall detection. AudioTrack writes are also
 non-blocking and preserve partial buffers. Other console formats beyond SPC and
 VGZ do not have sample-based functional validation in this run.
 

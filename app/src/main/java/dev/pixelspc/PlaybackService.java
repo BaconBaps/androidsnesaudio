@@ -30,7 +30,7 @@ public class PlaybackService extends Service {
     private final AudioSpectrum spectrum=new AudioSpectrum();
     public volatile float[] levels=new float[AudioSpectrum.BANDS];
     public volatile boolean playing=false,repeat=false,shuffle=false;
-    public volatile int position=0,index=-1;
+    public volatile int position=0,index=-1,seekTarget=-1;
     public volatile String error="";
     public volatile Library.Track current;
     public List<Library.Track> queue=Collections.emptyList();
@@ -126,12 +126,13 @@ public class PlaybackService extends Service {
                 cancelSeek(); worker.removeCallbacks(pump);
                 if(audio!=null) { audio.pause(); audio.flush(); }
                 pcmOffset=pcm.length; pcmEnded=false;
-                seeking.begin(Math.max(0,Math.min(ms,repeat?Math.max(loaded.length,position):loaded.length)));
-                worker.post(seekStep);
+                seekTarget=Math.max(0,Math.min(ms,repeat?Math.max(loaded.length,position):loaded.length));
+                seeking.begin(seekTarget); levels=new float[AudioSpectrum.BANDS];
+                changed(); worker.post(seekStep);
             } catch(Exception e) { failed(e); }
         });
     }
-    private void cancelSeek() { seeking.cancel(); worker.removeCallbacks(seekStep); }
+    private void cancelSeek() { seekTarget=-1; seeking.cancel(); worker.removeCallbacks(seekStep); }
     private final Runnable seekStep=new Runnable() { public void run() {
         if(!seeking.active() || handle==0) return;
         try {
@@ -141,6 +142,7 @@ public class PlaybackService extends Service {
                 public void restoreMode() { Engine.setLoop(handle,repeat,loaded.length); }
             });
             position=Engine.tell(handle);
+            if(!seeking.active()) seekTarget=-1;
             long now=SystemClock.elapsedRealtime();
             if(!seeking.active() || now-lastSeekUpdate>=200) { lastSeekUpdate=now; changed(); }
             if(seeking.active()) worker.post(this);
@@ -170,7 +172,7 @@ public class PlaybackService extends Service {
         if(destroyed) return;
         if(current!=null) {
             session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,current.title).putString(MediaMetadata.METADATA_KEY_ARTIST,current.artist).putString(MediaMetadata.METADATA_KEY_ALBUM,current.game).putLong(MediaMetadata.METADATA_KEY_DURATION,repeat?-1:current.length).build());
-            session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS|PlaybackState.ACTION_SEEK_TO).setState(playing?PlaybackState.STATE_PLAYING:PlaybackState.STATE_PAUSED,position,playing?1:0).build());
+            session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS|PlaybackState.ACTION_SEEK_TO).setState(playing?(seekTarget>=0?PlaybackState.STATE_BUFFERING:PlaybackState.STATE_PLAYING):PlaybackState.STATE_PAUSED,position,playing && seekTarget<0?1:0).build());
             ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification());
         }
         if(listener!=null) listener.run();
