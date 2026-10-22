@@ -1,8 +1,7 @@
 # Validation evidence
 
 Android/UI checks updated in the managed Linux cloud environment on 22 October
-2026. The native decoder sample checks below were performed on 21 October 2026;
-the audio decoder is unchanged.
+2026, including the native sample checks below.
 
 ## Command-line Android build
 
@@ -17,7 +16,7 @@ the audio decoder is unchanged.
 
 ## Automated tests
 
-Nineteen JUnit/Robolectric tests, zero failures and zero skipped:
+Twenty-two JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -34,6 +33,8 @@ Nineteen JUnit/Robolectric tests, zero failures and zero skipped:
 - xid6 loop-tag parsing, padded fields, intro-only tags, and malformed metadata.
 - FFT tone-band placement, silence, amplitude response, and stereo phase handling.
 - Media service creation, binding, and teardown on Android API 35.
+- Incremental seeking: 250 ms maximum forward steps, cancellation/replacement,
+  backward restart with mode restoration, and rejection of stalled decoder progress.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -55,6 +56,11 @@ Results:
   unfaded reference for over 12 seconds, past an artificial 1-second ending time
   and the ordinary fade boundary. Disabling Loop restored the fade and ending;
   backwards seeking followed by mode reapplication preserved looping.
+- Generated original-tone Mega Drive VGZ (PSG + YM2612-enabled container) and
+  upstream GME `test.vgz` both passed forward/backward incremental seeks at
+  60, 15, 0 and 30 seconds, with Loop off and on. Each jump resumed non-silent
+  PCM. Cancelling a pending seek allowed a new decoder to render and advance.
+  Neither sample is bundled.
 - Corrupt SPC and RSN rejected.
 - Oversized extraction rejected and partial files cleaned up.
 - Archive paths could not escape the destination directory.
@@ -75,8 +81,12 @@ or physical-device captures, and do not establish Android speaker output.
 
 No emulator or physical Android device was used. A device listening pass remains
 for audio routing, Bluetooth, interruptions, notification/lock-screen controls,
-and background behavior. The additional GME console formats are compiled in but
-do not have sample-based functional validation in this run.
+and background behavior. The exact VGZ reported by the user was not supplied,
+so its device-specific freeze has not been reproduced. A representative Mega
+Drive VGZ reproduced expensive synchronous seeking on the shared control worker;
+seeking now yields between 250 ms decoder steps. AudioTrack writes are also
+non-blocking and preserve partial buffers. Other console formats beyond SPC and
+VGZ do not have sample-based functional validation in this run.
 
 The included APK is debug-signed for sideloading; Play Store release signing and
 publication have not been performed. A GitHub Actions workflow is supplied for

@@ -20,6 +20,9 @@ Loop (lets the current sound program keep running). These two controls are
 borderless and show ON/OFF using text and accent color. Both preferences are saved.
 Long track titles scroll smoothly to the end and back, pausing at each edge; this
 works in the track list and Now Playing. The seek bar is inset from the panel edges.
+VGZ/VGM seeking emulates the intervening chip audio, so long jumps can take a
+moment. Seeking runs in small steps: pause, another seek, or selecting another
+track can interrupt it with Loop either on or off.
 Playback continues in the background with notification and lock-screen controls. Headphone disconnect
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.

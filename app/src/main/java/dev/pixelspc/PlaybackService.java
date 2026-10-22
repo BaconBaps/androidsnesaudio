@@ -15,6 +15,11 @@ public class PlaybackService extends Service {
     private HandlerThread thread;
     private AudioTrack audio;
     private long handle;
+    private Library.Track loaded;
+    private final PlaybackSeek seeking=new PlaybackSeek();
+    private int pcmOffset=4096;
+    private boolean pcmEnded;
+    private long lastSeekUpdate;
     private MediaSession session;
     private AudioManager manager;
     private AudioFocusRequest focus;
@@ -68,7 +73,7 @@ public class PlaybackService extends Service {
         worker.post(()->{
             worker.removeCallbacks(pump); releaseAudio();
             try {
-                handle=Engine.open(track.path); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
+                loaded=track; handle=Engine.open(track.path); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
                 int minimum=AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_16BIT);
                 audio=new AudioTrack.Builder().setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(new AudioFormat.Builder().setSampleRate(44100).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build()).setBufferSizeInBytes(Math.max(minimum,16384)).setTransferMode(AudioTrack.MODE_STREAM).build();
                 position=0; playing=true; audio.play(); worker.post(pump); changed();
@@ -80,9 +85,13 @@ public class PlaybackService extends Service {
         if(playing) { pause(); return; }
         if(manager.requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return;
         startForeground(1,notification());
-        worker.post(()->{ if(audio!=null) { playing=true; audio.play(); worker.removeCallbacks(pump); worker.post(pump); changed(); } });
+        worker.post(()->{
+            if(audio==null) { main.post(()->play(queue,index)); return; }
+            try { playing=true; audio.play(); worker.removeCallbacks(pump); worker.post(pump); changed(); }
+            catch(Exception e) { failed(e); }
+        });
     }
-    public void pause() { worker.post(()->{ playing=false; worker.removeCallbacks(pump); if(audio!=null) audio.pause(); changed(); }); }
+    public void pause() { worker.post(()->{ cancelSeek(); playing=false; worker.removeCallbacks(pump); if(audio!=null) audio.pause(); changed(); }); }
     public void setShuffle(boolean enabled) {
         shuffle=enabled; getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean("shuffle",enabled).apply(); changed();
     }
@@ -100,7 +109,7 @@ public class PlaybackService extends Service {
     }
     private void applyLoop(boolean enabled) {
         repeat=enabled;
-        worker.post(()->{ if(handle!=0 && current!=null) Engine.setLoop(handle,enabled,current.length); changed(); });
+        worker.post(()->{ if(handle!=0 && loaded!=null) Engine.setLoop(handle,enabled,loaded.length); changed(); });
     }
     public int nextIndex(int delta) {
         if(queue.isEmpty()) return -1;
@@ -110,25 +119,53 @@ public class PlaybackService extends Service {
         int n=nextIndex(delta); if(n>=0) play(queue,n);
     }
     public void seek(int ms) {
+        final Library.Track requested=current;
         worker.post(()->{
-            if(handle==0 || current==null) return;
-            try { if(audio!=null) { audio.pause(); audio.flush(); } Engine.seek(handle,Math.max(0,Math.min(ms,repeat?Math.max(current.length,position):current.length))); Engine.setLoop(handle,repeat,current.length); position=Engine.tell(handle); if(playing && audio!=null) audio.play(); changed(); }
-            catch(Exception e) { failed(e); }
+            if(handle==0 || loaded==null || loaded!=requested) return;
+            try {
+                cancelSeek(); worker.removeCallbacks(pump);
+                if(audio!=null) { audio.pause(); audio.flush(); }
+                pcmOffset=pcm.length; pcmEnded=false;
+                seeking.begin(Math.max(0,Math.min(ms,repeat?Math.max(loaded.length,position):loaded.length)));
+                worker.post(seekStep);
+            } catch(Exception e) { failed(e); }
         });
     }
+    private void cancelSeek() { seeking.cancel(); worker.removeCallbacks(seekStep); }
+    private final Runnable seekStep=new Runnable() { public void run() {
+        if(!seeking.active() || handle==0) return;
+        try {
+            seeking.step(new PlaybackSeek.Decoder() {
+                public int tell() { return Engine.tell(handle); }
+                public void seek(int ms) throws java.io.IOException { Engine.seek(handle,ms); }
+                public void restoreMode() { Engine.setLoop(handle,repeat,loaded.length); }
+            });
+            position=Engine.tell(handle);
+            long now=SystemClock.elapsedRealtime();
+            if(!seeking.active() || now-lastSeekUpdate>=200) { lastSeekUpdate=now; changed(); }
+            if(seeking.active()) worker.post(this);
+            else if(playing && audio!=null) { audio.play(); worker.post(pump); }
+        } catch(Exception e) { failed(e); }
+    }};
     private final Runnable pump=new Runnable() { public void run() {
         if(!playing || handle==0) return;
         try {
-            boolean ended=Engine.render(handle,pcm);
-            levels=spectrum.analyze(pcm);
-            int offset=0; while(offset<pcm.length) { int n=audio.write(pcm,offset,pcm.length-offset); if(n<=0) throw new java.io.IOException("Audio output unavailable ("+n+")"); offset+=n; }
+            if(pcmOffset==pcm.length) {
+                pcmEnded=Engine.render(handle,pcm); pcmOffset=0;
+                levels=spectrum.analyze(pcm);
+            }
+            // Never block the control worker waiting for the device's audio sink.
+            int n=audio.write(pcm,pcmOffset,pcm.length-pcmOffset,AudioTrack.WRITE_NON_BLOCKING);
+            if(n<0) throw new java.io.IOException("Audio output unavailable ("+n+")");
+            pcmOffset+=n;
             position=Engine.tell(handle);
-            if(ended) { playing=false; main.post(()->{ if(repeat) play(queue,index); else next(1); }); }
+            if(pcmOffset==pcm.length && pcmEnded) { playing=false; main.post(()->{ if(repeat) play(queue,index); else next(1); }); }
+            else if(pcmOffset<pcm.length) worker.postDelayed(this,10);
             else worker.post(this);
         } catch(Exception e) { failed(e); }
     }};
     private void failed(Exception e) { error="Cannot play this track: "+e.getMessage(); playing=false; releaseAudio(); changed(); }
-    private void releaseAudio() { playing=false; levels=new float[AudioSpectrum.BANDS]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
+    private void releaseAudio() { cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
     private void changed() { main.post(()->{
         if(destroyed) return;
         if(current!=null) {
