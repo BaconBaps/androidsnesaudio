@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
         styleMode(repeatButton,player!=null && player.repeat,"↻","Continuous loop");
         shuffleButton.setEnabled(player!=null); repeatButton.setEnabled(player!=null);
         updateVisualizer();
-        if(!loaded) { nowTitle.setText("No track selected"); nowArtist.setText("Choose a track to press play"); playButton.setText("▶"); playButton.setContentDescription("Play"); seek.setProgress(0); time.setText("0:00   /   --:--"); return; }
+        if(!loaded) { nowTitle.setText(R.string.no_track_selected); nowArtist.setText(R.string.choose_track); playButton.setText("▶"); playButton.setContentDescription("Play"); seek.setProgress(0); time.setText(getString(R.string.position_and_duration,clock(0),"--:--")); return; }
         Library.Track t=player.current; nowTitle.setText(t.title); nowArtist.setText(getString(R.string.artist_and_game,t.artist.isEmpty()?"Unknown artist":t.artist,t.game));
         playButton.setText(player.playing?"Ⅱ":"▶"); playButton.setContentDescription(player.playing?"Pause":"Play");
         if(!seeking) { seek.setMax(player.repeat?Math.max(t.length,player.position):t.length); seek.setProgress(Math.min(player.position,seek.getMax())); updateTime(player.position); }
