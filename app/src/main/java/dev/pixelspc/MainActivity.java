@@ -14,15 +14,10 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class MainActivity extends Activity {
-    private int backgroundColor,textColor,mutedColor,accentColor,borderColor,secondaryColor;
+    private int backgroundColor,textColor,mutedColor,accentColor,borderColor;
     private PlayerTheme theme;
     private Typeface pixel;
     private Library library;
-    private ArtworkCatalog artwork;
-    private ImageView artworkImage;
-    private LinearLayout artworkOptions;
-    private TextView artworkMode;
-    private String artworkKey="";
     private Library.Game selected;
     private PlaybackService player;
     private LinearLayout root,trackList;
@@ -42,7 +37,7 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         applyPalette(PlayerTheme.find(getSharedPreferences("appearance",MODE_PRIVATE).getString("theme","light")));
         pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
-        try { artwork=new ArtworkCatalog(this); library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
+        try { library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
         catch(Exception e) { dialog().setTitle("Library could not be read").setMessage(e.getMessage()).setPositiveButton("Close",(d,w)->finish()).show(); return; }
         buildUI();
     }
@@ -52,6 +47,7 @@ public class MainActivity extends Activity {
     private final Runnable tick=new Runnable() { public void run() { updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
     private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setFontFeatureSettings("kern"); return t; }
+    private TextView trackTitle(String label,int size,int color) { BouncingTextView view=new BouncingTextView(this); view.setText(label); view.setTextSize(size); view.setTextColor(color); return view; }
     private TextView pixel(String s,int size,int color) { TextView t=text(s,size,color); t.setTypeface(pixel); return t; }
     private LinearLayout column() { LinearLayout l=new LinearLayout(this); l.setOrientation(LinearLayout.VERTICAL); return l; }
     private LinearLayout row() { LinearLayout l=new LinearLayout(this); l.setGravity(Gravity.CENTER_VERTICAL); return l; }
@@ -73,15 +69,8 @@ public class MainActivity extends Activity {
         libraryButton=button("LIBRARY ▾",accentColor,backgroundColor); libraryButton.setContentDescription("Open music library"); add(root,libraryButton,-1,44); libraryButton.setOnClickListener(v->chooseGame()); gap(root,12);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=column(); scroll.addView(content); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        FrameLayout media=new FrameLayout(this); media.setBackground(bg(theme.surface,borderColor));
-        visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(theme); media.addView(visualizer,new FrameLayout.LayoutParams(-1,-1));
-        artworkImage=new ImageView(this); artworkImage.setScaleType(ImageView.ScaleType.FIT_CENTER); artworkImage.setPadding(dp(12),dp(12),dp(12),dp(12)); media.addView(artworkImage,new FrameLayout.LayoutParams(-1,-1)); add(content,media,-1,158);
-        artworkOptions=row(); artworkMode=button("ARTWORK",accentColor,theme.surface); artworkMode.setContentDescription("Toggle artwork and visualizer");
-        artworkOptions.addView(artworkMode,new LinearLayout.LayoutParams(0,dp(34),1));
-        TextView chooseImage=button("CHOOSE IMAGE",accentColor,backgroundColor); chooseImage.setContentDescription("Choose SNES artwork for this game"); artworkOptions.addView(chooseImage,new LinearLayout.LayoutParams(0,dp(34),1));
-        artworkMode.setOnClickListener(v->{ if(artwork.find(selected)==null) chooseArtwork(selected); else { boolean show=getSharedPreferences("artwork",MODE_PRIVATE).getBoolean("show",true); getSharedPreferences("artwork",MODE_PRIVATE).edit().putBoolean("show",!show).apply(); refreshArtwork(); } });
-        chooseImage.setOnClickListener(v->chooseArtwork(selected)); add(content,artworkOptions,-1,-2); artworkKey=""; gap(content,16);
-        LinearLayout titleRow=row(); gameTitle=text("Your music library",25,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); titleRow.addView(gameTitle,new LinearLayout.LayoutParams(0,-2,1)); TextView chip=pixel("16-BIT",7,theme.chipText); chip.setPadding(dp(9),dp(9),dp(9),dp(9)); chip.setBackground(bg(secondaryColor,0)); add(titleRow,chip,-2,-2); add(content,titleRow,-1,-2); gap(content,5);
+        visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(theme); add(content,visualizer,-1,158); gap(content,16);
+        gameTitle=text("Your music library",25,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); add(content,gameTitle,-1,-2); gap(content,5);
         gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2); gap(content,17);
         LinearLayout listHeader=row(); TextView tracks=pixel("TRACKLIST",8,textColor); listHeader.addView(tracks,new LinearLayout.LayoutParams(0,-2,1)); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,26); rule(content);
         trackList=column(); add(content,trackList,-1,-2); gap(content,14);
@@ -89,11 +78,11 @@ public class MainActivity extends Activity {
         TextView formats=text("SPC  /  RSN  /  ZIP  +  more retro formats",10,mutedColor); formats.setGravity(Gravity.CENTER); add(content,formats,-1,24); gap(content,16);
         rule(root); gap(root,12);
         LinearLayout playerHeading=row(); TextView tag=pixel("NOW PLAYING",7,accentColor); playerHeading.addView(tag,new LinearLayout.LayoutParams(0,-2,1)); TextView quality=pixel("♪  44.1 kHz",6,mutedColor); add(playerHeading,quality,-2,-2); add(root,playerHeading,-1,18);
-        nowTitle=text("No track selected",17,textColor); nowTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); nowTitle.setSingleLine(true); nowTitle.setEllipsize(android.text.TextUtils.TruncateAt.END); add(root,nowTitle,-1,26);
+        nowTitle=trackTitle("No track selected",17,textColor); nowTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(root,nowTitle,-1,26);
         nowArtist=text("Choose a track to press play",11,mutedColor); nowArtist.setSingleLine(true); add(root,nowArtist,-1,22);
-        seek=new SeekBar(this); seek.setPadding(0,0,0,0); seek.setProgressTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(borderColor)); seek.setThumbTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setContentDescription("Playback position"); add(root,seek,-1,24);
+        seek=new SeekBar(this); seek.setPadding(dp(12),0,dp(12),0); seek.setProgressTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(borderColor)); seek.setThumbTintList(android.content.res.ColorStateList.valueOf(accentColor)); seek.setContentDescription("Playback position"); LinearLayout.LayoutParams seekParams=new LinearLayout.LayoutParams(-1,dp(28)); seekParams.setMargins(dp(18),0,dp(18),0); root.addView(seek,seekParams);
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { public void onProgressChanged(SeekBar s,int p,boolean user) { if(user) updateTime(p); } public void onStartTrackingTouch(SeekBar s) { seeking=true; } public void onStopTrackingTouch(SeekBar s) { seeking=false; if(player!=null) player.seek(s.getProgress()); } });
-        time=text("0:00                                                      --:--",10,mutedColor); time.setTypeface(Typeface.MONOSPACE); add(root,time,-1,18);
+        time=text("0:00   /   --:--",10,mutedColor); time.setTypeface(Typeface.MONOSPACE); add(root,time,-1,18);
         LinearLayout controls=row(); controls.setGravity(Gravity.CENTER);
         shuffleButton=button("⇄",mutedColor,backgroundColor); shuffleButton.setTypeface(Typeface.DEFAULT); shuffleButton.setTextSize(10); shuffleButton.setContentDescription("Toggle shuffle"); add(controls,shuffleButton,50,54); shuffleButton.setOnClickListener(v->{ if(player!=null) { player.setShuffle(!player.shuffle); updatePlayer(); Toast.makeText(this,player.shuffle?"Shuffle on · next track is random":"Shuffle off · play in order",Toast.LENGTH_SHORT).show(); } });
         TextView prev=button("|◀",textColor,backgroundColor); prev.setContentDescription("Previous track"); add(controls,prev,54,44); prev.setOnClickListener(v->{ if(player!=null) player.next(-1); });
@@ -105,7 +94,6 @@ public class MainActivity extends Activity {
     }
     public void renderTracks() {
         if(trackList==null) return;
-        refreshArtwork();
         trackList.removeAllViews(); gameTitle.setText(selected==null?"Your music library":selected.name);
         gameMeta.setText(selected==null?"Import a track or a game set.":systemLabel(selected)+"  ·  "+selected.tracks.size()+" tracks  ·  Local files");
         status.setText(busy?"IMPORTING…":selected==null?"READY":String.format(Locale.ROOT,"%02d TRACKS",selected.tracks.size()));
@@ -116,7 +104,7 @@ public class MainActivity extends Activity {
             final int index=i; Library.Track track=selected.tracks.get(i); boolean active=player!=null && player.current!=null && track.path.equals(player.current.path) && track.index==player.current.index;
             LinearLayout line=row(); line.setPadding(dp(10),dp(7),dp(10),dp(7)); if(active) line.setBackground(bg(theme.surface,0));
             TextView number=pixel(active && player.playing?"▮▮":String.format(Locale.ROOT,"%02d",i+1),8,active?accentColor:mutedColor); add(line,number,34,26);
-            LinearLayout names=column(); TextView title=text(track.title,14,active?accentColor:textColor); title.setSingleLine(true); title.setEllipsize(android.text.TextUtils.TruncateAt.END); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(track.artist.isEmpty()?track.system:track.artist,10,mutedColor); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active?accentColor:textColor); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(track.artist.isEmpty()?track.system:track.artist,10,mutedColor); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
             if(track.loopLength>0) {
                 boolean looping=player!=null && player.isLooping(track);
                 TextView mode=button(looping?"LOOP":"STRAIGHT",looping?theme.onAccent:accentColor,looping?accentColor:theme.surface);
@@ -153,8 +141,8 @@ public class MainActivity extends Activity {
     private void styleMode(TextView button,boolean enabled,String icon,String name) {
         android.text.SpannableString label=new android.text.SpannableString(icon+"\n"+(enabled?"ON":"OFF"));
         label.setSpan(new android.text.style.RelativeSizeSpan(2f),0,icon.length(),0);
-        button.setText(label); button.setTextColor(enabled?theme.onAccent:mutedColor);
-        button.setBackground(bg(enabled?accentColor:backgroundColor,borderColor));
+        button.setText(label); button.setTextColor(enabled?accentColor:mutedColor);
+        button.setBackground(null);
         button.setSelected(enabled); button.setContentDescription(name+" "+(enabled?"on":"off"));
     }
     private void updateVisualizer() {
@@ -162,22 +150,9 @@ public class MainActivity extends Activity {
     }
     private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":player.repeat?"∞ LOOP":clock(player.current.length); time.setText(getString(R.string.position_and_duration,clock(ms),end)); }
     public static String clock(int ms) { return String.format(Locale.ROOT,"%d:%02d",Math.max(ms,0)/60000,(Math.max(ms,0)/1000)%60); }
-    private void refreshArtwork() {
-        if(artworkImage==null) return;
-        ArtworkCatalog.Item item=artwork.find(selected);
-        boolean show=item!=null && getSharedPreferences("artwork",MODE_PRIVATE).getBoolean("show",true);
-        artworkOptions.setVisibility(ArtworkCatalog.isSnes(selected)?View.VISIBLE:View.GONE);
-        artworkImage.setVisibility(show?View.VISIBLE:View.GONE); visualizer.setVisibility(show?View.GONE:View.VISIBLE);
-        artworkMode.setText(item==null?"NO MATCH":show?"ARTWORK":"VISUALIZER");
-        artworkMode.setSelected(show); artworkMode.setTextColor(show?theme.onAccent:accentColor); artworkMode.setBackground(bg(show?accentColor:theme.surface,borderColor));
-        String key=item==null?"none":item.file;
-        if(!key.equals(artworkKey)) { artworkKey=key; artwork.bind(artworkImage,item,512); }
-        artworkImage.setContentDescription(selected==null?"SNES game artwork":selected.name+" artwork");
-    }
     private View gameRow(Library.Game game) {
         LinearLayout line=row(); line.setPadding(dp(8),dp(10),dp(8),dp(10));
-        ImageView image=new ImageView(this); image.setScaleType(ImageView.ScaleType.FIT_CENTER); image.setBackground(bg(theme.surface,0)); image.setContentDescription(game.name+" thumbnail"); add(line,image,80,60); artwork.bind(image,artwork.find(game),128);
-        LinearLayout names=column(); names.setPadding(dp(12),0,0,0); TextView title=text(game.name,16,textColor); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(game.tracks.size()+" tracks · "+systemLabel(game),11,mutedColor),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); return line;
+        LinearLayout names=column();  TextView title=text(game.name,16,textColor); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(game.tracks.size()+" tracks · "+systemLabel(game),11,mutedColor),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); return line;
     }
     private void chooseGame() {
         if(library.games.isEmpty()) { pickFile(); return; }
@@ -190,32 +165,6 @@ public class MainActivity extends Activity {
         LinearLayout panel=column(); add(panel,list,-1,Math.min(420,library.games.size()*84));
         AlertDialog picker=dialog().setTitle("Library").setView(panel).setPositiveButton("IMPORT MUSIC",(d,w)->pickFile()).setNegativeButton("CLOSE",null).show();
         list.setOnItemClickListener((parent,view,position,id)->{ selected=library.games.get(position); picker.dismiss(); renderTracks(); });
-    }
-    private void chooseArtwork(Library.Game game) {
-        if(!ArtworkCatalog.isSnes(game)) return;
-        LinearLayout panel=column(); EditText search=new EditText(this); search.setTextColor(textColor); search.setHintTextColor(mutedColor); search.setHint("Search SNES game images"); search.setSingleLine(true); add(panel,search,-1,48);
-        ListView list=new ListView(this); list.setBackgroundColor(backgroundColor); add(panel,list,-1,320);
-        List<ArtworkCatalog.Item> all=new ArrayList<>(); Set<String> files=new HashSet<>();
-        for(ArtworkCatalog.Item item:artwork.items) if(files.add(item.file)) all.add(item);
-        List<ArtworkCatalog.Item> filtered=new ArrayList<>(all);
-        BaseAdapter adapter=new BaseAdapter() {
-            public int getCount() { return filtered.size(); }
-            public Object getItem(int position) { return filtered.get(position); }
-            public long getItemId(int position) { return position; }
-            public View getView(int position,View old,ViewGroup parent) {
-                ArtworkCatalog.Item item=filtered.get(position); LinearLayout line=row(); line.setPadding(dp(8),dp(6),dp(8),dp(6));
-                ImageView image=new ImageView(MainActivity.this); image.setScaleType(ImageView.ScaleType.FIT_CENTER); image.setBackground(bg(theme.surface,0)); add(line,image,80,50); artwork.bind(image,item,128);
-                TextView title=text(ArtworkNames.display(item.name),14,textColor); title.setPadding(dp(10),0,0,0); title.setMaxLines(2); line.addView(title,new LinearLayout.LayoutParams(0,-2,1)); return line;
-            }
-        };
-        list.setAdapter(adapter);
-        AlertDialog picker=dialog().setTitle("SNES artwork").setView(panel).setNeutralButton("AUTO MATCH",(d,w)->{ artwork.choose(game,null); refreshArtwork(); }).setNegativeButton("CANCEL",null).show();
-        list.setOnItemClickListener((parent,view,position,id)->{ artwork.choose(game,filtered.get(position)); getSharedPreferences("artwork",MODE_PRIVATE).edit().putBoolean("show",true).apply(); picker.dismiss(); refreshArtwork(); });
-        search.addTextChangedListener(new android.text.TextWatcher() {
-            public void beforeTextChanged(CharSequence s,int start,int count,int after) {}
-            public void onTextChanged(CharSequence s,int start,int before,int count) { String key=ArtworkNames.key(s.toString()); filtered.clear(); for(ArtworkCatalog.Item item:all) if(ArtworkNames.key(item.name).contains(key)) filtered.add(item); adapter.notifyDataSetChanged(); }
-            public void afterTextChanged(android.text.Editable s) {}
-        });
     }
     private void pickFile() {
         if(busy) { Toast.makeText(this,"A soundtrack is already importing",Toast.LENGTH_SHORT).show(); return; }
@@ -234,7 +183,7 @@ public class MainActivity extends Activity {
     }
     private void applyPalette(PlayerTheme palette) {
         theme=palette; backgroundColor=palette.background; textColor=palette.text; mutedColor=palette.muted;
-        accentColor=palette.accent; borderColor=palette.border; secondaryColor=palette.secondary;
+        accentColor=palette.accent; borderColor=palette.border;
     }
     void selectTheme(String id) {
         applyPalette(PlayerTheme.find(id));
@@ -274,7 +223,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.4").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("PixelSPC · v1.5").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

@@ -1,6 +1,8 @@
 # Validation evidence
 
-Executed in the managed Linux cloud environment on 21 October 2026.
+Android/UI checks updated in the managed Linux cloud environment on 22 October
+2026. The native decoder sample checks below were performed on 21 October 2026;
+the audio decoder is unchanged.
 
 ## Command-line Android build
 
@@ -15,15 +17,12 @@ Executed in the managed Linux cloud environment on 21 October 2026.
 
 ## Automated tests
 
-Twenty-two JUnit/Robolectric tests, zero failures and zero skipped:
+Nineteen JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
-- Reassembled both uploaded ZIP volumes and checked every ZIP CRC.
-- Checked all 336 distinct PNGs have valid image bounds; representative logos decode.
-- Actual sample metadata joins: Donkey Kong Country and Street Fighter 2 Turbo.
-- Artwork filename normalization, sequel separation, and strict SNES-only gating.
-- Manual association persistence, auto-match reset, library thumbnails, and the
-  artwork/visualizer switch with the supplied assets.
+- Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
+  updates, and short titles remaining still.
+- No artwork UI or fixed 16-bit label; borderless mode buttons and inset seek bar.
 - Persistent library restoration, track names/durations, and paused-player progress.
 - Format recognition and time labels.
 - Two-column theme preview grid, selected-card indication, selection and persistence
@@ -60,8 +59,8 @@ Results:
 - Oversized extraction rejected and partial files cleaned up.
 - Archive paths could not escape the destination directory.
 
-The music samples remain outside the repository and APK. User-supplied SNES
-artwork is bundled in the APK and documented in THIRD_PARTY.md.
+The music samples remain outside the repository and APK. Game artwork and
+matching code are removed; the APK is checked for absence of the old artwork pack.
 
 ## Screenshots and remaining device checks
 
@@ -69,8 +68,7 @@ artwork is bundled in the APK and documented in THIRD_PARTY.md.
 view hierarchy. The soundtrack images use a seven-track metadata fixture; the
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
-than captured device audio when the visualizer is selected. Artwork shown in
-these renders comes from the actual supplied SNES pack. The track-row loop tag shown for the fixture is
+than captured device audio on every system. The track-row loop tag shown for the fixture is
 synthetic too; sample music is not modified. All 12 theme renders retain the
 selected track and progress and omit the removed footer and adventure text. These are not emulator
 or physical-device captures, and do not establish Android speaker output.

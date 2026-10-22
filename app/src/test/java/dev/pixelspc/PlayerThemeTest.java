@@ -13,7 +13,6 @@ public class PlayerThemeTest {
             assertTrue(t.name+" accent text",PlayerTheme.contrast(t.background,t.accent)>=4.5);
             assertTrue(t.name+" active track",PlayerTheme.contrast(t.surface,t.accent)>=4.5);
             assertTrue(t.name+" play button",PlayerTheme.contrast(t.accent,t.onAccent)>=4.5);
-            assertTrue(t.name+" badge",PlayerTheme.contrast(t.secondary,t.chipText)>=4.5);
         }
         assertSame(PlayerTheme.ALL[0],PlayerTheme.find("retired-theme"));
     }

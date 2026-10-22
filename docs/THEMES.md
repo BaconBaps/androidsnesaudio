@@ -19,7 +19,7 @@ Original lavender and cream.
 
 ## Pixel Dark
 
-Midnight ink and lavender.
+Deep ocean and electric teal.
 
 <img src="screenshots/theme-dark.png" width="240" alt="Pixel Dark player palette" />
 
@@ -31,13 +31,13 @@ US hardware gray and purple.
 
 ## Super Famicom
 
-Red, blue, green, and yellow buttons.
+Dark navy with red and gold button colors.
 
 <img src="screenshots/theme-super-famicom.png" width="240" alt="Super Famicom player palette" />
 
 ## NES
 
-Light gray, charcoal, and red.
+Graphite shell and cartridge red.
 
 <img src="screenshots/theme-nes.png" width="240" alt="NES player palette" />
 
@@ -55,30 +55,30 @@ Four shades of the original LCD.
 
 ## Mega Drive / Genesis
 
-Black hardware and red lettering.
+Black hardware with Sega blue and red.
 
 <img src="screenshots/theme-mega-drive.png" width="240" alt="Mega Drive / Genesis player palette" />
 
 ## Dreamcast
 
-Ivory hardware and orange spiral.
+Amber dusk and the orange spiral.
 
 <img src="screenshots/theme-dreamcast.png" width="240" alt="Dreamcast player palette" />
 
 ## PlayStation
 
-Cool gray hardware and logo blue.
+Steel blue shell and logo gold.
 
 <img src="screenshots/theme-playstation.png" width="240" alt="PlayStation player palette" />
 
 ## Nintendo 64
 
-Charcoal hardware and colorful logo.
+Forest green with logo yellow and blue.
 
 <img src="screenshots/theme-n64.png" width="240" alt="Nintendo 64 player palette" />
 
 ## GameCube
 
-Indigo hardware and lavender cube.
+Deep violet shell and mint highlights.
 
 <img src="screenshots/theme-gamecube.png" width="240" alt="GameCube player palette" />

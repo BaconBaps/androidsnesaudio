@@ -2,7 +2,7 @@
 
 PixelSPC application code and original artwork are provided under the MIT license.
 No game music or ROMs are distributed in this repository or APK.
-The user-supplied SNES image pack described below is included.
+No game artwork is bundled; the player uses its audio-driven pixel spectrum.
 
 ## Game Music Emu
 
@@ -41,15 +41,3 @@ Font and license: `app/src/main/assets/fonts/`.
 Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
 (their respective Android/Apache licenses), JUnit (EPL 1.0), Robolectric (MIT).
 They are build dependencies and are not packaged as app functionality.
-
-## User-supplied SNES artwork
-
-The user supplied `snes.zip` and `snes.z01`, joined and CRC-checked during development.
-The pack contains 379 PNG filename references. There are 336 distinct PNG files;
-43 identical duplicates share the same unchanged image bytes in the APK.
-Original names and asset paths are recorded in `app/src/main/assets/snes-artwork.json`.
-The images are bundled under `app/src/main/assets/snes-artwork/`.
-
-Game artwork and trademarks remain the property of their respective owners and
-are not covered by the PixelSPC MIT license. These assets were supplied for use
-in this application; they are not artwork created by the PixelSPC contributors.

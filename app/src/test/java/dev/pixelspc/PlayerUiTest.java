@@ -25,8 +25,6 @@ public class PlayerUiTest {
         app.getSharedPreferences("appearance",0).edit().clear().commit();
         app.getSharedPreferences("playback",0).edit().clear().commit();
         serviceController=Robolectric.buildService(PlaybackService.class).create(); service=serviceController.get();
-        app.getSharedPreferences("artwork",0).edit().clear().commit();
-        try { ArtworkCatalog art=new ArtworkCatalog(app); art.load(art.match("Donkey Kong Country"),512); art.load(art.match("Donkey Kong Country"),128); art.load(art.match("Street Fighter 2 Turbo"),512); } catch(Exception e) { throw new AssertionError(e); }
         Shadows.shadowOf(app).setComponentNameAndServiceForBindService(new android.content.ComponentName(app,PlaybackService.class),service.onBind(new android.content.Intent()));
     }
     @After public void releaseService() { serviceController.destroy(); }
@@ -42,7 +40,11 @@ public class PlayerUiTest {
             assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction()); assertEquals("*/*",picker.getType());
             assertFalse(text(a.getWindow().getDecorView()).contains("A little player"));
             assertFalse(text(a.getWindow().getDecorView()).contains("YOUR SOUNDTRACKS"));
+            assertFalse(text(a.getWindow().getDecorView()).contains("16-BIT"));
+            assertNull(findDescription(a.getWindow().getDecorView(),"Toggle artwork and visualizer"));
             capture(a,"empty-library.png");
+            assertTrue(((android.view.ViewGroup.MarginLayoutParams)seek.getLayoutParams()).leftMargin>=a.dp(18));
+            assertTrue(((android.view.ViewGroup.MarginLayoutParams)seek.getLayoutParams()).rightMargin>=a.dp(18));
             View library=findDescription(a.getWindow().getDecorView(),"Open music library");
             assertEquals(((View)library.getParent()).getWidth()-((View)library.getParent()).getPaddingLeft()-((View)library.getParent()).getPaddingRight(),library.getWidth());
         }
@@ -57,28 +59,16 @@ public class PlayerUiTest {
             MainActivity a=c.get(); String visible=text(a.getWindow().getDecorView());
             assertTrue(visible.contains("Donkey Kong Country")); assertTrue(visible.contains("DK Island Swing")); assertTrue(visible.contains("3:58"));
             capture(a,"soundtrack-library.png");
-            View image=findDescription(a.getWindow().getDecorView(),"Donkey Kong Country artwork"); assertNotNull(image); assertEquals(View.VISIBLE,image.getVisibility()); assertNotNull(((ImageView)image).getDrawable());
-            findDescription(a.getWindow().getDecorView(),"Toggle artwork and visualizer").performClick(); assertEquals(View.GONE,image.getVisibility());
-            findDescription(a.getWindow().getDecorView(),"Toggle artwork and visualizer").performClick(); assertEquals(View.VISIBLE,image.getVisibility());
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
             AlertDialog browser=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            captureView(browser.getWindow().getDecorView(),"library-artwork.png",720,450);
-            View thumbnail=findDescription(browser.getWindow().getDecorView(),"Donkey Kong Country thumbnail"); assertNotNull(thumbnail); assertNotNull(((ImageView)thumbnail).getDrawable()); browser.dismiss();
-            findDescription(a.getWindow().getDecorView(),"Choose SNES artwork for this game").performClick();
-            AlertDialog images=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            EditText search=findType(images.getWindow().getDecorView(),EditText.class); assertNotNull(search); search.setText("Street Fighter II Turbo");
-            ListView choices=findType(images.getWindow().getDecorView(),ListView.class); assertEquals(1,choices.getAdapter().getCount()); choices.performItemClick(null,0,0);
-            assertEquals(new ArtworkCatalog(app).match("Street Fighter 2 Turbo").file,new ArtworkCatalog(app).find(new Library(app).games.get(0)).file);
-            findDescription(a.getWindow().getDecorView(),"Choose SNES artwork for this game").performClick();
-            ((AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog()).getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick();
-            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            assertEquals(new ArtworkCatalog(app).match("Donkey Kong Country").file,new ArtworkCatalog(app).find(new Library(app).games.get(0)).file);
+            captureView(browser.getWindow().getDecorView(),"library-browser.png",720,450); browser.dismiss();
             // A paused UI fixture exercises the real player layout without mocking sound output.
             Library saved=new Library(app); service.queue=saved.games.get(0).tracks;
             service.current=service.queue.get(2); service.index=2; service.position=73000;
             service.listener.run();
             assertTrue(findSeek(a.getWindow().getDecorView()).isEnabled()); assertEquals(73000,findSeek(a.getWindow().getDecorView()).getProgress());
             capture(a,"player-paused.png");
+            assertTrue(findText(a.getWindow().getDecorView(),"DK Island Swing") instanceof BouncingTextView);
             View trackMode=findDescription(a.getWindow().getDecorView(),"Loop mode for DK Island Swing: straight");
             assertNotNull(trackMode); assertNull(findDescription(a.getWindow().getDecorView(),"Loop mode for Theme: straight"));
             trackMode.performClick(); assertTrue(service.repeat); assertTrue(service.isLooping(service.current));
@@ -105,7 +95,7 @@ public class PlayerUiTest {
             View loop=findDescription(c.get().getWindow().getDecorView(),"Continuous loop off");
             assertNotNull(shuffle); assertNotNull(loop); assertTrue(shuffle.isEnabled()); assertTrue(loop.isEnabled());
             shuffle.performClick(); loop.performClick(); assertTrue(service.shuffle); assertTrue(service.repeat);
-            assertTrue(shuffle.isSelected()); assertTrue(loop.isSelected());
+            assertTrue(shuffle.isSelected()); assertTrue(loop.isSelected()); assertNull(shuffle.getBackground()); assertNull(loop.getBackground());
             assertTrue(((TextView)shuffle).getText().toString().contains("ON")); assertTrue(((TextView)loop).getText().toString().contains("ON"));
             c.recreate();
             assertTrue(findDescription(c.get().getWindow().getDecorView(),"Shuffle on").isSelected());
@@ -138,7 +128,6 @@ public class PlayerUiTest {
     private SeekBar findSeek(View v) { if(v instanceof SeekBar) return (SeekBar)v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { SeekBar s=findSeek(((ViewGroup)v).getChildAt(i)); if(s!=null) return s; } return null; }
     private View findText(View v,String label) { if(v instanceof TextView && label.contentEquals(((TextView)v).getText())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findText(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private View findDescription(View v,String label) { if(label.contentEquals(v.getContentDescription()==null?"":v.getContentDescription())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findDescription(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
-    private <T extends View> T findType(View view,Class<T> type) { if(type.isInstance(view)) return type.cast(view); if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) { T found=findType(((ViewGroup)view).getChildAt(i),type); if(found!=null) return found; } return null; }
     private GridLayout findGrid(View view) { if(view instanceof GridLayout) return (GridLayout)view; if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) { GridLayout grid=findGrid(((ViewGroup)view).getChildAt(i)); if(grid!=null) return grid; } return null; }
     private void capture(MainActivity a,String name) throws Exception { captureView(a.getWindow().getDecorView(),name,822,1782); }
     private void captureView(View view,String name,int width,int height) throws Exception {

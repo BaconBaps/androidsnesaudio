@@ -1,7 +1,7 @@
 # PixelSPC
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-lavender controls, and a local library for the games you grew up with.
+twelve retro palettes, and a local library for the games you grew up with.
 
 <img src="docs/screenshots/theme-dark.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
 
@@ -16,32 +16,16 @@ Tap **Import music**, or **Library → Import another soundtrack**, and select y
 file using Android's file picker. Tap a track to play. Use the fixed player panel
 for pause, previous/next, seeking, shuffle, and continuous looping. The outer
 buttons show ON/OFF states: left is Shuffle (changes the next track), right is
-Loop (lets the current sound program keep running). Both preferences are saved.
+Loop (lets the current sound program keep running). These two controls are
+borderless and show ON/OFF using text and accent color. Both preferences are saved.
+Long track titles scroll smoothly to the end and back, pausing at each edge; this
+works in the track list and Now Playing. The seek bar is inset from the panel edges.
 Playback continues in the background with notification and lock-screen controls. Headphone disconnect
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
 
 No music is bundled. Import your own files, including the example sets supplied
-for development. The app requests no Internet or broad storage permission. The supplied SNES
-artwork pack is bundled; there is no additional artwork-import step.
-
-## SNES artwork
-
-The included pack has 379 named SNES logos (336 unique, original PNG images).
-When you import an SPC or SPC set, the app joins its **game metadata** to image
-filenames, ignoring capitalization, punctuation, region/revision tags, and the
-`-marquee` suffix. Roman/numeric sequel names are normalized, so the supplied
-`Street Fighter 2 Turbo` music matches `Street Fighter II Turbo` artwork.
-Sequel numbers and meaningful subtitles stay distinct; there is no fuzzy guess.
-
-**Library** now shows artwork thumbnails for loaded games. The main panel shows
-matched artwork by default; tap **ARTWORK / VISUALIZER** beneath it to switch.
-The display preference survives restarts. Missing art falls back to the live
-visualizer. **CHOOSE IMAGE** opens a searchable picker for a saved manual match;
-**AUTO MATCH** clears that override. Associations use game titles, not song titles.
-This pack is used only for SPC/SNES sets; other systems keep the visualizer.
-
-[Artwork/library screenshot](docs/screenshots/library-artwork.png).
+for development. The app requests no Internet or broad storage permission.
 
 ## Themes
 
@@ -51,7 +35,10 @@ between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
 10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
 Mega Drive / Genesis, Dreamcast, PlayStation, Nintendo 64, and GameCube.
-The spectrum uses each theme’s accent and secondary colors.
+Seven palettes use darker backgrounds; five retain light hardware-inspired
+colors. Pixel Dark uses teal, Super Famicom navy/red, NES graphite, Dreamcast
+amber, PlayStation steel blue, and GameCube rich violet. The spectrum uses each
+theme’s accent and secondary colors.
 
 [Browse all 12 theme screenshots](docs/THEMES.md).
 

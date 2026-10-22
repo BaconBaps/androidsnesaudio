@@ -4,29 +4,28 @@ package dev.pixelspc;
 public final class PlayerTheme {
     public final String id,name,inspiration;
     public final boolean dark;
-    public final int background,text,muted,accent,onAccent,border,surface,secondary,chipText;
+    public final int background,text,muted,accent,onAccent,border,surface,secondary;
 
     private PlayerTheme(String id,String name,String inspiration,boolean dark,int background,int text,int accent,int secondary) {
         this.id=id; this.name=name; this.inspiration=inspiration; this.dark=dark;
         this.background=background; this.text=text; this.accent=accent; this.secondary=secondary;
         muted=blend(text,background,.24f); border=blend(background,text,.22f);
-        surface=blend(background,accent,dark?.18f:.06f);
+        surface=blend(background,accent,dark?.14f:.06f);
         onAccent=contrast(accent,0xff181820)>contrast(accent,0xffffffff)?0xff181820:0xffffffff;
-        chipText=contrast(secondary,0xff181820)>contrast(secondary,0xffffffff)?0xff181820:0xffffffff;
     }
     public static final PlayerTheme[] ALL={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),
-        new PlayerTheme("dark","Pixel Dark","Midnight ink & soft lavender",true,0xff181622,0xfff0eafa,0xffbda2ff,0xffb5d99b),
+        new PlayerTheme("dark","Pixel Dark","Deep ocean & electric teal",true,0xff08191e,0xffd6f3ef,0xff53d8d0,0xffffbd80),
         new PlayerTheme("snes","SNES","US hardware · gray & purple",false,0xffe7e5eb,0xff30283e,0xff6845aa,0xffc4b3df),
-        new PlayerTheme("super-famicom","Super Famicom","Button colors · red, blue, green & yellow",false,0xffeeeee9,0xff272c32,0xffb62c36,0xffe7c64a),
-        new PlayerTheme("nes","NES","Charcoal, light gray & cartridge red",false,0xffe7e6e2,0xff292929,0xffb72a36,0xffbfc0c2),
+        new PlayerTheme("super-famicom","Super Famicom","Navy shell · vivid red & gold buttons",true,0xff101f32,0xffeef2f8,0xffff7186,0xfff4cc49),
+        new PlayerTheme("nes","NES","Graphite shell & cartridge red",true,0xff303239,0xfff3f4f6,0xffff9b9b,0xffb9c1cd),
         new PlayerTheme("famicom","Famicom","Warm ivory & burgundy hardware",false,0xfff4e6cc,0xff4a2229,0xff922940,0xffd9b35a),
         new PlayerTheme("game-boy","Game Boy","Four shades of the original LCD",false,0xffd2dba0,0xff253b22,0xff38542a,0xff93a65b),
-        new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware & red lettering",true,0xff19191b,0xfff2eeee,0xffff737d,0xffaeb3bd),
-        new PlayerTheme("dreamcast","Dreamcast","Ivory hardware & orange spiral",false,0xfff5f1e9,0xff363230,0xffad4011,0xff9cc6df),
-        new PlayerTheme("playstation","PlayStation","Cool gray hardware & logo blue",false,0xffe3e5e6,0xff252d3c,0xff244c9d,0xffb5cc92),
-        new PlayerTheme("n64","Nintendo 64","Charcoal hardware & colorful logo",true,0xff1d2125,0xfff2f3ed,0xffefd34f,0xff76bb78),
-        new PlayerTheme("gamecube","GameCube","Indigo hardware & lavender cube",true,0xff211d3c,0xfff2edff,0xffb6a2f5,0xff9ed5ce)
+        new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
+        new PlayerTheme("dreamcast","Dreamcast","Amber dusk & orange spiral",true,0xff302012,0xfffff1d6,0xffffb45e,0xff87d2ed),
+        new PlayerTheme("playstation","PlayStation","Steel blue shell & logo gold",false,0xffcbd7e4,0xff182e52,0xff174d9f,0xffd6ab30),
+        new PlayerTheme("n64","Nintendo 64","Forest green · logo yellow & blue",true,0xff122d24,0xffedf4dd,0xffe9d455,0xff69a9f8),
+        new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6)
     };
     public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
     public String label() { return name+"\n"+inspiration; }
