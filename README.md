@@ -1,9 +1,9 @@
 # PixelSPC
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-twelve retro palettes, and a local library for the games you grew up with.
+thirteen retro palettes, and a local library for the games you grew up with.
 
-<img src="docs/screenshots/theme-dark.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
+<img src="docs/screenshots/theme-desktop-98.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
 
 ## Install without Android Studio
 
@@ -42,6 +42,19 @@ playback service is stopped.
 No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
 
+## Image-based player skin
+
+Original pixel PNGs give every theme raised metal borders, corner screws, inset
+displays, metallic section rails, pressed controls, and a ridged seek thumb. Six
+Android nine-patch images stretch the frames without stretching their corners.
+Grain tiles independently; dark skins add subtle screen scanlines, while light
+skins use quieter surfaces to preserve text contrast. The controls remain real
+Android views with accessible labels, and shuffle/loop stay borderless.
+
+Choose **Desktop ’98** at the top of the theme grid for midnight metal, phosphor
+green and brass details inspired by late-90s desktop players. Existing theme
+choices are preserved. [Skin assets and regeneration](docs/SKIN.md).
+
 ## Themes
 
 Tap the **diamond button (◈)** beside About to choose a palette
@@ -50,12 +63,12 @@ between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
 10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
 Mega Drive / Genesis, Dreamcast, PlayStation, Nintendo 64, and GameCube.
-Seven palettes use darker backgrounds; five retain light hardware-inspired
+Eight palettes use darker backgrounds; five retain light hardware-inspired
 colors. Pixel Dark uses teal, Super Famicom navy/red, NES graphite, Dreamcast
 amber, PlayStation steel blue, and GameCube rich violet. The spectrum uses each
 theme’s accent and secondary colors.
 
-[Browse all 12 theme screenshots](docs/THEMES.md).
+[Browse all 13 theme screenshots](docs/THEMES.md).
 
 ## Formats
 

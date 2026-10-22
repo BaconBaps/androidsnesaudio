@@ -119,13 +119,14 @@ public class PlayerUiTest {
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
             assertEquals(2,grid.getColumnCount()); assertEquals(PlayerTheme.ALL.length,grid.getChildCount());
-            assertTrue(grid.getChildAt(0).isSelected());
+            assertNotNull(findDescription(grid,"Select Pixel Light theme, selected"));
+            assertEquals("Select Desktop ’98 theme",grid.getChildAt(0).getContentDescription());
             try { captureView(dialog.getWindow().getDecorView(),"theme-picker.png",720,1500); } catch(Exception e) { throw new AssertionError(e); }
-            grid.getChildAt(1).performClick();
+            findDescription(grid,"Select Pixel Dark theme").performClick();
             assertEquals("dark",app.getSharedPreferences("appearance",0).getString("theme",null));
-            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((android.graphics.drawable.LayerDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getDrawable(0)).getColor());
             c.recreate();
-            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((android.graphics.drawable.LayerDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getDrawable(0)).getColor());
             assertFalse(text(c.get().getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
         }
     }

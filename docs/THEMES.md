@@ -7,9 +7,17 @@ logos are bundled.
 
 Renders below come from the actual Android UI using Robolectric and a playback
 metadata fixture with synthetic multitone PCM, rather than a physical device.
-The pixel spectrum uses the selected palette’s accent and secondary colors.
+The pixel spectrum uses the selected palette’s accent and secondary colors. All
+palettes share the original nine-patch metal frames and image-based controls;
+dark palettes have stronger grain, and light ones keep quieter text surfaces.
 
 <img src="screenshots/theme-picker.png" width="360" alt="Theme picker with a two-column grid of player previews" />
+
+## Desktop ’98
+
+Midnight metal, phosphor green, and brass rails. Featured first in the picker.
+
+<img src="screenshots/theme-desktop-98.png" width="240" alt="Desktop 98 player with metallic bitmap chrome and lime display" />
 
 ## Pixel Light
 

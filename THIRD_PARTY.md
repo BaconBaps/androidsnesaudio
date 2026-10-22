@@ -36,6 +36,13 @@ Copyright 2012 The Press Start 2P Project Authors.
 https://github.com/codeman38/PressStart2P — SIL Open Font License 1.1.
 Font and license: `app/src/main/assets/fonts/`.
 
+## Original player skin
+
+The nine-patches and PNG sprites in `app/src/main/res/drawable-*/` are
+original PixelSPC pixel artwork under this repository’s MIT license. Regenerate
+them with `python3 scripts/generate-skin.py`; no third-party skin images,
+Winamp artwork, logos, or music are bundled.
+
 ## Build and test tools
 
 Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools

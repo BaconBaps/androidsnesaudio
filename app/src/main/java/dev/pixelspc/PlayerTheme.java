@@ -25,7 +25,8 @@ public final class PlayerTheme {
         new PlayerTheme("dreamcast","Dreamcast","Amber dusk & orange spiral",true,0xff302012,0xfffff1d6,0xffffb45e,0xff87d2ed),
         new PlayerTheme("playstation","PlayStation","Steel blue shell & logo gold",false,0xffcbd7e4,0xff182e52,0xff174d9f,0xffd6ab30),
         new PlayerTheme("n64","Nintendo 64","Forest green · logo yellow & blue",true,0xff122d24,0xffedf4dd,0xffe9d455,0xff69a9f8),
-        new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6)
+        new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),
+        new PlayerTheme("desktop-98","Desktop ’98","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72)
     };
     public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
     public String label() { return name+"\n"+inspiration; }

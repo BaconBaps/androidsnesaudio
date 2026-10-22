@@ -1,7 +1,8 @@
 # Validation evidence
 
-Android/UI checks updated in the managed Linux cloud environment on 22 October
-2026, including the native sample checks below.
+Android/UI checks updated in the managed Linux cloud environment on 23 October
+2026 (Europe/London). Native decoder sample checks below were performed on
+22 October; this visual update does not change the decoder.
 
 ## Command-line Android build
 
@@ -16,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 22 October
 
 ## Automated tests
 
-Twenty-nine JUnit/Robolectric tests, zero failures and zero skipped:
+Thirty-two JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -27,7 +28,7 @@ Twenty-nine JUnit/Robolectric tests, zero failures and zero skipped:
 - Two-column theme preview grid, selected-card indication, selection and persistence
   across activity recreation.
 - Removed subtitle/section label and full-width Library button layout.
-- Readable text/button contrast across all 12 palettes, plus stable preference IDs.
+- Readable text/button contrast across all 13 palettes, plus stable preference IDs.
 - Tagged-track straight/loop controls and per-track preference overrides.
 - Shuffle next-track behavior and playback-mode persistence across service restart.
 - xid6 loop-tag parsing, padded fields, intro-only tags, and malformed metadata.
@@ -48,6 +49,12 @@ Twenty-nine JUnit/Robolectric tests, zero failures and zero skipped:
   rejects folder traversal.
 - Explicit Stop releases decoder/audio output, clears queue and notifications,
   completes its callback, and permits later playback.
+- Six image borders compile as real Android nine-patches; fixed corner pixels
+  remain unchanged across sizes, and control presses change edging without
+  changing the center or layout.
+- Pixel-sampled textured chassis and selected rows keep at least 4.5:1 text
+  contrast across all 13 themes. Desktop ’98 is featured in the picker, and theme
+  selection still survives recreation.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -89,7 +96,7 @@ view hierarchy. The library deletion image uses a one-track fixture; the soundtr
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
 than captured device audio on every system. The track-row loop tag shown for the fixture is
-synthetic too; sample music is not modified. All 12 theme renders retain the
+synthetic too; sample music is not modified. All 13 theme renders retain the
 selected track and progress and omit the removed footer and adventure text. These are not emulator
 or physical-device captures, and do not establish Android speaker output.
 
