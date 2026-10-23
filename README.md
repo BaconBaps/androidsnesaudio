@@ -95,6 +95,9 @@ shuffle and loop settings as the player; it does not start a separate decoder.
 
 <img src="docs/screenshots/homescreen-widget.png" width="360" alt="ChipPlayer 199x Now Playing home-screen widget" />
 
+The header uses the selected green sound-chip logo, with a transparent background
+and outlined lettering for light and dark palettes.
+
 ## Image-based player skin
 
 The tracklist and platform accordion use dimmed, untextured surfaces, with

@@ -8,11 +8,13 @@ import android.view.View;
 public final class ThemePreview extends View {
     private final PlayerTheme theme,playbackTheme,listTheme;
     private final Paint paint=new Paint();
+    private final ChipLogo logo;
+    private final RectF logoBox=new RectF(15,6,145,23);
     private final android.graphics.drawable.Drawable well,key;
     private static final int[] BARS={3,5,8,6,4,7,9,5,3,6,8,4};
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
-        super(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.accent); setSelected(selected); setClickable(true); setFocusable(true);
+        super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.accent); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
     }
     private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
@@ -22,7 +24,7 @@ public final class ThemePreview extends View {
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas); canvas.save(); canvas.scale(getWidth()/160f,getHeight()/150f);
         box(canvas,theme.background,0,0,160,150);
-        text(canvas,"ChipPlayer 199x",theme.text,15,20,8,true);
+        logo.drawInto(canvas,logoBox);
         box(canvas,theme.libraryButtonBackground(),15,26,130,9); text(canvas,"LIBRARY",theme.accent,66,33,5,true);
         box(canvas,listTheme.background,15,38,130,20);
         for(int row=0;row<2;row++) { box(canvas,row==0?listTheme.accent:listTheme.muted,17,42+row*9,64-row*13,2); box(canvas,theme.border,17,47+row*9,126,1); }

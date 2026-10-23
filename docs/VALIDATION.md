@@ -44,7 +44,7 @@ Fifty-five JUnit/Robolectric tests, zero failures and zero skipped:
 - The time display shows and clears the SEEKING target while catching up.
 - Submenu Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
-- ChipPlayer 199x launcher label and wordmark; flat outer player background.
+- ChipPlayer 199x launcher label and accessible sound-chip logo; flat outer player background.
 - Flat heading with a raised menu button; retired themes fall back to Pixel Light.
 - One centered menu button in the header; playlist above the playback
   deck; spectrum inside the deck and before the seek/readout controls.

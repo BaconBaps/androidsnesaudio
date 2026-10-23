@@ -87,3 +87,7 @@ animated spectrum or poll from a background timer.
 
 The tracklist well belongs to a fixed outer frame. Only its inner content scrolls,
 so the bottom and side edging stay visible at every playlist position.
+
+The header and theme cards use the selected sound-chip logo A. Its transparent
+PNG is fitted to the visible artwork bounds at draw time, preserving its aspect
+ratio and crisp edges without stretching or recoloring it.

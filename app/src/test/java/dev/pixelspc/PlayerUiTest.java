@@ -201,7 +201,8 @@ public class PlayerUiTest {
     @Test public void headerIconsAreEqualAndSpectrumBelongsToThePlaybackDeck() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
-            assertNotNull(findText(decor,"ChipPlayer 199x"));
+            View logo=findDescription(decor,"ChipPlayer 199x");
+            assertTrue(logo instanceof ChipLogo); assertEquals(a.dp(42),logo.getHeight()); assertTrue(logo.getWidth()>a.dp(150));
             assertEquals("ChipPlayer 199x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
             assertTrue(((ViewGroup)a.findViewById(android.R.id.content)).getChildAt(0).getBackground() instanceof android.graphics.drawable.ColorDrawable);
             int top=-1;

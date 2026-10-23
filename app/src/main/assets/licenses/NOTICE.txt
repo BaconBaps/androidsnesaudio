@@ -48,3 +48,6 @@ Winamp artwork, logos, or music are bundled.
 Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
 (their respective Android/Apache licenses), JUnit (EPL 1.0), Robolectric (MIT).
 They are build dependencies and are not packaged as app functionality.
+
+ChipPlayer 199x sound-chip header logo: original generated artwork, selected
+from the application’s logo proposals and provided under the MIT license.
