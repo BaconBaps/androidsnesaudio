@@ -22,9 +22,6 @@ public final class PlayerTheme {
         new PlayerTheme("famicom","Famicom","Warm ivory & burgundy hardware",false,0xfff4e6cc,0xff4a2229,0xff922940,0xffd9b35a),
         new PlayerTheme("game-boy","Game Boy","Four shades of the original LCD",false,0xffd2dba0,0xff253b22,0xff38542a,0xff93a65b),
         new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
-        new PlayerTheme("dreamcast","Dreamcast","Amber dusk & orange spiral",true,0xff302012,0xfffff1d6,0xffffb45e,0xff87d2ed),
-        new PlayerTheme("playstation","PlayStation","Steel blue shell & logo gold",false,0xffcbd7e4,0xff182e52,0xff174d9f,0xffd6ab30),
-        new PlayerTheme("n64","Nintendo 64","Forest green · logo yellow & blue",true,0xff122d24,0xffedf4dd,0xffe9d455,0xff69a9f8),
         new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),
         new PlayerTheme("desktop-98","Desktop ’98","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72)
     };

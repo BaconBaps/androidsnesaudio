@@ -183,6 +183,8 @@ public class PlayerUiTest {
             int top=-1;
             for(String label:new String[]{"App menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
+                assertNull(((View)v.getParent()).getBackground());
+                assertNotNull(v.getBackground());
                 assertEquals(a.dp(40),v.getWidth()); assertEquals(a.dp(40),v.getHeight());
                 if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
                 assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());

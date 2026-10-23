@@ -28,7 +28,7 @@ Forty JUnit/Robolectric tests, zero failures and zero skipped:
 - Two-column theme preview grid, selected-card indication, selection and persistence
   across activity recreation.
 - Removed subtitle/section label and full-width Library button layout.
-- Readable text/button contrast across all 13 palettes, plus stable preference IDs.
+- Readable text/button contrast across all 10 palettes, plus stable preference IDs.
 - Tagged-track straight/loop controls and per-track preference overrides.
 - Shuffle next-track behavior and playback-mode persistence across service restart.
 - xid6 loop-tag parsing, padded fields, intro-only tags, and malformed metadata.
@@ -44,13 +44,14 @@ Forty JUnit/Robolectric tests, zero failures and zero skipped:
 - The time display shows and clears the SEEKING target while catching up.
 - Submenu Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
+- Flat heading with a raised menu button; retired themes fall back to Pixel Light.
 - One centered menu button in the header; playlist above the playback
   deck; spectrum inside the deck and before the seek/readout controls.
 - Enlarged Library viewport, platform expansion/collapse persistence, and
   correct soundtrack selection after grouping and sorting.
 - Platform aliases, preserved duplicate imports, alphabetic grouping, unknown
   metadata, and mixed-system archives.
-- Darker playback colours retain readable text and accents across all 13 themes.
+- Darker playback colours retain readable text and accents across all 10 themes.
 - Duplicate deletion persists across library reload, removes only the chosen
   private set and its loop preferences, retains the other import/source, and
   rejects folder traversal.
@@ -60,12 +61,12 @@ Forty JUnit/Robolectric tests, zero failures and zero skipped:
   remain unchanged across sizes, and control presses change edging without
   changing the center or layout.
 - Pixel-sampled textured chassis and selected rows keep at least 4.5:1 text
-  contrast across all 13 themes. Desktop ’98 is featured in the picker, and theme
+  contrast across all 10 themes. Desktop ’98 is featured in the picker, and theme
   selection still survives recreation.
 - Fixed game/metadata/Tracklist headers during playlist scrolling; soft light-theme
   button frames verified by rendered pixel contrast.
-- Notification Exit action releases audio and removes the notification; themed
-  artwork is attached. Android controls final media notification presentation.
+- Notification Exit action releases audio and removes the notification; colorization
+  is disabled and no large artwork is attached. Android controls final media notification presentation.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -108,7 +109,7 @@ deletion image uses a one-track fixture; the soundtrack images use a seven-track
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
 than captured device audio on every system. The track-row loop tag shown for the fixture is
-synthetic too; sample music is not modified. All 13 theme renders retain the
+synthetic too; sample music is not modified. All 10 theme renders retain the
 selected track and progress and omit the removed footer and adventure text. These are not emulator
 or physical-device captures, and do not establish Android speaker output.
 

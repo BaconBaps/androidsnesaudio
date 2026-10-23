@@ -37,7 +37,7 @@ public class PlayerSkinTest {
     }
     @Test public void lightThemeFrameShadowsStaySoft() {
         PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());
-        for(String id:new String[]{"light","snes","famicom","game-boy","playstation"}) {
+        for(String id:new String[]{"light","snes","famicom","game-boy"}) {
             PlayerTheme theme=PlayerTheme.find(id);
             Drawable button=skin.button(theme.background); button.setState(new int[]{android.R.attr.state_enabled});
             Bitmap frame=render(button,160,100);

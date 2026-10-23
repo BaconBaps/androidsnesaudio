@@ -1,7 +1,7 @@
 # PixelSPC
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-thirteen retro palettes, and a local library for the games you grew up with.
+ten retro palettes, and a local library for the games you grew up with.
 
 <img src="docs/screenshots/theme-desktop-98.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
 
@@ -40,14 +40,13 @@ archives appear under Multiple systems. Expand a platform to select or delete
 a soundtrack.
 
 The game title, metadata, and Tracklist header stay fixed while tracks scroll.
-Theme selection and Help also live in the **⋮** menu. The five light palettes use
+Theme selection and Help also live in the **⋮** menu. The four light palettes use
 softer frame shadows, while the playback deck keeps its dark finish.
 
 Choose **⋮ → Exit app** or the notification’s pixel **× Exit app** action to stop playback, release the audio device, remove the
 notification, and close the app’s task. Normal Home/Back navigation continues to
 allow background playback. Android may cache the idle process after Exit, but the
-playback service is stopped. Notifications use matching theme colors and an original
-pixel music-note emblem. Android controls the media notification layout; newer
+playback service is stopped. Notifications use Android’s standard background with no custom color or artwork. Android controls the media notification layout; newer
 versions expose Exit as a media-session action, and older compact notifications
 show Play/Pause, Next, and Exit (Previous remains available when expanded).
 
@@ -73,18 +72,17 @@ choices are preserved. [Skin assets and regeneration](docs/SKIN.md).
 
 ## Themes
 
-Tap the **diamond button (◈)** beside About to choose a palette
+Choose **⋮ → Choose color theme** to choose a palette
 from a grid of miniature player previews. The selected card has a checkmark. The choice is saved
 between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
-10 console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
-Mega Drive / Genesis, Dreamcast, PlayStation, Nintendo 64, and GameCube.
-Eight palettes use darker backgrounds; five retain light hardware-inspired
-colors. Pixel Dark uses teal, Super Famicom navy/red, NES graphite, Dreamcast
-amber, PlayStation steel blue, and GameCube rich violet. The spectrum uses each
+seven console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
+Mega Drive / Genesis, and GameCube. Desktop ’98 adds a classic PC look.
+Six palettes use darker backgrounds; four retain light hardware-inspired
+colors. Pixel Dark uses teal, Super Famicom navy/red, NES graphite, and GameCube rich violet. The spectrum uses each
 theme’s accent and secondary colors.
 
-[Browse all 13 theme screenshots](docs/THEMES.md).
+[Browse all 10 theme screenshots](docs/THEMES.md).
 
 ## Formats
 

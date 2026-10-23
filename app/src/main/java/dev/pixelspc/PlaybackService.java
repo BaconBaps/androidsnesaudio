@@ -35,8 +35,6 @@ public class PlaybackService extends Service {
     public volatile Library.Track current;
     public List<Library.Track> queue=Collections.emptyList();
     public Runnable listener;
-    private android.graphics.Bitmap notificationArt;
-    private String artworkTheme;
 
     @Override public void onCreate() {
         super.onCreate(); main=new Handler(getMainLooper()); thread=new HandlerThread("SPC audio"); thread.start(); worker=new Handler(thread.getLooper());
@@ -197,34 +195,15 @@ public class PlaybackService extends Service {
     private void changed() { main.post(()->{
         if(destroyed) return;
         if(current!=null) {
-            session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,current.title).putString(MediaMetadata.METADATA_KEY_ARTIST,current.artist).putString(MediaMetadata.METADATA_KEY_ALBUM,current.game).putBitmap(MediaMetadata.METADATA_KEY_ART,notificationArtwork()).putLong(MediaMetadata.METADATA_KEY_DURATION,repeat?-1:current.length).build());
+            session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,current.title).putString(MediaMetadata.METADATA_KEY_ARTIST,current.artist).putString(MediaMetadata.METADATA_KEY_ALBUM,current.game).putLong(MediaMetadata.METADATA_KEY_DURATION,repeat?-1:current.length).build());
             session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS|PlaybackState.ACTION_SEEK_TO).addCustomAction("exit","Exit app",R.drawable.ic_close).setState(playing?(seekTarget>=0?PlaybackState.STATE_BUFFERING:PlaybackState.STATE_PLAYING):PlaybackState.STATE_PAUSED,position,playing && seekTarget<0?1:0).build());
             ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification());
         }
         if(listener!=null) listener.run();
     }); }
     private PendingIntent action(String name,int code) { return PendingIntent.getService(this,code,new Intent(this,PlaybackService.class).setAction(name),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT); }
-    private PlayerTheme notificationTheme() {
-        return PlayerTheme.find(getSharedPreferences("appearance",MODE_PRIVATE).getString("theme","light")).nowPlaying();
-    }
-    private android.graphics.Bitmap notificationArtwork() {
-        PlayerTheme theme=notificationTheme();
-        if(notificationArt!=null && theme.id.equals(artworkTheme)) return notificationArt;
-        artworkTheme=theme.id;
-        notificationArt=android.graphics.Bitmap.createBitmap(256,256,android.graphics.Bitmap.Config.ARGB_8888);
-        android.graphics.Canvas canvas=new android.graphics.Canvas(notificationArt);
-        android.graphics.drawable.Drawable frame=new PlayerSkin(this).chassis(theme.background);
-        frame.setBounds(0,0,256,256); frame.draw(canvas);
-        android.graphics.Paint paint=new android.graphics.Paint(); paint.setColor(theme.accent);
-        // Original pixel music-note emblem; no game artwork or simulated audio data.
-        canvas.save(); canvas.scale(8,8);
-        canvas.drawRect(14,6,24,9,paint); canvas.drawRect(14,8,17,23,paint);
-        canvas.drawRect(21,8,24,21,paint); canvas.drawRect(9,21,17,26,paint);
-        canvas.drawRect(17,19,24,24,paint); canvas.restore();
-        return notificationArt;
-    }
     private Notification notification() {
-        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColor(notificationTheme().accent).setColorized(true).setLargeIcon(notificationArtwork()).setSubText("PixelSPC").setContentTitle(current==null?"PixelSPC":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
+        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("PixelSPC").setContentTitle(current==null?"PixelSPC":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
         destroyed=true;

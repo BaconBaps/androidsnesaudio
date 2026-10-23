@@ -9,7 +9,7 @@ console palettes use the same skin geometry without changing saved theme IDs.
 
 ## Layout
 
-The header uses one 40 dp menu button, containing Import, Themes, About, and Exit. The Library button and
+The flat heading uses one raised 40 dp menu button, containing Import, Themes, About, and Exit. The Library button and
 playlist come first. Now Playing uses a darker version of the selected palette,
 with contrast-safe text/accent roles and its spectrum above the track readout.
 The spectrum keeps its label proportions as the panel height changes.
@@ -66,6 +66,6 @@ text contrast over actual textured pixels, and existing import/delete/exit flows
 These are UI renders, not captures from a physical Android device.
 
 Light surfaces soften their nine-patch edges to 35% opacity; their original grain
-and dark playback deck remain distinct. The notification uses a themed original
-pixel music-note emblem and native media controls, including an Exit action.
+and dark playback deck remain distinct. The notification uses the standard Android background without custom artwork
+or colorization, and native media controls including an Exit action.
 Android owns the final notification layout.

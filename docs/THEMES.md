@@ -1,6 +1,6 @@
 # Player themes
 
-Choose a palette from the image-preview grid opened by the diamond button beside About. Your selection is saved;
+Choose a palette from the image-preview grid opened by **⋮ → Choose color theme**. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
@@ -67,23 +67,8 @@ Black hardware with Sega blue and red.
 
 <img src="screenshots/theme-mega-drive.png" width="240" alt="Mega Drive / Genesis player palette" />
 
-## Dreamcast
 
-Amber dusk and the orange spiral.
 
-<img src="screenshots/theme-dreamcast.png" width="240" alt="Dreamcast player palette" />
-
-## PlayStation
-
-Steel blue shell and logo gold.
-
-<img src="screenshots/theme-playstation.png" width="240" alt="PlayStation player palette" />
-
-## Nintendo 64
-
-Forest green with logo yellow and blue.
-
-<img src="screenshots/theme-n64.png" width="240" alt="Nintendo 64 player palette" />
 
 ## GameCube
 

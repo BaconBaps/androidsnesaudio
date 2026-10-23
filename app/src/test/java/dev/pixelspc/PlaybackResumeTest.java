@@ -71,7 +71,8 @@ public class PlaybackResumeTest {
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             android.app.NotificationManager manager=service.getSystemService(android.app.NotificationManager.class);
             android.app.Notification notification=manager.getActiveNotifications()[0].getNotification();
-            assertNotNull(notification.getLargeIcon());
+            assertNull(notification.getLargeIcon());
+            assertFalse(notification.extras.getBoolean(android.app.Notification.EXTRA_COLORIZED));
             assertEquals("Exit app",notification.actions[3].title);
             android.content.Intent exit=Shadows.shadowOf(notification.actions[3].actionIntent).getSavedIntent();
             assertEquals("exit",exit.getAction());
