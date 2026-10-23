@@ -9,8 +9,14 @@ public final class PlayerTheme {
     private PlayerTheme(String id,String name,String inspiration,boolean dark,int background,int text,int accent,int secondary) {
         this.id=id; this.name=name; this.inspiration=inspiration; this.dark=dark;
         this.background=background; this.text=text; this.accent=accent; this.secondary=secondary;
-        muted=blend(text,background,.24f); border=blend(background,text,.22f);
+        border=blend(background,text,.22f);
         surface=blend(background,accent,dark?.14f:.06f);
+        int quiet=text;
+        for(int step=0;step<=20;step++) {
+            quiet=blend(text,background,.24f*(1-step/20f));
+            if(contrast(background,quiet)>=4.5 && contrast(surface,quiet)>=4.5) break;
+        }
+        muted=quiet;
         onAccent=contrast(accent,0xff181820)>contrast(accent,0xffffffff)?0xff181820:0xffffffff;
     }
     public static final PlayerTheme[] ALL={
@@ -36,6 +42,17 @@ public final class PlayerTheme {
         }
         return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary);
     }
+    /** Quieter list surfaces with palette-matched text that keeps its contrast. */
+    public PlayerTheme library() {
+        int bg=blend(background,0xff000000,dark?.30f:.045f);
+        int adjusted=accent;
+        for(int step=0;step<=20;step++) {
+            adjusted=blend(accent,dark?0xffffffff:0xff000000,step/20f);
+            if(contrast(bg,adjusted)>=4.5 && contrast(blend(bg,adjusted,dark?.14f:.06f),adjusted)>=4.5) break;
+        }
+        return new PlayerTheme(id+"-library",name,inspiration,dark,bg,text,adjusted,secondary);
+    }
+    public int libraryButtonBackground() { return blend(background,0xffffffff,dark?.075f:.16f); }
     public String label() { return name+"\n"+inspiration; }
     static int blend(int a,int b,float amount) {
         int r=Math.round(((a>>16)&255)*(1-amount)+((b>>16)&255)*amount);

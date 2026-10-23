@@ -62,6 +62,18 @@ public class PlaybackResumeTest {
             service.play(Collections.singletonList(track),0); drain(service); assertTrue(service.playing);
         } finally { c.destroy(); }
     }
+    @Test public void widgetCommandsControlTheExistingDecoderAndQueue() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create(); PlaybackService service=c.get();
+        try {
+            Library.Track first=new Library.Track(); first.path="first.vgz"; first.title="First"; first.length=120000;
+            Library.Track second=new Library.Track(); second.path="second.spc"; second.title="Second"; second.length=120000;
+            service.play(java.util.Arrays.asList(first,second),0); drain(service);
+            service.onStartCommand(new android.content.Intent().setAction("widget:toggle"),0,1); drain(service); assertFalse(service.playing);
+            service.onStartCommand(new android.content.Intent().setAction("widget:toggle"),0,2); drain(service); assertTrue(service.playing);
+            service.onStartCommand(new android.content.Intent().setAction("widget:next"),0,3); drain(service); assertSame(second,service.current);
+            service.onStartCommand(new android.content.Intent().setAction("widget:previous"),0,4); drain(service); assertSame(first,service.current);
+        } finally { c.destroy(); }
+    }
     @Test public void sleepTimerPausesWithoutLosingPositionAndCanBeCancelled() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create(); PlaybackService service=c.get();
         try {

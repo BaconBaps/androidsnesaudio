@@ -9,6 +9,7 @@ import java.util.*;
 
 /** One worker owns the emulator and AudioTrack. UI operations never race native calls. */
 public class PlaybackService extends Service {
+    static PlaybackService instance;
     public class LocalBinder extends Binder { public PlaybackService get() { return PlaybackService.this; } }
     private final LocalBinder binder=new LocalBinder();
     private Handler worker,main;
@@ -58,11 +59,22 @@ public class PlaybackService extends Service {
         }); session.setActive(true);
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(new NotificationChannel("music","Music playback",NotificationManager.IMPORTANCE_LOW));
         registerReceiver(noisy,new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+        instance=this; PlayerWidget.updateAll(this);
     }
     private final BroadcastReceiver noisy=new BroadcastReceiver() { public void onReceive(Context c,Intent i) { pause(); } };
     @Override public IBinder onBind(Intent i) { return binder; }
     @Override public int onStartCommand(Intent intent,int flags,int id) {
-        if(intent!=null) { String action=intent.getAction(); if("toggle".equals(action)) toggle(); else if("next".equals(action)) next(1); else if("previous".equals(action)) next(-1); else if("stop".equals(action)) stopPlayback(null); else if("exit".equals(action)) exitApp(); }
+        if(intent!=null) {
+            String action=intent.getAction();
+            if(action!=null && action.startsWith("widget:")) {
+                // A launcher tap may recreate the process. Meet the foreground
+                // deadline, then clear stale controls if no queue survived.
+                startForeground(1,notification());
+                if(current==null) { stopPlayback(null); return START_NOT_STICKY; }
+                action=action.substring(7);
+            }
+            if("toggle".equals(action)) toggle(); else if("next".equals(action)) next(1); else if("previous".equals(action)) next(-1); else if("stop".equals(action)) stopPlayback(null); else if("exit".equals(action)) exitApp();
+        }
         return START_NOT_STICKY;
     }
     public void play(List<Library.Track> tracks,int selected) {
@@ -220,6 +232,7 @@ public class PlaybackService extends Service {
             session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS|PlaybackState.ACTION_SEEK_TO).addCustomAction("exit","Exit app",R.drawable.ic_close).setState(playing?(seekTarget>=0?PlaybackState.STATE_BUFFERING:PlaybackState.STATE_PLAYING):PlaybackState.STATE_PAUSED,position,playing && seekTarget<0?1:0).build());
             ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification());
         }
+        PlayerWidget.updateAll(this);
         if(listener!=null) listener.run();
     }); }
     private PendingIntent action(String name,int code) { return PendingIntent.getService(this,code,new Intent(this,PlaybackService.class).setAction(name),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT); }
@@ -227,6 +240,7 @@ public class PlaybackService extends Service {
         return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("ChipPlayer 199x").setContentTitle(current==null?"ChipPlayer 199x":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
+        instance=null; PlayerWidget.updateAll(this);
         destroyed=true; main.removeCallbacks(sleepCheck); sleepUntil=0;
         unregisterReceiver(noisy); listener=null; manager.abandonAudioFocusRequest(focus); session.release();
         worker.removeCallbacksAndMessages(null); worker.post(()->{ releaseAudio(); thread.quitSafely(); }); super.onDestroy();

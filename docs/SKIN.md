@@ -73,3 +73,14 @@ Android owns the final notification layout.
 The main player and export screen use flat backgrounds without an outer frame.
 Individual player controls, the submenu button, and the Now Playing deck retain
 their detailed edging. Llama retains the stable `desktop-98` preference ID.
+
+Track rows and accordion sections use a dimmed library palette without grain.
+Muted text and accents retain at least 4.5:1 contrast. The Library button uses a
+slightly lighter face. Pixel section labels omit extra font padding and center
+vertically; their rows disable baseline alignment so divider rails share the
+same center.
+
+The home-screen widget uses native RemoteViews, tiled grain and compiled
+nine-patch frames. It follows Now Playing’s dark palette, with track metadata,
+a launcher-driven elapsed clock and three playback controls. It does not run an
+animated spectrum or poll from a background timer.

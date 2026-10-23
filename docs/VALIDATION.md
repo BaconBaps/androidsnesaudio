@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 23 October
 
 ## Automated tests
 
-Fifty JUnit/Robolectric tests, zero failures and zero skipped:
+Fifty-five JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -76,6 +76,14 @@ Fifty JUnit/Robolectric tests, zero failures and zero skipped:
   cross-game filtered UI, empty state and Activity recreation.
 - Sleep expiry with Loop on pauses and keeps position; cancellation permits
   continued playback and Stop clears a pending timer.
+- Dimmed list palette, readable secondary text/selected tracks and lighter
+  Library-button contrast across all ten themes.
+- Vertically centered section text and disabled baseline alignment; no Local
+  files label. Existing fixed-header scrolling checks still pass.
+- Native RemoteViews render empty and playing widgets, preserve palette/clock/
+  loop labels, route buttons to the foreground playback service, and open the app
+  when empty. A launcher update and stale service tap clear controls safely.
+- Widget Previous/Play-Pause/Next commands control the same decoder and queue.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -151,3 +159,12 @@ The export and favourites screenshots are native-graphics Robolectric renders.
 Export jobs retain their state across configuration changes, are cancellable,
 and use a temporary file before copying to the chosen document provider. Final
 provider behavior and lock-screen sleep timing still need physical-device checks.
+
+## Home-screen widget
+
+`docs/screenshots/homescreen-widget.png` is a native-graphics Robolectric render
+of the actual RemoteViews hierarchy at 360 × 220 dp. API 26 uses the base provider
+metadata; API 31+ adds a layout preview and four-by-three target cells. No periodic
+widget wakeup is configured: the launcher drives the elapsed clock, and playback
+or theme changes refresh the remaining content. Launcher placement, resizing,
+and background restrictions still need verification on a physical device.

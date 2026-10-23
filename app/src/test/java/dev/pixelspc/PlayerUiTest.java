@@ -62,12 +62,13 @@ public class PlayerUiTest {
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),json.getBytes("UTF-8"));
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); String visible=text(a.getWindow().getDecorView());
+            assertFalse(visible.contains("Local files"));
             assertTrue(visible.contains("Donkey Kong Country")); assertTrue(visible.contains("DK Island Swing")); assertTrue(visible.contains("3:58"));
             assertNull(findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"));
             assertNull(findDescription(a.getWindow().getDecorView(),"Import music"));
             capture(a,"soundtrack-library.png");
             View title=findText(a.getWindow().getDecorView(),"Donkey Kong Country");
-            View meta=findText(a.getWindow().getDecorView(),"Super Nintendo  ·  7 tracks  ·  Local files");
+            View meta=findText(a.getWindow().getDecorView(),"Super Nintendo  ·  7 tracks");
             View heading=findText(a.getWindow().getDecorView(),"TRACKLIST");
             assertNotNull(meta);
             ScrollView playlist=findScroll(a.getWindow().getDecorView());
@@ -205,6 +206,13 @@ public class PlayerUiTest {
             }
             View deck=findDescription(decor,"Now Playing panel"),spectrum=findDescription(decor,"Audio spectrum visualizer, 24 frequency bands");
             assertSame(deck,spectrum.getParent());
+            for(String label:new String[]{"TRACKLIST"," NOW PLAYING","♪  44.1 kHz","READY"}) {
+                TextView heading=(TextView)findText(decor,label); assertNotNull(heading);
+                assertFalse(heading.getIncludeFontPadding()); assertEquals(Gravity.CENTER_VERTICAL,heading.getGravity()&Gravity.VERTICAL_GRAVITY_MASK);
+                LinearLayout row=(LinearLayout)heading.getParent(); assertFalse(row.isBaselineAligned());
+                int[] location=new int[2],rowAt=new int[2]; heading.getLocationOnScreen(location); row.getLocationOnScreen(rowAt);
+                assertTrue(Math.abs(location[1]+heading.getHeight()/2-(rowAt[1]+row.getHeight()/2))<=2);
+            }
             int[] spectrumAt=new int[2],libraryAt=new int[2]; spectrum.getLocationOnScreen(spectrumAt); findDescription(decor,"Open music library").getLocationOnScreen(libraryAt);
             assertTrue(libraryAt[1]<spectrumAt[1]);
             assertTrue(((ViewGroup)deck).indexOfChild(spectrum)<((ViewGroup)deck).indexOfChild(findSeek(decor)));

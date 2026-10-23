@@ -14,6 +14,17 @@ public class PlayerThemeTest {
             assertTrue(PlayerTheme.contrast(p.accent,p.onAccent)>=4.5);
         }
     }
+    @Test public void dimmedLibraryKeepsReadableTextAndLibraryButtonIsLighter() {
+        for(PlayerTheme theme:PlayerTheme.ALL) {
+            PlayerTheme list=theme.library();
+            assertTrue(theme.name,PlayerTheme.luminance(list.background)<PlayerTheme.luminance(theme.background));
+            assertTrue(theme.name+" text",PlayerTheme.contrast(list.background,list.text)>=7);
+            assertTrue(theme.name+" muted",PlayerTheme.contrast(list.background,list.muted)>=4.5);
+            assertTrue(theme.name+" selected",PlayerTheme.contrast(list.surface,list.accent)>=4.5);
+            assertTrue(theme.name+" library button",PlayerTheme.luminance(theme.libraryButtonBackground())>PlayerTheme.luminance(theme.background));
+            assertTrue(theme.name+" button text",PlayerTheme.contrast(theme.libraryButtonBackground(),theme.accent)>=4.5);
+        }
+    }
     @Test public void allPalettesHaveReadableTextAndStableUniqueIds() {
         Set<String> ids=new HashSet<>();
         for(PlayerTheme t:PlayerTheme.ALL) {

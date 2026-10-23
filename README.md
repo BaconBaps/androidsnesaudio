@@ -79,7 +79,26 @@ the timer expires, including with Loop on, keeping the track and position for
 later. The menu shows the remaining minutes. The timer continues while using
 other apps; Exit cancels it.
 
+## Home-screen widget
+
+Long-press your Android home screen, open **Widgets**, and add
+**ChipPlayer 199x · Now Playing**. The resizable widget follows your selected
+palette, with the player’s original nine-patch edging, title, artist/game,
+elapsed clock and Previous / Play-Pause / Next controls. Tap the heading or track
+name to open the app. When there is no loaded track, Play opens the app so you
+can choose one. Exit clears the widget’s playback state.
+
+The launcher runs the elapsed clock itself, without periodic background polling.
+The live spectrum remains in the app. The widget controls the same queue,
+shuffle and loop settings as the player; it does not start a separate decoder.
+
+<img src="docs/screenshots/homescreen-widget.png" width="360" alt="ChipPlayer 199x Now Playing home-screen widget" />
+
 ## Image-based player skin
+
+The tracklist and platform accordion use dimmed, untextured surfaces, with
+contrast-adjusted text. The Library button is slightly lighter, and section
+labels are vertically centered with their rails.
 
 The Library button and playlist sit above a separate, darker Now Playing deck.
 Its spectrum sits above the track details and transport controls; the darker

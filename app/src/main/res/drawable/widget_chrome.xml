@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:paddingMode="stack">
+    <item><bitmap android:src="@drawable/skin_brushed" android:tileMode="repeat" android:filter="false"/></item>
+    <item android:drawable="@drawable/skin_chassis"/>
+</layer-list>
