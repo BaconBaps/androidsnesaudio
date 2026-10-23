@@ -12,7 +12,7 @@ open it, and allow installation from your browser or file manager when prompted.
 Requires **Android 8.0 or later and a 64-bit ARM device** (x86-64 is also included
 for emulators). This is a debug-signed development build, not a Play Store release.
 
-Tap the **+** button beside the theme and help buttons, or **Library → Import music**, and select your
+Tap **⋮ → Import music**, or **Library → Import music**, and select your
 file using Android's file picker. Tap a track to play. Use the fixed player panel
 for pause, previous/next, seeking, shuffle, and continuous looping. The outer
 buttons show ON/OFF states: left is Shuffle (changes the next track), right is
@@ -39,10 +39,17 @@ Known metadata aliases (such as SNES and Super Famicom) share one group; mixed
 archives appear under Multiple systems. Expand a platform to select or delete
 a soundtrack.
 
-Choose **⋮ → Exit app** to stop playback, release the audio device, remove the
+The game title, metadata, and Tracklist header stay fixed while tracks scroll.
+Theme selection and Help also live in the **⋮** menu. The five light palettes use
+softer frame shadows, while the playback deck keeps its dark finish.
+
+Choose **⋮ → Exit app** or the notification’s pixel **× Exit app** action to stop playback, release the audio device, remove the
 notification, and close the app’s task. Normal Home/Back navigation continues to
 allow background playback. Android may cache the idle process after Exit, but the
-playback service is stopped.
+playback service is stopped. Notifications use matching theme colors and an original
+pixel music-note emblem. Android controls the media notification layout; newer
+versions expose Exit as a media-session action, and older compact notifications
+show Play/Pause, Next, and Exit (Previous remains available when expanded).
 
 No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
@@ -51,8 +58,7 @@ for development. The app requests no Internet or broad storage permission.
 
 The Library button and playlist sit above a separate, darker Now Playing deck.
 Its spectrum sits above the track details and transport controls; the darker
-palette adapts each theme’s accent to keep text readable. Header icons share
-one size, canvas and alignment.
+palette adapts each theme’s accent to keep text readable. Header actions are collected in the single ⋮ menu.
 
 Original pixel PNGs give every theme raised metal borders, corner screws, inset
 displays, metallic section rails, pressed controls, and a ridged seek thumb. Six

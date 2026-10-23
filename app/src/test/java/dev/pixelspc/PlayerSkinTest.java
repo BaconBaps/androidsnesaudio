@@ -35,6 +35,16 @@ public class PlayerSkinTest {
         assertFalse(up.sameAs(down)); assertEquals(up.getPixel(60,40),down.getPixel(60,40));
         button.setState(new int[]{}); assertTrue(up.sameAs(render(button,120,80)));
     }
+    @Test public void lightThemeFrameShadowsStaySoft() {
+        PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());
+        for(String id:new String[]{"light","snes","famicom","game-boy","playstation"}) {
+            PlayerTheme theme=PlayerTheme.find(id);
+            Drawable button=skin.button(theme.background); button.setState(new int[]{android.R.attr.state_enabled});
+            Bitmap frame=render(button,160,100);
+            for(int y=0;y<100;y++) for(int x=0;x<160;x++)
+                assertTrue(id+" frame contrast",PlayerTheme.contrast(theme.background,frame.getPixel(x,y))<3);
+        }
+    }
     @Test public void textureKeepsThemeTextReadableAcrossEveryPalette() {
         PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());
         for(PlayerTheme theme:PlayerTheme.ALL) {

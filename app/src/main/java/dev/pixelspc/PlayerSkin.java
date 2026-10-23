@@ -14,6 +14,22 @@ final class PlayerSkin {
         if(d instanceof NinePatchDrawable) ((NinePatchDrawable)d).setFilterBitmap(false);
         return d;
     }
+    private Drawable edge(int id,int color) {
+        Drawable d=patch(id);
+        if(PlayerTheme.luminance(color)>.35) {
+            // Bake edge opacity into the pixels: Android button state containers
+            // reapply alpha and color filters to their child drawables.
+            Bitmap source=BitmapFactory.decodeResource(context.getResources(),id);
+            Bitmap soft=source.copy(Bitmap.Config.ARGB_8888,true);
+            int[] pixels=new int[soft.getWidth()*soft.getHeight()];
+            soft.getPixels(pixels,0,soft.getWidth(),0,0,soft.getWidth(),soft.getHeight());
+            for(int i=0;i<pixels.length;i++) pixels[i]=(pixels[i]&0xffffff)|(Math.round(Color.alpha(pixels[i])*.35f)<<24);
+            soft.setPixels(pixels,0,soft.getWidth(),0,0,soft.getWidth(),soft.getHeight());
+            NinePatchDrawable softened=new NinePatchDrawable(context.getResources(),soft,source.getNinePatchChunk(),new Rect(),null);
+            softened.setFilterBitmap(false); return softened;
+        }
+        return d;
+    }
     private BitmapDrawable tile(int id) {
         BitmapDrawable d=(BitmapDrawable)context.getDrawable(id).mutate();
         d.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT); d.setFilterBitmap(false); return d;
@@ -24,7 +40,7 @@ final class PlayerSkin {
         if(brushed!=null && PlayerTheme.luminance(color)>.35) {
             brushed.setAlpha(64); brushed.setColorFilter(0xffffffff,PorterDuff.Mode.SRC_IN);
         }
-        Drawable[] parts=grain?new Drawable[]{new ColorDrawable(color),brushed,patch(edge)}:new Drawable[]{new ColorDrawable(color),patch(edge)};
+        Drawable[] parts=grain?new Drawable[]{new ColorDrawable(color),brushed,edge(edge,color)}:new Drawable[]{new ColorDrawable(color),edge(edge,color)};
         LayerDrawable d=new LayerDrawable(parts); d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK); return d;
     }
     Drawable chassis(int color) { return face(color,R.drawable.skin_chassis,true); }
@@ -34,7 +50,7 @@ final class PlayerSkin {
     Drawable display(int color) {
         BitmapDrawable lines=tile(R.drawable.skin_scanlines);
         if(PlayerTheme.luminance(color)>.35) lines.setAlpha(0);
-        return new LayerDrawable(new Drawable[]{new ColorDrawable(color),lines,patch(R.drawable.skin_well)});
+        return new LayerDrawable(new Drawable[]{new ColorDrawable(color),lines,edge(R.drawable.skin_well,color)});
     }
     Drawable button(int color) {
         StateListDrawable d=new StateListDrawable();
@@ -43,7 +59,7 @@ final class PlayerSkin {
         d.addState(new int[]{},face(color,R.drawable.skin_key,false)); return d;
     }
     Drawable rail(int color) {
-        Drawable d=new LayerDrawable(new Drawable[]{new ColorDrawable(color),patch(R.drawable.skin_rail)}); return d;
+        Drawable d=new LayerDrawable(new Drawable[]{new ColorDrawable(color),edge(R.drawable.skin_rail,color)}); return d;
     }
     Drawable thumb(int color) {
         Drawable d=context.getDrawable(R.drawable.skin_thumb).mutate();

@@ -39,7 +39,7 @@ public class PlayerUiTest {
             View importButton=findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"); assertNotNull(importButton);
             assertEquals(a.dp(220),importButton.getLayoutParams().width);
             assertEquals(android.view.Gravity.CENTER,((LinearLayout)importButton.getParent()).getGravity());
-            assertNotNull(findDescription(a.getWindow().getDecorView(),"Import music")); importButton.performClick();
+            assertNull(findDescription(a.getWindow().getDecorView(),"Import music")); importButton.performClick();
             android.content.Intent picker=Shadows.shadowOf(a).getNextStartedActivityForResult().intent;
             assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction()); assertEquals("*/*",picker.getType());
             assertFalse(text(a.getWindow().getDecorView()).contains("A little player"));
@@ -63,8 +63,20 @@ public class PlayerUiTest {
             MainActivity a=c.get(); String visible=text(a.getWindow().getDecorView());
             assertTrue(visible.contains("Donkey Kong Country")); assertTrue(visible.contains("DK Island Swing")); assertTrue(visible.contains("3:58"));
             assertNull(findText(a.getWindow().getDecorView(),"+  IMPORT MUSIC"));
-            assertNotNull(findDescription(a.getWindow().getDecorView(),"Import music"));
+            assertNull(findDescription(a.getWindow().getDecorView(),"Import music"));
             capture(a,"soundtrack-library.png");
+            View title=findText(a.getWindow().getDecorView(),"Donkey Kong Country");
+            View meta=findText(a.getWindow().getDecorView(),"Super Nintendo  ·  7 tracks  ·  Local files");
+            View heading=findText(a.getWindow().getDecorView(),"TRACKLIST");
+            assertNotNull(meta);
+            ScrollView playlist=findScroll(a.getWindow().getDecorView());
+            int[] beforeTitle=new int[2],beforeMeta=new int[2],beforeHeading=new int[2];
+            title.getLocationOnScreen(beforeTitle); meta.getLocationOnScreen(beforeMeta); heading.getLocationOnScreen(beforeHeading);
+            playlist.scrollTo(0,10000); assertTrue(playlist.getScrollY()>0);
+            int[] after=new int[2]; title.getLocationOnScreen(after); assertArrayEquals(beforeTitle,after);
+            meta.getLocationOnScreen(after); assertArrayEquals(beforeMeta,after);
+            heading.getLocationOnScreen(after); assertArrayEquals(beforeHeading,after);
+            playlist.scrollTo(0,0);
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
             android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             captureView(browser.getWindow().getDecorView(),"library-browser.png",774,1500); browser.dismiss();
@@ -116,7 +128,8 @@ public class PlayerUiTest {
     }
     @Test public void themePickerPersistsDarkModeAcrossRecreation() {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
-            View picker=findDescription(c.get().getWindow().getDecorView(),"Choose color theme"); assertNotNull(picker); picker.performClick();
+            findDescription(c.get().getWindow().getDecorView(),"App menu").performClick();
+            org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu().getMenu().performIdentifierAction(2,0);
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
             assertEquals(2,grid.getColumnCount()); assertEquals(PlayerTheme.ALL.length,grid.getChildCount());
@@ -153,9 +166,9 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); findDescription(a.getWindow().getDecorView(),"App menu").performClick();
             PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
-            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().getItem(0).getTitle());
+            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().getItem(3).getTitle());
             // Selecting Exit waits for service teardown before closing the task.
-            menu.getMenu().performIdentifierAction(menu.getMenu().getItem(0).getItemId(),0);
+            menu.getMenu().performIdentifierAction(4,0);
             try {
                 java.lang.reflect.Field worker=PlaybackService.class.getDeclaredField("worker"); worker.setAccessible(true);
                 Shadows.shadowOf(((android.os.Handler)worker.get(service)).getLooper()).idle();
@@ -168,7 +181,7 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
             int top=-1;
-            for(String label:new String[]{"Import music","Choose color theme","About PixelSPC and supported formats","App menu"}) {
+            for(String label:new String[]{"App menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
                 assertEquals(a.dp(40),v.getWidth()); assertEquals(a.dp(40),v.getHeight());
                 if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
@@ -203,6 +216,13 @@ public class PlayerUiTest {
             list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0)),0);
             assertTrue(text(a.getWindow().getDecorView()).contains("Tetris"));
         }
+    }
+    private static ScrollView findScroll(View view) {
+        if(view instanceof ScrollView) return (ScrollView)view;
+        if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) {
+            ScrollView result=findScroll(((ViewGroup)view).getChildAt(i)); if(result!=null) return result;
+        }
+        return null;
     }
     @Test public void formatsAndClockAreAccurate() {
         assertEquals("3:58",MainActivity.clock(238000)); assertEquals("0:00",MainActivity.clock(-100));

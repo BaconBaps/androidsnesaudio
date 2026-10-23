@@ -73,18 +73,17 @@ public class MainActivity extends Activity {
         LinearLayout header=row(); header.setBackground(skin.panel(backgroundColor)); header.setPadding(dp(8),dp(4),dp(8),dp(4)); TextView logo=pixel("♫",16,accentColor); add(header,logo,28,34);
         LinearLayout brand=column(); TextView wordmark=pixel("PixelSPC",14,textColor); wordmark.setSingleLine(true); wordmark.setAutoSizeTextTypeUniformWithConfiguration(10,14,1,android.util.TypedValue.COMPLEX_UNIT_SP); add(brand,wordmark,-1,-2);
         header.addView(brand,new LinearLayout.LayoutParams(0,-2,1));
-        ImageButton importMusic=headerIcon(R.drawable.ic_import,"Import music"); add(header,importMusic,40,40); importMusic.setOnClickListener(v->pickFile());
-        ImageButton themes=headerIcon(R.drawable.ic_palette,"Choose color theme"); add(header,themes,40,40); themes.setOnClickListener(v->chooseTheme());
-        ImageButton about=headerIcon(R.drawable.ic_help,"About PixelSPC and supported formats"); add(header,about,40,40); about.setOnClickListener(v->about());
         ImageButton menu=headerIcon(R.drawable.ic_menu,"App menu"); add(header,menu,40,40); menu.setOnClickListener(this::showMenu);
         add(root,header,-1,50); gap(root,8);
         libraryButton=button("LIBRARY ▾",accentColor,backgroundColor); libraryButton.setContentDescription("Open music library"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
-        LinearLayout content=column(); scroll.addView(content); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout content=root;
         gameTitle=text("Your music library",23,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); add(content,gameTitle,-1,-2); gap(content,5);
         gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2); gap(content,10);
         LinearLayout listHeader=row(); listHeader.setBackground(skin.panel(backgroundColor)); listHeader.setPadding(dp(10),0,dp(10),0); TextView tracks=pixel("TRACKLIST",8,textColor); add(listHeader,tracks,-2,-2); View listRail=new View(this); listRail.setBackground(skin.rail(theme.secondary)); LinearLayout.LayoutParams listRailParams=new LinearLayout.LayoutParams(0,dp(6),1); listRailParams.setMargins(dp(10),0,dp(10),0); listHeader.addView(listRail,listRailParams); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,28);
-        trackList=column(); trackList.setBackground(skin.well(backgroundColor)); trackList.setPadding(dp(6),dp(5),dp(6),dp(5)); add(content,trackList,-1,-2); gap(content,10);
+        root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout scrollContent=column(); scroll.addView(scrollContent);
+        trackList=column(); trackList.setBackground(skin.well(backgroundColor)); trackList.setPadding(dp(6),dp(5),dp(6),dp(5)); add(scrollContent,trackList,-1,-2); gap(scrollContent,10);
         gap(root,8);
         LinearLayout playerPanel=column(); playerPanel.setBackground(skin.chassis(playbackTheme.background)); playerPanel.setContentDescription("Now Playing panel"); playerPanel.setPadding(dp(8),dp(6),dp(8),dp(6)); add(root,playerPanel,-1,-2);
         LinearLayout playerHeading=row(); View rail=new View(this); rail.setBackground(skin.rail(playbackTheme.secondary)); playerHeading.addView(rail,new LinearLayout.LayoutParams(dp(32),dp(7))); TextView tag=pixel(" NOW PLAYING",7,playbackTheme.accent); add(playerHeading,tag,-2,-2); View playerRail=new View(this); playerRail.setBackground(skin.rail(playbackTheme.secondary)); LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(0,dp(6),1); railParams.setMargins(dp(8),0,dp(8),0); playerHeading.addView(playerRail,railParams); TextView quality=pixel("♪  44.1 kHz",6,playbackTheme.muted); add(playerHeading,quality,-2,-2); add(playerPanel,playerHeading,-1,22);
@@ -213,7 +212,10 @@ public class MainActivity extends Activity {
     }
     private void showMenu(View anchor) {
         PopupMenu menu=new PopupMenu(new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material:android.R.style.Theme_Material_Light),anchor);
-        menu.getMenu().add("Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
+        menu.getMenu().add(0,1,0,"Import music").setOnMenuItemClickListener(item->{ pickFile(); return true; });
+        menu.getMenu().add(0,2,1,"Choose color theme").setOnMenuItemClickListener(item->{ chooseTheme(); return true; });
+        menu.getMenu().add(0,3,2,"About PixelSPC").setOnMenuItemClickListener(item->{ about(); return true; });
+        menu.getMenu().add(0,4,3,"Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
         menu.show();
     }
     private void exitApp() {
@@ -258,7 +260,7 @@ public class MainActivity extends Activity {
     void selectTheme(String id) {
         applyPalette(PlayerTheme.find(id));
         getSharedPreferences("appearance",MODE_PRIVATE).edit().putString("theme",theme.id).apply();
-        seeking=false; buildUI();
+        seeking=false; buildUI(); if(player!=null) player.refreshAppearance();
     }
     private void chooseTheme() {
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(false);
@@ -295,7 +297,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.8.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("PixelSPC · v1.9.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

@@ -62,6 +62,25 @@ public class PlaybackResumeTest {
             service.play(Collections.singletonList(track),0); drain(service); assertTrue(service.playing);
         } finally { c.destroy(); }
     }
+    @Test public void notificationExitReleasesAudioAndRemovesNotification() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();
+        PlaybackService service=c.get();
+        try {
+            Library.Track track=new Library.Track(); track.path="fixture.vgz"; track.title="Tone"; track.length=120000;
+            service.play(Collections.singletonList(track),0); drain(service);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            android.app.NotificationManager manager=service.getSystemService(android.app.NotificationManager.class);
+            android.app.Notification notification=manager.getActiveNotifications()[0].getNotification();
+            assertNotNull(notification.getLargeIcon());
+            assertEquals("Exit app",notification.actions[3].title);
+            android.content.Intent exit=Shadows.shadowOf(notification.actions[3].actionIntent).getSavedIntent();
+            assertEquals("exit",exit.getAction());
+            service.onStartCommand(exit,0,1); drain(service);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertNull(service.current); assertFalse(service.playing); assertNull(field(service,"audio"));
+            assertEquals(0,manager.getActiveNotifications().length);
+        } finally { c.destroy(); }
+    }
     @Test public void arbitrarySeekResumesOutputWithoutAnExtraButtonPressAndPausedSeekStaysPaused() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();
         PlaybackService service=c.get();

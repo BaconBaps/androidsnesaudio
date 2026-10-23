@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 23 October
 
 ## Automated tests
 
-Thirty-eight JUnit/Robolectric tests, zero failures and zero skipped:
+Forty JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -42,9 +42,9 @@ Thirty-eight JUnit/Robolectric tests, zero failures and zero skipped:
   paused seeking stays paused, and a subsequent play resumes output. This uses
   Robolectric shadows, not physical speaker output.
 - The time display shows and clears the SEEKING target while catching up.
-- Header Import picker, centered empty-only tracklist Import, Library Delete
+- Submenu Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
-- Equal-size centered image buttons in the header; playlist above the playback
+- One centered menu button in the header; playlist above the playback
   deck; spectrum inside the deck and before the seek/readout controls.
 - Enlarged Library viewport, platform expansion/collapse persistence, and
   correct soundtrack selection after grouping and sorting.
@@ -62,6 +62,10 @@ Thirty-eight JUnit/Robolectric tests, zero failures and zero skipped:
 - Pixel-sampled textured chassis and selected rows keep at least 4.5:1 text
   contrast across all 13 themes. Desktop ’98 is featured in the picker, and theme
   selection still survives recreation.
+- Fixed game/metadata/Tracklist headers during playlist scrolling; soft light-theme
+  button frames verified by rendered pixel contrast.
+- Notification Exit action releases audio and removes the notification; themed
+  artwork is attached. Android controls final media notification presentation.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.

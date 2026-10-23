@@ -9,8 +9,7 @@ console palettes use the same skin geometry without changing saved theme IDs.
 
 ## Layout
 
-The header uses four original vector icons on matching 24 dp canvases and 40 dp
-buttons, with matching visible heights and centers. The Library button and
+The header uses one 40 dp menu button, containing Import, Themes, About, and Exit. The Library button and
 playlist come first. Now Playing uses a darker version of the selected palette,
 with contrast-safe text/accent roles and its spectrum above the track readout.
 The spectrum keeps its label proportions as the panel height changes.
@@ -65,3 +64,8 @@ Robolectric renders the real view hierarchy for the screenshots. Tests check
 compiled nine-patches, fixed corners at different sizes, pressed control states,
 text contrast over actual textured pixels, and existing import/delete/exit flows.
 These are UI renders, not captures from a physical Android device.
+
+Light surfaces soften their nine-patch edges to 35% opacity; their original grain
+and dark playback deck remain distinct. The notification uses a themed original
+pixel music-note emblem and native media controls, including an Exit action.
+Android owns the final notification layout.
