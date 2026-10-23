@@ -42,7 +42,8 @@ Known metadata aliases (such as SNES and Super Famicom) share one group; mixed
 archives appear under Multiple systems. Expand a platform to select or delete
 a soundtrack.
 
-The game title, metadata, and Tracklist header stay fixed while tracks scroll.
+The game title, metadata, Tracklist header, and outer tracklist edging stay fixed
+while tracks scroll. The bottom border remains visible at every scroll position.
 Theme selection and Help also live in the **⋮** menu. The four light palettes use
 softer frame shadows, while the playback deck keeps its dark finish.
 

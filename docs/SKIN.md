@@ -84,3 +84,6 @@ The home-screen widget uses native RemoteViews, tiled grain and compiled
 nine-patch frames. It follows Now Playing’s dark palette, with track metadata,
 a launcher-driven elapsed clock and three playback controls. It does not run an
 animated spectrum or poll from a background timer.
+
+The tracklist well belongs to a fixed outer frame. Only its inner content scrolls,
+so the bottom and side edging stay visible at every playlist position.

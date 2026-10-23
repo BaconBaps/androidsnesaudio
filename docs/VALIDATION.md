@@ -1,6 +1,6 @@
 # Validation evidence
 
-Android/UI checks updated in the managed Linux cloud environment on 23 October
+Android/UI checks updated in the managed Linux cloud environment on 24 October
 2026 (Europe/London). Native decoder sample checks below were performed on
 22 October; this visual update does not change the decoder.
 
@@ -78,6 +78,8 @@ Fifty-five JUnit/Robolectric tests, zero failures and zero skipped:
   continued playback and Stop clears a pending timer.
 - Dimmed list palette, readable secondary text/selected tracks and lighter
   Library-button contrast across all ten themes.
+- Fixed tracklist frame outside the ScrollView; rendered bottom-border pixels
+  remain identical at the top, middle and bottom of a long playlist.
 - Vertically centered section text and disabled baseline alignment; no Local
   files label. Existing fixed-header scrolling checks still pass.
 - Native RemoteViews render empty and playing widgets, preserve palette/clock/

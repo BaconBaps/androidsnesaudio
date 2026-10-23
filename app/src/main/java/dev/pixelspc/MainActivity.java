@@ -80,14 +80,16 @@ public class MainActivity extends Activity {
         ImageButton menu=headerIcon(R.drawable.ic_menu,"App menu"); add(header,menu,40,40); menu.setOnClickListener(this::showMenu);
         add(root,header,-1,50); gap(root,8);
         libraryButton=button("LIBRARY ▾",accentColor,theme.libraryButtonBackground()); libraryButton.setContentDescription("Open music library"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
-        ScrollView scroll=new ScrollView(this); scroll.setFillViewport(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
+        ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setClipToPadding(true); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=root;
         gameTitle=text("Your music library",23,textColor); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2); add(content,gameTitle,-1,-2); gap(content,5);
         gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2); gap(content,10);
         LinearLayout listHeader=row(); listHeader.setBackground(skin.panel(backgroundColor)); listHeader.setPadding(dp(10),0,dp(10),0); TextView tracks=pixel("TRACKLIST",8,textColor); add(listHeader,tracks,-2,-2); View listRail=new View(this); listRail.setBackground(skin.rail(theme.secondary)); LinearLayout.LayoutParams listRailParams=new LinearLayout.LayoutParams(0,dp(6),1); listRailParams.setMargins(dp(10),0,dp(10),0); listHeader.addView(listRail,listRailParams); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,28);
-        root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        LinearLayout scrollContent=column(); scroll.addView(scrollContent);
-        trackList=column(); trackList.setBackground(skin.well(listTheme.background)); trackList.setPadding(dp(6),dp(5),dp(6),dp(5)); add(scrollContent,trackList,-1,-2); gap(scrollContent,10);
+        FrameLayout playlistFrame=new FrameLayout(this); playlistFrame.setContentDescription("Tracklist frame");
+        playlistFrame.setBackground(skin.well(listTheme.background)); playlistFrame.setPadding(dp(6),dp(5),dp(6),dp(5));
+        root.addView(playlistFrame,new LinearLayout.LayoutParams(-1,0,1));
+        playlistFrame.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
+        trackList=column(); scroll.addView(trackList,new ScrollView.LayoutParams(-1,-2));
         gap(root,8);
         LinearLayout playerPanel=column(); playerPanel.setBackground(skin.chassis(playbackTheme.background)); playerPanel.setContentDescription("Now Playing panel"); playerPanel.setPadding(dp(8),dp(6),dp(8),dp(6)); add(root,playerPanel,-1,-2);
         LinearLayout playerHeading=row(); View rail=new View(this); rail.setBackground(skin.rail(playbackTheme.secondary)); playerHeading.addView(rail,new LinearLayout.LayoutParams(dp(32),dp(7))); TextView tag=pixel(" NOW PLAYING",7,playbackTheme.accent); add(playerHeading,tag,-2,-2); View playerRail=new View(this); playerRail.setBackground(skin.rail(playbackTheme.secondary)); LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(0,dp(6),1); railParams.setMargins(dp(8),0,dp(8),0); playerHeading.addView(playerRail,railParams); TextView quality=pixel("♪  44.1 kHz",6,playbackTheme.muted); add(playerHeading,quality,-2,-2); add(playerPanel,playerHeading,-1,22);
@@ -324,7 +326,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipPlayer 199x · v1.11.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipPlayer 199x · v1.11.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

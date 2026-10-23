@@ -72,12 +72,21 @@ public class PlayerUiTest {
             View heading=findText(a.getWindow().getDecorView(),"TRACKLIST");
             assertNotNull(meta);
             ScrollView playlist=findScroll(a.getWindow().getDecorView());
+            View frame=findDescription(a.getWindow().getDecorView(),"Tracklist frame"); assertSame(frame,playlist.getParent());
+            assertTrue(frame.getHeight()>0); assertNotNull(frame.getBackground());
+            assertNull(((ViewGroup)playlist).getChildAt(0).getBackground());
+            Bitmap borderBefore=bottomEdge(frame);
             int[] beforeTitle=new int[2],beforeMeta=new int[2],beforeHeading=new int[2];
             title.getLocationOnScreen(beforeTitle); meta.getLocationOnScreen(beforeMeta); heading.getLocationOnScreen(beforeHeading);
             playlist.scrollTo(0,10000); assertTrue(playlist.getScrollY()>0);
             int[] after=new int[2]; title.getLocationOnScreen(after); assertArrayEquals(beforeTitle,after);
             meta.getLocationOnScreen(after); assertArrayEquals(beforeMeta,after);
             heading.getLocationOnScreen(after); assertArrayEquals(beforeHeading,after);
+            assertTrue("Bottom frame must remain identical after scrolling",borderBefore.sameAs(bottomEdge(frame)));
+            capture(a,"tracklist-scrolled-bottom.png");
+            playlist.scrollTo(0,playlist.getScrollY()/2);
+            assertTrue("Bottom frame must remain identical mid-list",borderBefore.sameAs(bottomEdge(frame)));
+            capture(a,"tracklist-scrolled-middle.png");
             playlist.scrollTo(0,0);
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
             android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -240,6 +249,11 @@ public class PlayerUiTest {
             list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0)),0);
             assertTrue(text(a.getWindow().getDecorView()).contains("Tetris"));
         }
+    }
+    private static Bitmap bottomEdge(View frame) {
+        Bitmap bitmap=Bitmap.createBitmap(frame.getWidth(),frame.getHeight(),Bitmap.Config.ARGB_8888); frame.draw(new Canvas(bitmap));
+        int height=frame.getPaddingBottom();
+        return Bitmap.createBitmap(bitmap,0,bitmap.getHeight()-height,bitmap.getWidth(),height);
     }
     private static ScrollView findScroll(View view) {
         if(view instanceof ScrollView) return (ScrollView)view;
