@@ -18,6 +18,8 @@ public class MainActivity extends Activity {
     private PlayerSkin skin;
     private Typeface pixel;
     private Library library;
+    private TrackFavorites favourites;
+    private boolean showFavourites;
     private Library.Game selected;
     private PlaybackService player;
     private LinearLayout root,trackList;
@@ -40,8 +42,10 @@ public class MainActivity extends Activity {
         pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf"); skin=new PlayerSkin(this);
         try { library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
         catch(Exception e) { dialog().setTitle("Library could not be read").setMessage(e.getMessage()).setPositiveButton("Close",(d,w)->finish()).show(); return; }
+        favourites=new TrackFavorites(this); showFavourites=state!=null && state.getBoolean("showFavourites");
         buildUI();
     }
+    @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); out.putBoolean("showFavourites",showFavourites); }
     @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); main.post(tick); } }
     @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
     @Override protected void onDestroy() { importer.shutdown(); super.onDestroy(); }
@@ -104,17 +108,19 @@ public class MainActivity extends Activity {
     }
     public void renderTracks() {
         if(trackList==null) return;
-        trackList.removeAllViews(); gameTitle.setText(selected==null?"Your music library":selected.name);
-        gameMeta.setText(selected==null || selected.tracks.isEmpty()?"Import a track or a game set.":systemLabel(selected)+"  ·  "+selected.tracks.size()+" tracks  ·  Local files");
-        status.setText(busy?"IMPORTING…":selected==null?"READY":String.format(Locale.ROOT,"%02d TRACKS",selected.tracks.size()));
-        if(selected==null || selected.tracks.isEmpty()) {
+        List<Library.Track> visible=showFavourites?favourites.tracks(library.games):selected==null?Collections.emptyList():selected.tracks;
+        trackList.removeAllViews(); gameTitle.setText(showFavourites?"Favourite tracks":selected==null?"Your music library":selected.name);
+        gameMeta.setText(showFavourites?getResources().getQuantityString(R.plurals.favourite_count,visible.size(),visible.size()):selected==null || selected.tracks.isEmpty()?"Import a track or a game set.":systemLabel(selected)+"  ·  "+selected.tracks.size()+" tracks  ·  Local files");
+        status.setText(busy?"IMPORTING…":!showFavourites && selected==null?"READY":String.format(Locale.ROOT,"%02d TRACKS",visible.size()));
+        if(showFavourites && visible.isEmpty()) { TextView hint=text("No favourites yet. Tap a track’s ☆ to add it here.",14,mutedColor); hint.setPadding(dp(12),dp(24),dp(12),dp(24)); add(trackList,hint,-1,-2); return; }
+        if(visible.isEmpty()) {
             LinearLayout empty=column(); empty.setGravity(Gravity.CENTER); empty.setPadding(dp(16),dp(22),dp(16),dp(22)); add(empty,pixel("INSERT SOUNDTRACK",9,textColor),-2,-2); gap(empty,10); TextView hint=text("Open an SPC track or a whole game set.\nYour music stays on your device.",12,mutedColor); hint.setGravity(Gravity.CENTER); add(empty,hint,-1,-2); gap(empty,18); TextView importButton=button("+  IMPORT MUSIC",accentColor,theme.surface); importButton.setContentDescription("Import music file or game set"); add(empty,importButton,220,48); add(trackList,empty,-1,-2); importButton.setOnClickListener(v->pickFile()); return;
         }
-        for(int i=0;i<selected.tracks.size();i++) {
-            final int index=i; Library.Track track=selected.tracks.get(i); boolean active=player!=null && player.current!=null && track.path.equals(player.current.path) && track.index==player.current.index;
+        for(int i=0;i<visible.size();i++) {
+            final int index=i; Library.Track track=visible.get(i); boolean active=player!=null && player.current!=null && track.path.equals(player.current.path) && track.index==player.current.index;
             LinearLayout line=row(); if(active) line.setBackground(skin.selection(theme.surface)); line.setPadding(dp(8),dp(7),dp(8),dp(7));
             TextView number=pixel(active && player.playing?"▮▮":String.format(Locale.ROOT,"%02d",i+1),8,active?accentColor:mutedColor); add(line,number,34,26);
-            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active || theme.id.equals("desktop-98")?accentColor:textColor); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(track.artist.isEmpty()?track.system:track.artist,10,mutedColor); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active || theme.id.equals("desktop-98")?accentColor:textColor); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(showFavourites?track.game:track.artist.isEmpty()?track.system:track.artist,10,mutedColor); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
             if(track.loopLength>0) {
                 boolean looping=player!=null && player.isLooping(track);
                 TextView mode=button(looping?"LOOP":"STRAIGHT",looping?theme.onAccent:accentColor,looping?accentColor:theme.surface);
@@ -122,15 +128,21 @@ public class MainActivity extends Activity {
                 add(line,mode,74,34);
                 mode.setOnClickListener(v->{ if(player!=null) { player.setTrackLoop(track,!player.isLooping(track)); renderTracks(); updatePlayer(); } });
             }
+            boolean starred=favourites.contains(track);
+            TextView star=button(starred?"★":"☆",starred?accentColor:mutedColor,backgroundColor); star.setBackground(null); star.setPadding(0,0,0,0); star.setTypeface(Typeface.DEFAULT); star.setTextSize(23);
+            star.setContentDescription((starred?"Remove ":"Add ")+track.title+(starred?" from favourites":" to favourites")); star.setSelected(starred); add(line,star,40,44);
+            star.setOnClickListener(v->{ favourites.toggle(track); renderTracks(); });
             TextView duration=text(clock(track.length),11,mutedColor); duration.setGravity(Gravity.END|Gravity.CENTER_VERTICAL); add(line,duration,43,30); add(trackList,line,-1,57); rule(trackList);
-            line.setContentDescription("Play "+track.title); line.setClickable(true); line.setFocusable(true); line.setOnClickListener(v->{ if(player!=null) { notifyPermission(); player.play(selected.tracks,index); } });
+            line.setOnLongClickListener(v->{ exportTrack(track); return true; });
+            line.setTooltipText("Hold to export audio");
+            line.setContentDescription("Play "+track.title); line.setClickable(true); line.setFocusable(true); line.setOnClickListener(v->{ if(player!=null) { notifyPermission(); player.play(visible,index); } });
         }
     }
     private String systemLabel(Library.Game g) { return LibraryPlatforms.platform(g); }
     private void toggle() {
         if(player==null) return;
         notifyPermission();
-        if(player.current==null) { if(selected!=null) player.play(selected.tracks,0); else pickFile(); }
+        if(player.current==null) { if(showFavourites) { List<Library.Track> tracks=favourites.tracks(library.games); if(!tracks.isEmpty()) player.play(tracks,0); } else if(selected!=null) player.play(selected.tracks,0); else pickFile(); }
         else player.toggle();
     }
     private void notifyPermission() { if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},2); }
@@ -207,7 +219,7 @@ public class MainActivity extends Activity {
         picker.setContentView(body,new ViewGroup.LayoutParams(-1,-1)); picker.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         close.setOnClickListener(v->picker.dismiss()); importMusic.setOnClickListener(v->{ picker.dismiss(); pickFile(); });
         libraryPicker=picker;
-        list.setOnChildClickListener((parent,view,group,child,id)->{ selected=groups.get(group).games.get(child); picker.dismiss(); renderTracks(); return true; });
+        list.setOnChildClickListener((parent,view,group,child,id)->{ selected=groups.get(group).games.get(child); showFavourites=false; picker.dismiss(); renderTracks(); return true; });
         picker.show(); picker.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(720)),Math.round(getResources().getDisplayMetrics().heightPixels*.86f));
     }
     private void showMenu(View anchor) {
@@ -215,8 +227,23 @@ public class MainActivity extends Activity {
         menu.getMenu().add(0,1,0,"Import music").setOnMenuItemClickListener(item->{ pickFile(); return true; });
         menu.getMenu().add(0,2,1,"Choose color theme").setOnMenuItemClickListener(item->{ chooseTheme(); return true; });
         menu.getMenu().add(0,3,2,"About PixelSPC").setOnMenuItemClickListener(item->{ about(); return true; });
-        menu.getMenu().add(0,4,3,"Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
+        menu.getMenu().add(0,5,3,"Export current track…").setEnabled(player!=null && player.current!=null).setOnMenuItemClickListener(item->{ exportTrack(player.current); return true; });
+        menu.getMenu().add(0,6,4,showFavourites?"Back to soundtrack":"Show favourites").setOnMenuItemClickListener(item->{ showFavourites=!showFavourites; renderTracks(); return true; });
+        String sleep=player!=null && player.sleepRemainingMs()>0?"Sleep timer · "+((player.sleepRemainingMs()+59999)/60000)+" min left":"Sleep timer";
+        menu.getMenu().add(0,7,5,sleep).setEnabled(player!=null).setOnMenuItemClickListener(item->{ chooseSleepTimer(); return true; });
+        menu.getMenu().add(0,4,6,"Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
         menu.show();
+    }
+    private void chooseSleepTimer() {
+        String[] choices={"Off","15 minutes","30 minutes","60 minutes","90 minutes"};
+        int[] minutes={0,15,30,60,90};
+        dialog().setTitle("Sleep timer").setItems(choices,(d,which)->{
+            if(player!=null) { player.setSleepTimer(minutes[which]*60000L); Toast.makeText(this,which==0?"Sleep timer off":"Playback will pause in "+minutes[which]+" minutes",Toast.LENGTH_SHORT).show(); }
+        }).setNegativeButton("CANCEL",null).show();
+    }
+    private void exportTrack(Library.Track track) {
+        if(track==null) return;
+        startActivity(new Intent(this,ExportActivity.class).putExtra("path",track.path).putExtra("title",track.title).putExtra("index",track.index).putExtra("length",track.length));
     }
     private void exitApp() {
         if(busy) { Toast.makeText(this,"Wait for the import to finish before exiting",Toast.LENGTH_SHORT).show(); return; }
@@ -249,7 +276,7 @@ public class MainActivity extends Activity {
     void importUri(Uri uri) {
         busy=true; renderTracks();
         importer.execute(()->{
-            try { Library.Game game=library.importFile(uri); main.post(()->{ busy=false; selected=game; if(!isDestroyed()) { renderTracks(); Toast.makeText(this,"Imported "+game.tracks.size()+" tracks",Toast.LENGTH_SHORT).show(); } }); }
+            try { Library.Game game=library.importFile(uri); main.post(()->{ busy=false; selected=game; showFavourites=false; if(!isDestroyed()) { renderTracks(); Toast.makeText(this,"Imported "+game.tracks.size()+" tracks",Toast.LENGTH_SHORT).show(); } }); }
             catch(Exception e) { main.post(()->{ busy=false; if(!isDestroyed()) { renderTracks(); dialog().setTitle("Could not import soundtrack").setMessage(e.getMessage()).setPositiveButton("OK",null).show(); } }); }
         });
     }
@@ -297,7 +324,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.9.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("PixelSPC · v1.10.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

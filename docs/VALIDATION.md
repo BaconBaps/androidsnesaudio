@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 23 October
 
 ## Automated tests
 
-Forty JUnit/Robolectric tests, zero failures and zero skipped:
+Fifty JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -67,6 +67,14 @@ Forty JUnit/Robolectric tests, zero failures and zero skipped:
   button frames verified by rendered pixel contrast.
 - Notification Exit action releases audio and removes the notification; colorization
   is disabled and no large artwork is attached. Android controls final media notification presentation.
+- WAV header, exact sample count/duration, little-endian stereo, fades, bounded
+  offset seeks, cancellation and decoder closure on output failure.
+- Export time validation, full-track shortcut, document-picker MIME/filename,
+  and clip settings across Activity recreation. No sound-setting permission.
+- Favourite persistence, subtrack/duplicate identities, deletion cleanup,
+  cross-game filtered UI, empty state and Activity recreation.
+- Sleep expiry with Loop on pauses and keeps position; cancellation permits
+  continued playback and Stop clears a pending timer.
 - ZIP traversal protection and preserved display names.
 - Track-count limit with partial-import cleanup.
 - Clear rejection of archives containing no supported music.
@@ -128,3 +136,17 @@ VGZ do not have sample-based functional validation in this run.
 The included APK is debug-signed for sideloading; Play Store release signing and
 publication have not been performed. A GitHub Actions workflow is supplied for
 future builds; local checks do not prove a remote Actions run succeeded.
+
+## Offline export checks (23 October 2026)
+
+`tests/NativeExportSmoke.java` exercised the real JNI decoder with the supplied
+Donkey Kong Country SPC set and a VGZ sample, each at offsets 0 and 12,347 ms.
+All four exports produced 358,664-byte WAVs for 2,033 ms clips, with audible
+samples and a final fade to zero. A simultaneously open playback decoder kept
+its original position. These host checks validate file rendering, not Android
+speaker output. `scripts/test-samples.sh` includes this export check.
+
+The export and favourites screenshots are native-graphics Robolectric renders.
+Export jobs retain their state across configuration changes, are cancellable,
+and use a temporary file before copying to the chosen document provider. Final
+provider behavior and lock-screen sleep timing still need physical-device checks.

@@ -53,6 +53,29 @@ show Play/Pause, Next, and Exit (Previous remains available when expanded).
 No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
 
+## Export, favourites, and sleep timer
+
+Long-press a track, or choose **⋮ → Export current track…**, to save audio as a
+WAV file. Choose a start time and duration in `minutes:seconds`, optionally add a
+short fade in/out, then choose the destination with Android’s Save picker. The
+full-track shortcut uses the track’s tagged duration (or its default duration).
+Exports are stereo 44.1 kHz, 16-bit PCM WAV, up to 10 minutes long with start
+offsets up to 60 minutes. A 30-second clip uses about 5 MB. Rendering uses a
+separate decoder, so playback can continue. Cancel stops preparation and attempts
+to remove the empty destination; providers that refuse deletion may leave a file
+to remove manually. No phone sound settings or extra permissions are needed.
+
+Tap **☆** beside a track to favourite it. **⋮ → Show favourites** collects starred
+tracks across games; tap one to play the favourites queue. Stars survive app
+restarts. Duplicate imports have independent favourites, and deleting an import
+clears its stars. Choose a game from Library, or **⋮ → Back to soundtrack**, to
+leave the favourites view.
+
+**⋮ → Sleep timer** offers Off, 15, 30, 60, or 90 minutes. Playback pauses when
+the timer expires, including with Loop on, keeping the track and position for
+later. The menu shows the remaining minutes. The timer continues while using
+other apps; Exit cancels it.
+
 ## Image-based player skin
 
 The Library button and playlist sit above a separate, darker Now Playing deck.

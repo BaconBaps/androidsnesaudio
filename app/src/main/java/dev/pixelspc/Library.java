@@ -80,7 +80,7 @@ public final class Library {
         android.content.SharedPreferences prefs=context.getSharedPreferences("playback",Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor edit=prefs.edit();
         for(Track track:game.tracks) edit.remove("track-loop:"+track.path+":"+track.index);
-        edit.apply();
+        edit.apply(); new TrackFavorites(context).remove(game.tracks);
     }
     private void save() throws Exception {
         JSONArray a=new JSONArray(); for(Game g:games) { JSONArray ts=new JSONArray(); for(Track t:g.tracks) ts.put(t.json()); a.put(new JSONObject().put("id",g.id).put("name",g.name).put("tracks",ts)); }

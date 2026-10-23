@@ -25,6 +25,8 @@ public class PlaybackService extends Service {
     private AudioFocusRequest focus;
     private boolean resumeOnFocus;
     private boolean defaultLoop;
+    private volatile long sleepUntil;
+    private volatile boolean sleepExpired;
     private volatile boolean destroyed;
     private final short[] pcm=new short[4096];
     private final AudioSpectrum spectrum=new AudioSpectrum();
@@ -65,7 +67,7 @@ public class PlaybackService extends Service {
     }
     public void play(List<Library.Track> tracks,int selected) {
         if(selected<0 || selected>=tracks.size()) return;
-        queue=new ArrayList<>(tracks); index=selected; current=queue.get(selected); error="";
+        sleepExpired=false; queue=new ArrayList<>(tracks); index=selected; current=queue.get(selected); error="";
         final Library.Track track=current;
         repeat=isLooping(track);
         startService(new Intent(this,PlaybackService.class));
@@ -85,7 +87,7 @@ public class PlaybackService extends Service {
         if(current==null) return;
         if(playing) { pause(); return; }
         if(manager.requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return;
-        startForeground(1,notification());
+        sleepExpired=false; startForeground(1,notification());
         worker.post(()->{
             if(audio==null) { main.post(()->play(queue,index)); return; }
             try { playing=true; audio.play(); worker.removeCallbacks(pump); worker.post(pump); changed(); }
@@ -94,6 +96,7 @@ public class PlaybackService extends Service {
     }
     public void pause() { worker.post(()->{ cancelSeek(); playing=false; worker.removeCallbacks(pump); if(audio!=null) audio.pause(); changed(); }); }
     public void stopPlayback(Runnable complete) {
+        setSleepTimer(0);
         current=null; queue=Collections.emptyList(); index=-1; playing=false; position=0; seekTarget=-1;
         resumeOnFocus=false; manager.abandonAudioFocusRequest(focus);
         worker.removeCallbacks(pump);
@@ -116,6 +119,17 @@ public class PlaybackService extends Service {
         });
     }
     public void refreshAppearance() { changed(); }
+    public long sleepRemainingMs() { return Math.max(0,sleepUntil-SystemClock.elapsedRealtime()); }
+    public void setSleepTimer(long durationMs) {
+        main.removeCallbacks(sleepCheck); sleepExpired=false;
+        sleepUntil=durationMs<=0?0:SystemClock.elapsedRealtime()+Math.min(durationMs,90*60000L);
+        if(sleepUntil>0) main.postDelayed(sleepCheck,Math.min(1000,durationMs));
+    }
+    private final Runnable sleepCheck=new Runnable() { public void run() {
+        if(destroyed || sleepUntil==0) return;
+        if(sleepRemainingMs()==0) { sleepExpired=true; sleepUntil=0; resumeOnFocus=false; pause(); }
+        else main.postDelayed(this,Math.min(1000,sleepRemainingMs()));
+    }};
     public void setShuffle(boolean enabled) {
         shuffle=enabled; getSharedPreferences("playback",MODE_PRIVATE).edit().putBoolean("shuffle",enabled).apply(); changed();
     }
@@ -185,7 +199,14 @@ public class PlaybackService extends Service {
             if(n<0) throw new java.io.IOException("Audio output unavailable ("+n+")");
             pcmOffset+=n;
             position=Engine.tell(handle);
-            if(pcmOffset==pcm.length && pcmEnded) { playing=false; main.post(()->{ if(repeat) play(queue,index); else next(1); }); }
+            if(pcmOffset==pcm.length && pcmEnded) {
+                playing=false;
+                main.post(()->{
+                    if(sleepExpired) return;
+                    if(sleepUntil>0 && sleepRemainingMs()==0) { setSleepTimer(0); sleepExpired=true; pause(); }
+                    else if(repeat) play(queue,index); else next(1);
+                });
+            }
             else if(pcmOffset<pcm.length) worker.postDelayed(this,10);
             else worker.post(this);
         } catch(Exception e) { failed(e); }
@@ -206,7 +227,7 @@ public class PlaybackService extends Service {
         return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("PixelSPC").setContentTitle(current==null?"PixelSPC":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
-        destroyed=true;
+        destroyed=true; main.removeCallbacks(sleepCheck); sleepUntil=0;
         unregisterReceiver(noisy); listener=null; manager.abandonAudioFocusRequest(focus); session.release();
         worker.removeCallbacksAndMessages(null); worker.post(()->{ releaseAudio(); thread.quitSafely(); }); super.onDestroy();
     }

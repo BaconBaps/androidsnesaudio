@@ -62,6 +62,19 @@ public class PlaybackResumeTest {
             service.play(Collections.singletonList(track),0); drain(service); assertTrue(service.playing);
         } finally { c.destroy(); }
     }
+    @Test public void sleepTimerPausesWithoutLosingPositionAndCanBeCancelled() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create(); PlaybackService service=c.get();
+        try {
+            Library.Track track=new Library.Track(); track.path="fixture.vgz"; track.title="Tone"; track.length=120000;
+            service.play(Collections.singletonList(track),0); drain(service); service.seek(5033); drain(service);
+            service.setLoop(true); drain(service); service.setSleepTimer(1000); assertTrue(service.sleepRemainingMs()>0);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1)); drain(service);
+            assertFalse(service.playing); assertSame(track,service.current); assertTrue(service.position>=5032); assertEquals(0,service.sleepRemainingMs());
+            service.toggle(); drain(service); service.setSleepTimer(1000); service.setSleepTimer(0);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2)); drain(service); assertTrue(service.playing);
+            service.setSleepTimer(60000); service.stopPlayback(null); drain(service); assertEquals(0,service.sleepRemainingMs());
+        } finally { c.destroy(); }
+    }
     @Test public void notificationExitReleasesAudioAndRemovesNotification() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();
         PlaybackService service=c.get();

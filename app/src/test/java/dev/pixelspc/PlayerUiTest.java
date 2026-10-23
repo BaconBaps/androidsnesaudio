@@ -25,6 +25,7 @@ public class PlayerUiTest {
         app.getSharedPreferences("appearance",0).edit().clear().commit();
         app.getSharedPreferences("library-browser",0).edit().clear().commit();
         app.getSharedPreferences("playback",0).edit().clear().commit();
+        app.getSharedPreferences("favourites",0).edit().clear().commit();
         serviceController=Robolectric.buildService(PlaybackService.class).create(); service=serviceController.get();
         Shadows.shadowOf(app).setComponentNameAndServiceForBindService(new android.content.ComponentName(app,PlaybackService.class),service.onBind(new android.content.Intent()));
     }
@@ -109,6 +110,16 @@ public class PlayerUiTest {
                 assertFalse(text(a.getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
                 capture(a,"theme-"+palette.id+".png");
             }
+            findDescription(a.getWindow().getDecorView(),"Add DK Island Swing to favourites").performClick();
+            findDescription(a.getWindow().getDecorView(),"App menu").performClick();
+            org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu().getMenu().performIdentifierAction(6,0);
+            assertNotNull(findText(a.getWindow().getDecorView(),"Favourite tracks"));
+            assertNull(findText(a.getWindow().getDecorView(),"Theme"));
+            assertNotNull(findText(a.getWindow().getDecorView(),"DK Island Swing"));
+            capture(a,"favourites.png");
+            c.recreate(); assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Remove DK Island Swing from favourites"));
+            findDescription(c.get().getWindow().getDecorView(),"Remove DK Island Swing from favourites").performClick();
+            assertNotNull(findText(c.get().getWindow().getDecorView(),"No favourites yet. Tap a track’s ☆ to add it here."));
         }
     }
     @Test public void shuffleAndLoopShowFeedbackEvenBeforeSelectingATrack() {
@@ -166,7 +177,7 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); findDescription(a.getWindow().getDecorView(),"App menu").performClick();
             PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
-            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().getItem(3).getTitle());
+            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().findItem(4).getTitle());
             // Selecting Exit waits for service teardown before closing the task.
             menu.getMenu().performIdentifierAction(4,0);
             try {
