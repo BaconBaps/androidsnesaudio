@@ -4,6 +4,16 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class PlayerThemeTest {
+    @Test public void playbackDeckIsDarkerAndItsAdaptedColorsStayReadable() {
+        for(PlayerTheme theme:PlayerTheme.ALL) {
+            PlayerTheme p=theme.nowPlaying();
+            assertTrue(theme.name,PlayerTheme.luminance(p.background)<PlayerTheme.luminance(theme.background));
+            assertTrue(PlayerTheme.contrast(p.background,p.text)>=7);
+            assertTrue(PlayerTheme.contrast(p.background,p.muted)>=4.5);
+            assertTrue(PlayerTheme.contrast(p.surface,p.accent)>=4.5);
+            assertTrue(PlayerTheme.contrast(p.accent,p.onAccent)>=4.5);
+        }
+    }
     @Test public void allPalettesHaveReadableTextAndStableUniqueIds() {
         Set<String> ids=new HashSet<>();
         for(PlayerTheme t:PlayerTheme.ALL) {

@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 23 October
 
 ## Automated tests
 
-Thirty-two JUnit/Robolectric tests, zero failures and zero skipped:
+Thirty-eight JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -44,6 +44,13 @@ Thirty-two JUnit/Robolectric tests, zero failures and zero skipped:
 - The time display shows and clears the SEEKING target while catching up.
 - Header Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
+- Equal-size centered image buttons in the header; playlist above the playback
+  deck; spectrum inside the deck and before the seek/readout controls.
+- Enlarged Library viewport, platform expansion/collapse persistence, and
+  correct soundtrack selection after grouping and sorting.
+- Platform aliases, preserved duplicate imports, alphabetic grouping, unknown
+  metadata, and mixed-system archives.
+- Darker playback colours retain readable text and accents across all 13 themes.
 - Duplicate deletion persists across library reload, removes only the chosen
   private set and its loop preferences, retains the other import/source, and
   rejects folder traversal.
@@ -92,7 +99,8 @@ matching code are removed; the APK is checked for absence of the old artwork pac
 ## Screenshots and remaining device checks
 
 `docs/screenshots/` contains native-graphics Robolectric renders of the real Java
-view hierarchy. The library deletion image uses a one-track fixture; the soundtrack images use a seven-track metadata fixture; the
+view hierarchy. The grouped Library image uses four imports across three platforms; the library
+deletion image uses a one-track fixture; the soundtrack images use a seven-track metadata fixture; the
 paused player image uses a service-state fixture at 1:13. Theme images additionally
 use synthetic multitone PCM passed through the actual FFT and visualizer, rather
 than captured device audio on every system. The track-row loop tag shown for the fixture is

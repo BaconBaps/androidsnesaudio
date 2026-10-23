@@ -29,6 +29,16 @@ public final class PlayerTheme {
         new PlayerTheme("desktop-98","Desktop ’98","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72)
     };
     public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
+    /** A darker, contrast-safe version of the selected palette for the playback deck. */
+    public PlayerTheme nowPlaying() {
+        int bg=blend(background,0xff000000,dark?.55f:.82f);
+        int lightAccent=accent;
+        for(int step=0;step<=20;step++) {
+            lightAccent=blend(accent,0xffffffff,step/20f);
+            if(contrast(blend(bg,lightAccent,.14f),lightAccent)>=4.5) break;
+        }
+        return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary);
+    }
     public String label() { return name+"\n"+inspiration; }
     static int blend(int a,int b,float amount) {
         int r=Math.round(((a>>16)&255)*(1-amount)+((b>>16)&255)*amount);

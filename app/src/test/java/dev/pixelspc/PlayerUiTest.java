@@ -23,6 +23,7 @@ public class PlayerUiTest {
     @Before public void clear() {
         app=RuntimeEnvironment.getApplication(); new File(app.getFilesDir(),"library.json").delete();
         app.getSharedPreferences("appearance",0).edit().clear().commit();
+        app.getSharedPreferences("library-browser",0).edit().clear().commit();
         app.getSharedPreferences("playback",0).edit().clear().commit();
         serviceController=Robolectric.buildService(PlaybackService.class).create(); service=serviceController.get();
         Shadows.shadowOf(app).setComponentNameAndServiceForBindService(new android.content.ComponentName(app,PlaybackService.class),service.onBind(new android.content.Intent()));
@@ -65,8 +66,8 @@ public class PlayerUiTest {
             assertNotNull(findDescription(a.getWindow().getDecorView(),"Import music"));
             capture(a,"soundtrack-library.png");
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
-            AlertDialog browser=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            captureView(browser.getWindow().getDecorView(),"library-browser.png",720,450); browser.dismiss();
+            android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            captureView(browser.getWindow().getDecorView(),"library-browser.png",774,1500); browser.dismiss();
             // A paused UI fixture exercises the real player layout without mocking sound output.
             Library saved=new Library(app); service.queue=saved.games.get(0).tracks;
             service.current=service.queue.get(2); service.index=2; service.position=73000;
@@ -136,9 +137,9 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get();
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
-            AlertDialog browser=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             // Force row inflation just as a rendered library picker would.
-            captureView(browser.getWindow().getDecorView(),"library-delete.png",720,450);
+            captureView(browser.getWindow().getDecorView(),"library-delete.png",774,1500);
             findDescription(browser.getWindow().getDecorView(),"Delete Game from library").performClick();
             AlertDialog confirm=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertEquals(1,new Library(app).games.size());
@@ -161,6 +162,46 @@ public class PlayerUiTest {
                 Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             } catch(Exception e) { throw new AssertionError(e); }
             assertTrue(a.isFinishing()); assertNull(service.current);
+        }
+    }
+    @Test public void headerIconsAreEqualAndSpectrumBelongsToThePlaybackDeck() throws Exception {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
+            int top=-1;
+            for(String label:new String[]{"Import music","Choose color theme","About PixelSPC and supported formats","App menu"}) {
+                View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
+                assertEquals(a.dp(40),v.getWidth()); assertEquals(a.dp(40),v.getHeight());
+                if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
+                assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());
+            }
+            View deck=findDescription(decor,"Now Playing panel"),spectrum=findDescription(decor,"Audio spectrum visualizer, 24 frequency bands");
+            assertSame(deck,spectrum.getParent());
+            int[] spectrumAt=new int[2],libraryAt=new int[2]; spectrum.getLocationOnScreen(spectrumAt); findDescription(decor,"Open music library").getLocationOnScreen(libraryAt);
+            assertTrue(libraryAt[1]<spectrumAt[1]);
+            assertTrue(((ViewGroup)deck).indexOfChild(spectrum)<((ViewGroup)deck).indexOfChild(findSeek(decor)));
+        }
+    }
+    @Test public void libraryAccordionsKeepTheirStateAndSelectTheCorrectSoundtrack() throws Exception {
+        org.json.JSONArray games=new org.json.JSONArray();
+        for(String[] info:new String[][]{{"Super Nintendo","Donkey Kong Country"},{"Game Boy","Tetris"},{"Sega Genesis","Sonic the Hedgehog"},{"SNES","Super Metroid"}}) {
+            org.json.JSONObject t=new org.json.JSONObject().put("path","/fixture/"+info[1]+".spc").put("title","Theme").put("game",info[1]).put("artist","").put("system",info[0]).put("index",0).put("length",180000).put("loopLength",0);
+            games.put(new org.json.JSONObject().put("name",info[1]).put("id",info[1]).put("tracks",new org.json.JSONArray().put(t)));
+        }
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),games.toString().getBytes("UTF-8"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get(); View opener=findDescription(a.getWindow().getDecorView(),"Open music library"); opener.performClick();
+            android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
+            assertEquals(3,list.getExpandableListAdapter().getGroupCount());
+            assertTrue(browser.getWindow().getAttributes().height>=a.dp(650));
+            assertTrue(list.isGroupExpanded(2)); assertFalse(list.isGroupExpanded(0));
+            list.expandGroup(0); list.collapseGroup(2); captureView(browser.getWindow().getDecorView(),"library-platforms.png",774,1500);
+            assertTrue(list.getHeight()>=a.dp(500)); browser.dismiss();
+            opener.performClick(); browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
+            assertTrue(list.isGroupExpanded(0)); assertFalse(list.isGroupExpanded(2));
+            list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0)),0);
+            assertTrue(text(a.getWindow().getDecorView()).contains("Tetris"));
         }
     }
     @Test public void formatsAndClockAreAccurate() {

@@ -26,11 +26,12 @@ public class PixelVisualizer extends View {
     private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
     private void label(Canvas c,String s,int color,float x,float y,float size) { paint.setColor(color); paint.setTypeface(pixel); paint.setTextSize(size); c.drawText(s,x,y,paint); }
     @Override protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas); screen.setBounds(0,0,getWidth(),getHeight()); screen.draw(canvas); canvas.save(); canvas.scale(getWidth()/320f,getHeight()/154f);
+        super.onDraw(canvas); screen.setBounds(0,0,getWidth(),getHeight()); screen.draw(canvas); canvas.save(); float scale=getWidth()/320f; canvas.scale(scale,scale);
+        float height=getHeight()/scale,base=height-25,step=(base-30)/16f;
         label(canvas,"SPECTRUM",theme.accent,14,17,7);
         label(canvas,playing?"LIVE":loaded?"PAUSED":"READY",theme.muted,262,17,6);
         int grid=PlayerTheme.blend(displayColor,theme.text,.09f);
-        for(int y=34;y<=130;y+=24) box(canvas,grid,14,y,292,1);
+        for(int row=0;row<=4;row++) box(canvas,grid,14,30+(base-30)*row/4,292,1);
         boolean moving=false;
         for(int i=0;i<heights.length;i++) {
             heights[i]=Math.max(playing?target[i]:0,heights[i]*.84f);
@@ -39,12 +40,12 @@ public class PixelVisualizer extends View {
             int segments=Math.round(heights[i]*16); float x=16+i*12;
             for(int j=0;j<16;j++) {
                 int color=j<segments?(j>=12?theme.secondary:theme.accent):grid;
-                box(canvas,color,x,126-j*6,8,4);
+                box(canvas,color,x,base-j*step,8,Math.max(1,step-1.5f));
             }
-            if(peaks[i]>.02f) box(canvas,theme.secondary,x,126-Math.round(peaks[i]*16)*6,8,2);
+            if(peaks[i]>.02f) box(canvas,theme.secondary,x,base-Math.round(peaks[i]*16)*step,8,1.5f);
         }
-        label(canvas,"40Hz",theme.muted,14,146,5); label(canvas,"250",theme.muted,91,146,5);
-        label(canvas,"1k",theme.muted,160,146,5); label(canvas,"4k",theme.muted,225,146,5); label(canvas,"14k",theme.muted,289,146,5);
+        label(canvas,"40Hz",theme.muted,14,height-8,5); label(canvas,"250",theme.muted,91,height-8,5);
+        label(canvas,"1k",theme.muted,160,height-8,5); label(canvas,"4k",theme.muted,225,height-8,5); label(canvas,"14k",theme.muted,289,height-8,5);
         canvas.restore(); if((playing||moving)&&isShown()) postInvalidateOnAnimation();
     }
 }

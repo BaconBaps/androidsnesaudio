@@ -32,7 +32,12 @@ restarts; uninstalling removes imported files. Keep your original music files.
 Open **Library** and tap **Delete** beside a soundtrack to remove that import and
 its private music files after confirmation. Duplicate imports are separate entries;
 your original files are kept. Deleting the queued soundtrack stops its playback.
-The tracklist only shows a centered Import music button when empty.
+The tracklist only shows a centered Import music button when empty. The larger
+Library browser groups imports into collapsible platform sections, sorted by
+platform and soundtrack name. It remembers which groups you expand or collapse.
+Known metadata aliases (such as SNES and Super Famicom) share one group; mixed
+archives appear under Multiple systems. Expand a platform to select or delete
+a soundtrack.
 
 Choose **⋮ → Exit app** to stop playback, release the audio device, remove the
 notification, and close the app’s task. Normal Home/Back navigation continues to
@@ -43,6 +48,11 @@ No music is bundled. Import your own files, including the example sets supplied
 for development. The app requests no Internet or broad storage permission.
 
 ## Image-based player skin
+
+The Library button and playlist sit above a separate, darker Now Playing deck.
+Its spectrum sits above the track details and transport controls; the darker
+palette adapts each theme’s accent to keep text readable. Header icons share
+one size, canvas and alignment.
 
 Original pixel PNGs give every theme raised metal borders, corner screws, inset
 displays, metallic section rails, pressed controls, and a ridged seek thumb. Six

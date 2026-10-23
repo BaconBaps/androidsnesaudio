@@ -7,6 +7,21 @@ console palettes use the same skin geometry without changing saved theme IDs.
 
 <img src="screenshots/theme-desktop-98.png" width="310" alt="Desktop 98 skin with raised frames, recessed display, gold rails and ridged slider" />
 
+## Layout
+
+The header uses four original vector icons on matching 24 dp canvases and 40 dp
+buttons, with matching visible heights and centers. The Library button and
+playlist come first. Now Playing uses a darker version of the selected palette,
+with contrast-safe text/accent roles and its spectrum above the track readout.
+The spectrum keeps its label proportions as the panel height changes.
+
+The Library browser fills most of the screen. Its native ExpandableListView
+keeps long collections scrollable, groups metadata aliases under their platform,
+and remembers expansion state. Mixed-system imports stay together. Close and
+Import remain at the bottom of the window.
+
+<img src="screenshots/library-platforms.png" width="310" alt="Large library with collapsible Game Boy, Mega Drive and Super Nintendo groups" />
+
 ## Assets
 
 Nine sprite designs are generated at mdpi, hdpi, xhdpi, xxhdpi and xxxhdpi in `app/src/main/res/drawable-*/`:

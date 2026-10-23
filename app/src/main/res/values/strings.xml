@@ -3,4 +3,13 @@
     <string name="position_and_duration">%1$s   /   %2$s</string>
     <string name="no_track_selected">No track selected</string>
     <string name="choose_track">Choose a track to press play</string>
+    <string name="library_entry">%1$s · %2$s</string>
+    <plurals name="soundtrack_count">
+        <item quantity="one">%d soundtrack</item>
+        <item quantity="other">%d soundtracks</item>
+    </plurals>
+    <plurals name="track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
 </resources>
