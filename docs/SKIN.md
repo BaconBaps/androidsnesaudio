@@ -1,11 +1,11 @@
-# PixelSPC raster chrome
+# ChipPlayer 199x raster chrome
 
 The late-90s desktop-player feel is built from original PNG assets, rather than a
 screenshot or a flat mockup. Text, spectrum bars and controls remain live Android
-views. Desktop ’98 adds midnight metal, phosphor green and brass; all existing
+views. Llama adds midnight metal, phosphor green and brass; all existing
 console palettes use the same skin geometry without changing saved theme IDs.
 
-<img src="screenshots/theme-desktop-98.png" width="310" alt="Desktop 98 skin with raised frames, recessed display, gold rails and ridged slider" />
+<img src="screenshots/theme-desktop-98.png" width="310" alt="Llama skin with raised frames, recessed display, gold rails and ridged slider" />
 
 ## Layout
 
@@ -69,3 +69,7 @@ Light surfaces soften their nine-patch edges to 35% opacity; their original grai
 and dark playback deck remain distinct. The notification uses the standard Android background without custom artwork
 or colorization, and native media controls including an Exit action.
 Android owns the final notification layout.
+
+The main player and export screen use flat backgrounds without an outer frame.
+Individual player controls, the submenu button, and the Now Playing deck retain
+their detailed edging. Llama retains the stable `desktop-98` preference ID.

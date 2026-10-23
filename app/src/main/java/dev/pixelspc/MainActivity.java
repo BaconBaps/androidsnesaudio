@@ -72,10 +72,10 @@ public class MainActivity extends Activity {
         int flags=theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         if(Build.VERSION.SDK_INT>=27 && !theme.dark) flags|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         getWindow().getDecorView().setSystemUiVisibility(flags);
-        root=column(); root.setBackground(skin.chassis(backgroundColor)); root.setPadding(dp(12),dp(12),dp(12),dp(10)); setContentView(root);
+        root=column(); root.setBackgroundColor(backgroundColor); root.setPadding(dp(12),dp(12),dp(12),dp(10)); setContentView(root);
         root.setOnApplyWindowInsetsListener((v,insets)->{ root.setPadding(dp(12),dp(12)+insets.getSystemWindowInsetTop(),dp(12),dp(10)+insets.getSystemWindowInsetBottom()); return insets.consumeSystemWindowInsets(); });
         LinearLayout header=row();  header.setPadding(dp(8),dp(4),dp(8),dp(4)); TextView logo=pixel("♫",16,accentColor); add(header,logo,28,34);
-        LinearLayout brand=column(); TextView wordmark=pixel("PixelSPC",14,textColor); wordmark.setSingleLine(true); wordmark.setAutoSizeTextTypeUniformWithConfiguration(10,14,1,android.util.TypedValue.COMPLEX_UNIT_SP); add(brand,wordmark,-1,-2);
+        LinearLayout brand=column(); TextView wordmark=pixel("ChipPlayer 199x",14,textColor); wordmark.setSingleLine(true); wordmark.setAutoSizeTextTypeUniformWithConfiguration(10,14,1,android.util.TypedValue.COMPLEX_UNIT_SP); add(brand,wordmark,-1,-2);
         header.addView(brand,new LinearLayout.LayoutParams(0,-2,1));
         ImageButton menu=headerIcon(R.drawable.ic_menu,"App menu"); add(header,menu,40,40); menu.setOnClickListener(this::showMenu);
         add(root,header,-1,50); gap(root,8);
@@ -226,7 +226,7 @@ public class MainActivity extends Activity {
         PopupMenu menu=new PopupMenu(new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material:android.R.style.Theme_Material_Light),anchor);
         menu.getMenu().add(0,1,0,"Import music").setOnMenuItemClickListener(item->{ pickFile(); return true; });
         menu.getMenu().add(0,2,1,"Choose color theme").setOnMenuItemClickListener(item->{ chooseTheme(); return true; });
-        menu.getMenu().add(0,3,2,"About PixelSPC").setOnMenuItemClickListener(item->{ about(); return true; });
+        menu.getMenu().add(0,3,2,"About ChipPlayer 199x").setOnMenuItemClickListener(item->{ about(); return true; });
         menu.getMenu().add(0,5,3,"Export current track…").setEnabled(player!=null && player.current!=null).setOnMenuItemClickListener(item->{ exportTrack(player.current); return true; });
         menu.getMenu().add(0,6,4,showFavourites?"Back to soundtrack":"Show favourites").setOnMenuItemClickListener(item->{ showFavourites=!showFavourites; renderTracks(); return true; });
         String sleep=player!=null && player.sleepRemainingMs()>0?"Sleep timer · "+((player.sleepRemainingMs()+59999)/60000)+" min left":"Sleep timer";
@@ -324,7 +324,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("PixelSPC · v1.10.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipPlayer 199x · v1.10.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets and RAR-based RSN sets. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). RSN: Junrar (UnRAR license). Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

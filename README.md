@@ -1,16 +1,19 @@
-# PixelSPC
+# ChipPlayer 199x
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
 ten retro palettes, and a local library for the games you grew up with.
 
-<img src="docs/screenshots/theme-desktop-98.png" width="300" alt="PixelSPC soundtrack library and player with live spectrum" />
+<img src="docs/screenshots/theme-desktop-98.png" width="300" alt="ChipPlayer 199x soundtrack library and player with live spectrum" />
 
 ## Install without Android Studio
 
-Download [PixelSPC-debug.apk](downloads/PixelSPC-debug.apk) to your Android device,
+Download [ChipPlayer-199x-debug.apk](downloads/ChipPlayer-199x-debug.apk) to your Android device,
 open it, and allow installation from your browser or file manager when prompted.
 Requires **Android 8.0 or later and a 64-bit ARM device** (x86-64 is also included
 for emulators). This is a debug-signed development build, not a Play Store release.
+
+The app was previously named PixelSPC; installing this update keeps your library,
+favourites, and saved theme.
 
 Tap **⋮ → Import music**, or **Library → Import music**, and select your
 file using Android's file picker. Tap a track to play. Use the fixed player panel
@@ -89,7 +92,7 @@ Grain tiles independently; dark skins add subtle screen scanlines, while light
 skins use quieter surfaces to preserve text contrast. The controls remain real
 Android views with accessible labels, and shuffle/loop stay borderless.
 
-Choose **Desktop ’98** at the top of the theme grid for midnight metal, phosphor
+Choose **Llama** at the top of the theme grid for midnight metal, phosphor
 green and brass details inspired by late-90s desktop players. Existing theme
 choices are preserved. [Skin assets and regeneration](docs/SKIN.md).
 
@@ -100,7 +103,7 @@ from a grid of miniature player previews. The selected card has a checkmark. The
 between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
 seven console-inspired palettes: SNES, Super Famicom, NES, Famicom, Game Boy,
-Mega Drive / Genesis, and GameCube. Desktop ’98 adds a classic PC look.
+Mega Drive / Genesis, and GameCube. Llama adds a classic PC look.
 Six palettes use darker backgrounds; four retain light hardware-inspired
 colors. Pixel Dark uses teal, Super Famicom navy/red, NES graphite, and GameCube rich violet. The spectrum uses each
 theme’s accent and secondary colors.

@@ -8,11 +8,11 @@ import android.view.View;
 public final class ThemePreview extends View {
     private final PlayerTheme theme,playbackTheme;
     private final Paint paint=new Paint();
-    private final android.graphics.drawable.Drawable chassis,well,key;
+    private final android.graphics.drawable.Drawable well,key;
     private static final int[] BARS={3,5,8,6,4,7,9,5,3,6,8,4};
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
-        super(context); this.theme=theme; playbackTheme=theme.nowPlaying(); PlayerSkin skin=new PlayerSkin(context); chassis=skin.chassis(theme.background); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.accent); setSelected(selected); setClickable(true); setFocusable(true);
+        super(context); this.theme=theme; playbackTheme=theme.nowPlaying(); PlayerSkin skin=new PlayerSkin(context); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.accent); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
     }
     private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
@@ -22,8 +22,7 @@ public final class ThemePreview extends View {
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas); canvas.save(); canvas.scale(getWidth()/160f,getHeight()/150f);
         box(canvas,theme.background,0,0,160,150);
-        chassis.setBounds(8,8,152,113); chassis.draw(canvas);
-        text(canvas,"PixelSPC",theme.text,15,20,8,true);
+        text(canvas,"ChipPlayer 199x",theme.text,15,20,8,true);
         box(canvas,theme.border,15,26,130,9); text(canvas,"LIBRARY",theme.accent,66,33,5,true);
         for(int row=0;row<2;row++) { box(canvas,row==0?theme.accent:theme.muted,17,42+row*9,64-row*13,2); box(canvas,theme.border,17,47+row*9,126,1); }
         well.setBounds(13,61,147,111); well.draw(canvas);

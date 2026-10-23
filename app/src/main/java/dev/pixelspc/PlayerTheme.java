@@ -23,7 +23,7 @@ public final class PlayerTheme {
         new PlayerTheme("game-boy","Game Boy","Four shades of the original LCD",false,0xffd2dba0,0xff253b22,0xff38542a,0xff93a65b),
         new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
         new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),
-        new PlayerTheme("desktop-98","Desktop ’98","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72)
+        new PlayerTheme("desktop-98","Llama","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72)
     };
     public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
     /** A darker, contrast-safe version of the selected palette for the playback deck. */

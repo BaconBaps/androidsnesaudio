@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_name">ChipPlayer 199x</string>
     <string name="artist_and_game">%1$s  ·  %2$s</string>
     <string name="position_and_duration">%1$s   /   %2$s</string>
     <string name="no_track_selected">No track selected</string>

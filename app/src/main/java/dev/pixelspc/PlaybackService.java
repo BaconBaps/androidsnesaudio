@@ -47,7 +47,7 @@ public class PlaybackService extends Service {
             if(change==AudioManager.AUDIOFOCUS_GAIN) { if(resumeOnFocus) { resumeOnFocus=false; toggle(); } }
             else { resumeOnFocus=playing && change!=AudioManager.AUDIOFOCUS_LOSS; if(playing) pause(); }
         },main).build();
-        session=new MediaSession(this,"PixelSPC"); session.setCallback(new MediaSession.Callback() {
+        session=new MediaSession(this,"ChipPlayer 199x"); session.setCallback(new MediaSession.Callback() {
             @Override public void onPlay() { if(!playing) toggle(); }
             @Override public void onPause() { pause(); }
             @Override public void onSkipToNext() { next(1); }
@@ -224,7 +224,7 @@ public class PlaybackService extends Service {
     }); }
     private PendingIntent action(String name,int code) { return PendingIntent.getService(this,code,new Intent(this,PlaybackService.class).setAction(name),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT); }
     private Notification notification() {
-        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("PixelSPC").setContentTitle(current==null?"PixelSPC":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
+        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("ChipPlayer 199x").setContentTitle(current==null?"ChipPlayer 199x":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
         destroyed=true; main.removeCallbacks(sleepCheck); sleepUntil=0;

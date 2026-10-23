@@ -1,6 +1,6 @@
 # Third-party software
 
-PixelSPC application code and original artwork are provided under the MIT license.
+ChipPlayer 199x (formerly PixelSPC) application code and original artwork are provided under the MIT license.
 No game music or ROMs are distributed in this repository or APK.
 No game artwork is bundled; the player uses its audio-driven pixel spectrum.
 

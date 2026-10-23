@@ -44,6 +44,7 @@ Fifty JUnit/Robolectric tests, zero failures and zero skipped:
 - The time display shows and clears the SEEKING target while catching up.
 - Submenu Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
+- ChipPlayer 199x launcher label and wordmark; flat outer player background.
 - Flat heading with a raised menu button; retired themes fall back to Pixel Light.
 - One centered menu button in the header; playlist above the playback
   deck; spectrum inside the deck and before the seek/readout controls.
@@ -61,7 +62,7 @@ Fifty JUnit/Robolectric tests, zero failures and zero skipped:
   remain unchanged across sizes, and control presses change edging without
   changing the center or layout.
 - Pixel-sampled textured chassis and selected rows keep at least 4.5:1 text
-  contrast across all 10 themes. Desktop ’98 is featured in the picker, and theme
+  contrast across all 10 themes. Llama is featured in the picker, and theme
   selection still survives recreation.
 - Fixed game/metadata/Tracklist headers during playlist scrolling; soft light-theme
   button frames verified by rendered pixel contrast.

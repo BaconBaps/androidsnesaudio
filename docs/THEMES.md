@@ -13,11 +13,11 @@ dark palettes have stronger grain, and light ones keep quieter text surfaces.
 
 <img src="screenshots/theme-picker.png" width="360" alt="Theme picker with a two-column grid of player previews" />
 
-## Desktop ’98
+## Llama
 
 Midnight metal, phosphor green, and brass rails. Featured first in the picker.
 
-<img src="screenshots/theme-desktop-98.png" width="240" alt="Desktop 98 player with metallic bitmap chrome and lime display" />
+<img src="screenshots/theme-desktop-98.png" width="240" alt="Llama player with metallic bitmap chrome and lime display" />
 
 ## Pixel Light
 

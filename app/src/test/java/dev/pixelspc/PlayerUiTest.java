@@ -145,13 +145,13 @@ public class PlayerUiTest {
             GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
             assertEquals(2,grid.getColumnCount()); assertEquals(PlayerTheme.ALL.length,grid.getChildCount());
             assertNotNull(findDescription(grid,"Select Pixel Light theme, selected"));
-            assertEquals("Select Desktop ’98 theme",grid.getChildAt(0).getContentDescription());
+            assertEquals("Select Llama theme",grid.getChildAt(0).getContentDescription());
             try { captureView(dialog.getWindow().getDecorView(),"theme-picker.png",720,1500); } catch(Exception e) { throw new AssertionError(e); }
             findDescription(grid,"Select Pixel Dark theme").performClick();
             assertEquals("dark",app.getSharedPreferences("appearance",0).getString("theme",null));
-            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((android.graphics.drawable.LayerDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getDrawable(0)).getColor());
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
             c.recreate();
-            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((android.graphics.drawable.LayerDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getDrawable(0)).getColor());
+            assertEquals(PlayerTheme.find("dark").background,((android.graphics.drawable.ColorDrawable)((ViewGroup)c.get().findViewById(android.R.id.content)).getChildAt(0).getBackground()).getColor());
             assertFalse(text(c.get().getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
         }
     }
@@ -191,6 +191,9 @@ public class PlayerUiTest {
     @Test public void headerIconsAreEqualAndSpectrumBelongsToThePlaybackDeck() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
+            assertNotNull(findText(decor,"ChipPlayer 199x"));
+            assertEquals("ChipPlayer 199x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
+            assertTrue(((ViewGroup)a.findViewById(android.R.id.content)).getChildAt(0).getBackground() instanceof android.graphics.drawable.ColorDrawable);
             int top=-1;
             for(String label:new String[]{"App menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);

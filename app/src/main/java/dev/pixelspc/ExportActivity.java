@@ -25,7 +25,7 @@ public class ExportActivity extends Activity {
         getWindow().setStatusBarColor(theme.background); getWindow().setNavigationBarColor(theme.background);
         getWindow().getDecorView().setSystemUiVisibility(theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|(Build.VERSION.SDK_INT>=27?View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR:0));
         PlayerSkin skin=new PlayerSkin(this);
-        LinearLayout body=new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(dp(20),dp(20),dp(20),dp(20)); body.setBackground(skin.chassis(theme.background));
+        LinearLayout body=new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(dp(20),dp(20),dp(20),dp(20)); body.setBackgroundColor(theme.background);
         body.setOnApplyWindowInsetsListener((v,insets)->{ body.setPadding(dp(20),dp(20)+insets.getSystemWindowInsetTop(),dp(20),dp(20)+insets.getSystemWindowInsetBottom()); return insets.consumeSystemWindowInsets(); });
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.addView(body); setContentView(scroll);
         TextView heading=label(body,"EXPORT AUDIO",18,theme.accent); heading.setTypeface(Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf"));
