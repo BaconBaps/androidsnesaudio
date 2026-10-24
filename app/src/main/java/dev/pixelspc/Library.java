@@ -61,7 +61,7 @@ public final class Library {
             saved=true; return game;
         } finally {
             temp.delete();
-            if(!saved) { File[] files=dir.listFiles(); if(files!=null) for(File f:files) f.delete(); dir.delete(); }
+            if(!saved) ArchiveImporter.removeTree(dir);
         }
     }
     /** Removes only this import's private copy; source documents are never touched. */

@@ -1,9 +1,10 @@
 # PlayStation PSF assessment
 
-Reviewed 24 October 2026. This is an implementation proposal, not a claim of
-playback support. The released app still supports its existing formats.
+Implemented 24 October 2026 for v1.13.0. Original PlayStation PSF1 playback
+is integrated alongside the existing formats, including RSN import. See
+[validation evidence](VALIDATION.md) for test scope and remaining device checks.
 
-## Intended behavior
+## Implemented behavior
 
 - Support original PlayStation PSF version 1: `.psf` and `.minipsf` tracks.
 - Import ZIP sets containing shared `.psflib` dependencies. Libraries are retained
@@ -21,7 +22,7 @@ playback support. The released app still supports its existing formats.
 
 ## Dependencies checked
 
-**psflib** provides the container and library-chain loader under the MIT licence:
+**psflib** (evaluated, not bundled) provides the container and library-chain loader under the MIT licence:
 https://github.com/kode54/psflib/blob/95509e0c6f13d769593bbf51a1b0e0efdc355ba1/LICENSE
 
 It does not emulate the PlayStation CPU or sound hardware by itself.
@@ -38,10 +39,10 @@ README describes mixed BSD/GPL licensing, and its PeOPS sound core includes the
 GPL version 2 licence:
 https://github.com/audacious-media-player/audacious-plugins/tree/419f26c28cdf430f4af2d9f659befcc3474aeae5/src/psf
 
-The current app uses Junrar under the UnRAR licence, which prohibits using its
-source to develop a RAR archiver. Adding GPL components to the same APK therefore
-requires resolving the distribution-licence compatibility rather than simply
-copying the PSF core into the current build.
+The previous app used Junrar under the UnRAR licence, which prohibits using its
+source to develop a RAR archiver. This build replaces Junrar with LGPLv3 unarr
+and distributes the combined APK under GPLv3. Original app MIT grants remain.
+No UnRAR-licensed code or proprietary BIOS is linked into the new APK.
 
 ## RSN-preserving replacement verified on the supplied archive
 
@@ -58,7 +59,7 @@ Host verification on 24 October 2026:
 - Compiled the RAR reader from that pinned unarr revision.
 - Extracted the supplied `sf2t.rsn`: **37 entries, including 36 SPC tracks**,
   totaling **2,383,802 bytes**.
-- Independently extracted the same archive with the app's current Junrar 7.5.5.
+- Independently extracted the same archive with the previous app's Junrar 7.5.5.
 - Compared each entry's original filename, uncompressed length, and SHA-256:
   **every entry matched**.
 - Fixture archive SHA-256:
@@ -69,25 +70,25 @@ archive with `RAR solid archive support unavailable.` The latest source checked
 (`8509b99a248c52b676491a8675c3f92c7b5673bc`) still has this rejection in its RAR4
 reader. It is therefore not an adequate replacement for the current RSN feature.
 
-## Recommended implementation path
+## Integrated implementation
 
-Preserving RSN import is a requirement, rather than a tradeoff for PSF:
+- The pinned unarr RAR reader replaces Junrar through JNI. Every entry is drained
+  in sequence to retain solid dictionaries, including ignored files. Existing
+  import limits and rollback remain in place. Unsupported/encrypted archives fail
+  with an error; this does not claim support for every RAR variant.
+- A bounded PSF1 loader resolves primary and auxiliary libraries, checks CRCs,
+  preserves archive paths within the private import tree, and rejects missing or
+  cyclic dependencies. Dependency files do not appear as tracks.
+- The BIOS-free Audio Overload / PeOPS core runs on an instance-owned worker.
+  Mutable emulator state is thread-local, so playback and WAV export can coexist.
+  Backward seeks recreate the worker; forward seeks emulate and discard audio.
+  CPU/HLE execution budgets report a driver error rather than an unbounded loop.
+- PSF metadata, length/fade tags, looping, platform grouping, the visualizer and
+  existing WAV export use the same app controls. PSF2 and MIDI are not implemented.
+- The corresponding source and licences are included. See [THIRD_PARTY.md](../THIRD_PARTY.md).
 
-1. Integrate the pinned unarr RAR reader on Android and replace Junrar only after
-   the existing RSN tests pass. Retain ZIP import and the current extraction
-   limits, traversal protections and transactional import behavior.
-2. Test solid RAR4, stored and compressed entries, RAR filters, malformed archives,
-   duplicate filenames and failure cleanup on both supported Android ABIs.
-   The host comparison proves this supplied archive, not every RSN variant.
-3. Integrate a BIOS-free PSF decoder and preserve PSF library dependencies inside
-   the import boundary. The PeOPS source checked permits GPLv2 **or later**;
-   unarr's LGPLv3 can be combined through a GPLv3-compatible distribution path,
-   with the required source and licence notices. Preserve existing MIT grants on
-   the app's own source; do not silently describe the combined build as MIT-only.
-4. Verify PSF playback, seeking, looping, metadata, WAV export and isolated decoder
-   states. Re-run SPC/RSN playback and export regression checks before releasing.
-5. Add MIDI/SoundFont support after the PSF work.
-
-The host experiment has not replaced the Android importer or added PSF playback.
-No BIOS image or new decoder has been bundled, and no APK update is being claimed
-by this assessment. The released app retains its existing RSN implementation.
+Native tests use an original generated MIPS/SPU tone in standalone and shared-library
+PSF containers. They validate audible PCM, seeks, timing, UTF-8 metadata, independent
+instances, ZIP import and export. They do not establish compatibility with every
+commercial game's driver. No real-game PSF set was supplied; device listening and
+real-game compatibility testing remain for the test release.

@@ -19,6 +19,39 @@ public class ArchiveImporterTest {
         for(ArchiveImporter.Entry e:entries) assertEquals(dest.getCanonicalFile(),e.file.getCanonicalFile().getParentFile());
         assertFalse(new File(root,"B.spc").exists());
     }
+    @Test public void psfTreesPreserveLibrariesAndOnlyReturnPlayableTracks() throws Exception {
+        File zip=new File(root,"psf.zip");
+        try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(zip))) {
+            for(String name:new String[]{"Game/LIB/Base.PSFLIB","GAME/Tracks/One.MINIPSF","other.spc"}) {
+                out.putNextEntry(new ZipEntry(name)); out.write(new byte[]{1,2,3}); out.closeEntry();
+            }
+        }
+        File dest=new File(root,"set"); List<ArchiveImporter.Entry> tracks=ArchiveImporter.extract(zip,"psf.zip",dest);
+        assertEquals(2,tracks.size()); assertTrue(new File(dest,"psf/game/lib/base.psflib").isFile());
+        ArchiveImporter.Entry mini=tracks.stream().filter(e->e.name.equals("One.MINIPSF")).findFirst().get();
+        assertTrue(mini.file.getPath().endsWith("psf/game/tracks/one.minipsf"));
+        assertFalse(ArchiveImporter.supported("base.psflib")); assertTrue(ArchiveImporter.supported("track.MINIPSF"));
+    }
+    @Test public void psfTraversalAndCaseCollisionsRollBackTheWholeTree() throws Exception {
+        for(String bad:new String[]{"../../outside.psflib","/outside.psf","C:/outside.minipsf","Game/A.PSF"}) {
+            File zip=new File(root,"bad.zip");
+            try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(zip))) {
+                out.putNextEntry(new ZipEntry("game/a.psf"));out.write(1);out.closeEntry();
+                out.putNextEntry(new ZipEntry(bad));out.write(1);out.closeEntry();
+            }
+            File dest=new File(root,"set");
+            try { ArchiveImporter.extract(zip,"bad.zip",dest); fail(bad); } catch(IOException expected) {}
+            assertFalse(dest.exists());
+        }
+        assertFalse(new File(root,"outside.psflib").exists());
+    }
+    @Test public void aLibraryOnlyZipIsNotImportedAsPlayableMusic() throws Exception {
+        File zip=new File(root,"library.zip");
+        try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(zip))) { out.putNextEntry(new ZipEntry("folder/base.psflib"));out.write(1);out.closeEntry(); }
+        File dest=new File(root,"set");
+        try { ArchiveImporter.extract(zip,"library.zip",dest); fail(); } catch(IOException expected) { assertTrue(expected.getMessage().contains("No supported music")); }
+        assertFalse(dest.exists());
+    }
     @Test public void trackLimitRollsBackPartialImport() throws Exception {
         File zip=new File(root,"many.zip");
         try(ZipOutputStream z=new ZipOutputStream(new FileOutputStream(zip))) { for(int i=0;i<1001;i++) { z.putNextEntry(new ZipEntry(i+".spc")); z.write(0); z.closeEntry(); } }

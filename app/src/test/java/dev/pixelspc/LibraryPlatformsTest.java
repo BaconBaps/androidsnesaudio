@@ -8,6 +8,11 @@ public class LibraryPlatformsTest {
         for(String system:systems) { Library.Track t=new Library.Track(); t.system=system; game.tracks.add(t); }
         return game;
     }
+    @Test public void playstationMetadataAliasesShareOneGroup() {
+        assertEquals("PlayStation",LibraryPlatforms.canonical("Sony PlayStation"));
+        assertEquals("PlayStation",LibraryPlatforms.canonical("PS1"));
+        assertEquals("PlayStation",LibraryPlatforms.canonical("PSX"));
+    }
     @Test public void metadataAliasesShareAPlatformWithoutGuessingUnknownVgmSystems() {
         assertEquals("Super Nintendo",LibraryPlatforms.platform(game("a","SNES","Super Famicom","Super Nintendo")));
         assertEquals("Game Boy",LibraryPlatforms.canonical("Nintendo Gameboy"));

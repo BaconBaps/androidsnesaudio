@@ -1,6 +1,9 @@
 # Third-party software
 
-ChipPlayer 199x (formerly PixelSPC) application code and original artwork are provided under the MIT license.
+ChipPlayer 199x original application code and artwork retain the MIT license.
+The combined APK contains GPL-covered PSF emulation and is distributed under
+**GPL version 3**; see [COPYING-GPL-3](COPYING-GPL-3). Complete corresponding
+source, local modifications and build scripts are in this repository.
 No game music or ROMs are distributed in this repository or APK.
 No game artwork is bundled; the player uses its audio-driven pixel spectrum.
 
@@ -19,16 +22,21 @@ Android permits installing a modified, re-signed APK after uninstalling the old
 one (uninstalling removes its private library). No restrictions on reverse
 engineering for debugging modifications to this library are imposed.
 
-## Junrar 7.5.5
+## unarr RAR reader
 
-https://github.com/junrar/junrar — UnRAR license. Used for RAR-based RSN sets.
-The UnRAR restriction prohibits using its source to develop a RAR archiver.
-This application only extracts archives. See `licenses/junrar-LICENSE.txt`.
+LGPLv3; revision `29084afa8d507b34558f2936ec789edcd116e306` from
+https://github.com/selmf/unarr. Sources and COPYING are in `third_party/unarr`.
+Built as a separate `libunarr.so`; used for RSN, including solid RAR4. It replaces
+Junrar, and no UnRAR-licensed code is linked into this APK. Native binaries can be
+rebuilt from the app CMake project using the included source.
 
-## SLF4J 1.7.36
+## PSF emulation
 
-https://www.slf4j.org — MIT license. Junrar logging API and no-op binding.
-See `licenses/slf4j-LICENSE.txt`.
+Audio Overload and PeOPS files from Audacious plugins revision
+`419f26c28cdf430f4af2d9f659befcc3474aeae5`. BSD and GPL 2-or-later notices are
+retained in `third_party/psf-core`; this combined build chooses GPL version 3.
+See that directory's SOURCE.md for local threading and integration changes.
+No proprietary PlayStation BIOS is bundled or required. PSF2 is not supported.
 
 ## Press Start 2P
 
@@ -49,5 +57,4 @@ Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
 (their respective Android/Apache licenses), JUnit (EPL 1.0), Robolectric (MIT).
 They are build dependencies and are not packaged as app functionality.
 
-ChipPlayer 199x sound-chip header logo: original generated artwork, selected
-from the application’s logo proposals and provided under the MIT license.
+ChipPlayer 199x sound-chip header logo: original generated artwork under MIT.

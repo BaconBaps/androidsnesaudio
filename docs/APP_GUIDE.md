@@ -137,6 +137,7 @@ theme’s accent and secondary colors.
 
 | Files | Supported content |
 | --- | --- |
+| `.psf`, `.minipsf` | Original PlayStation soundtracks; import shared `.psflib` files together in a ZIP |
 | `.spc` | Super Nintendo tracks, including ID666 metadata |
 | `.rsn`, `.rar` | RAR-based SPC sets (including solid RAR4 archives) |
 | `.zip` | Sets containing supported tracks, including subfolders |
@@ -146,7 +147,7 @@ theme’s accent and secondary colors.
 | `.hes`, `.kss`, `.ay`, `.sap` | Additional Game Music Emu formats |
 
 ROMs (`.sfc`, `.smc`, etc.) are not audio files and are not supported. Encrypted
-archives and RAR5 sets are not supported by this version of Junrar. Import limits:
+archives and RAR5 sets are not supported by the unarr RAR reader. Import limits:
 128 MB input, 32 MB per extracted file, 256 MB total extraction, 1,000 songs.
 Malformed or unsupported tracks roll back the entire import. Archive paths are
 flattened so entries cannot write outside the library.
@@ -174,6 +175,26 @@ settles the display. It never simulates activity when audio is silent and needs
 no microphone or system-audio-capture permission.
 
 There is no playlist editor, individual-song deletion, or configurable default duration yet.
+
+## PlayStation PSF sets
+
+Import a ZIP containing the `.psf` / `.minipsf` tracks and every referenced
+`.psflib`, retaining the original folders. A self-contained `.psf` also imports
+on its own. A miniPSF selected by itself cannot access sibling library documents;
+use a complete ZIP set. Libraries are retained privately but hidden from the
+track list. Metadata groups these soundtracks under PlayStation.
+
+Original PlayStation **PSF version 1** is supported. PSF2, PSP and other xSF
+variants are not included. No BIOS is needed. PSF length/fade tags determine the
+normal ending; absent length defaults to three minutes plus fade. Loop keeps the
+emulated program running, and export uses an independent decoder. Long seeks
+emulate the intervening audio, so catching up can take a moment.
+
+This test build has native regression coverage with original generated MIPS/SPU
+fixtures; compatibility with real game PSF drivers needs device/user testing.
+The combined APK includes GPL-covered PSF code and is distributed under GPLv3;
+the app's original source and artwork retain their MIT grant. See THIRD_PARTY.md
+and COPYING-GPL-3 at the repository root for distribution terms and source.
 
 ## Build
 
@@ -229,5 +250,5 @@ in GME but have not been checked against user-supplied sample files.
 
 Java Android views + Canvas pixel spectrum, an AudioTrack foreground service
 with MediaSession controls, unmodified Game Music Emu linked as a shared library,
-and Junrar for RSN extraction. See [THIRD_PARTY.md](../THIRD_PARTY.md) for licenses,
+unarr for RSN extraction, and a BIOS-free Audio Overload/PeOPS PSF decoder. See [THIRD_PARTY.md](../THIRD_PARTY.md) for licenses,
 source provenance, and rebuilding/replacing the LGPL decoder.
