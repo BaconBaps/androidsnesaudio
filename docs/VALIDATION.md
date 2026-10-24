@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Ninety-six JUnit/Robolectric tests, zero failures and zero skipped:
+Ninety-eight JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -377,3 +377,16 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
   screenshot: screenshots/theme-editor-tracklist.png.
 - 96 JUnit/Robolectric tests pass; Android lint reports no issues. Real device
   USF playback, performance and long scrubs remain for user/device testing.
+
+## N64 stutter reduction (v1.18.1)
+
+- Both Android compile databases confirm `-O2` for the LazyUSF2 cached CPU and
+  RSP. The previous debug APK omitted optimisation.
+- The original CPU-heavy N64 fixture benchmark improved from 0.928781 s to
+  0.414504 s for 5.01551 s of audio on x86_64, with identical PCM hashes. This
+  is a host synthetic result; no phone/game-driver speed claim is implied.
+- Audio-priority worker, larger N64 output buffers and nonblocking priming are
+  covered by a service test with partial writes, seek, pause/resume and stop.
+  A second test verifies queued audio finishes before the next track starts.
+- 98 JUnit/Robolectric tests, Android lint, and the complete native SPC/RSN,
+  VGZ seek/export, PSF, MIDI and USF regression suite pass.

@@ -439,3 +439,8 @@ compatibility, battery use and speed still need testing on an Android device.
 In theme edit mode, only the first tracklist row is an edit target. Its colours
 apply across the list. Highlights are clipped to the visible playlist, keeping
 the Now Playing controls accessible.
+
+N64 playback now uses an optimised decoder and a larger output buffer. It
+briefly buffers at startup and after a playing seek to help smooth CPU spikes;
+there may be a small delay before sound starts. Demanding game drivers may still
+need testing on your phone.

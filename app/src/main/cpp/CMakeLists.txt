@@ -24,7 +24,9 @@ file(GLOB_RECURSE USF_SOURCES CONFIGURE_DEPENDS ${VENDOR}/lazyusf2/*.c)
 list(FILTER USF_SOURCES EXCLUDE REGEX "/(bench|instr_counters)\\.c$")
 add_library(lazyusf2 STATIC ${USF_SOURCES})
 target_include_directories(lazyusf2 PUBLIC ${VENDOR}/lazyusf2)
-target_compile_options(lazyusf2 PRIVATE -fno-strict-aliasing -fwrapv)
+# Sideload APKs use the debug build type: emulation must still run optimised.
+# Keep ordinary optimisation, not fast-math, to retain integer/audio behaviour.
+target_compile_options(lazyusf2 PRIVATE -O2 -fno-strict-aliasing -fwrapv)
 target_link_libraries(lazyusf2 PUBLIC m)
 add_library(player SHARED player.cpp rar_reader.cpp psf_decoder.cpp midi_decoder.cpp usf_decoder.cpp
     ${VENDOR}/psf-core/psx.cc ${VENDOR}/psf-core/psx_hw.cc ${VENDOR}/psf-core/peops/spu.cc)

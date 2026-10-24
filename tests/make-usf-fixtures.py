@@ -63,3 +63,10 @@ c=zlib.compress(b'');reserved=sparse(s)
 # Valid patch data but an invalid N64 AI DMA destination, rejected at playback.
 dma=bytearray(s);dma[ram_offset+0x10000:ram_offset+0x10008]=block([code[0],0x3c0900ff])
 (p/'bad-dma.usf').write_bytes(usf(sparse(dma),tags))
+
+# CPU-heavy original workload for decoder optimisation benchmarking.
+# Delay each DMA with 262144 counted MIPS iterations (no game driver code).
+busy=bytearray(s)
+work=[0x3c08a450,0x3c090002,0x340a1000,0x3c0b0004,0x256bffff,0x1560fffe,0,0xad090000,0xad0a0004,0x08004003,0]
+busy[ram_offset+0x10000:ram_offset+0x10000+len(work)*4]=block(work)
+(p/'busy.usf').write_bytes(usf(sparse(busy),tags))

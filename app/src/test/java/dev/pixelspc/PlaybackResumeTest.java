@@ -21,6 +21,7 @@ public class PlaybackResumeTest {
     public static class Decoder {
         static int position,fontChanges,opens;
         static Runnable onSeek;
+        static boolean endNext;
         @Implementation protected static void __staticInitializer__() {}
         @Implementation protected static long open(String path) { opens++;return 1; }
         @Implementation protected static void close(long handle) {}
@@ -32,14 +33,53 @@ public class PlaybackResumeTest {
             if(onSeek!=null) { Runnable action=onSeek; onSeek=null; action.run(); }
         }
         @Implementation protected static int tell(long h) { return position; }
-        @Implementation protected static boolean render(long h,short[] pcm) { position+=46; return false; }
+        @Implementation protected static boolean render(long h,short[] pcm) { position+=46; boolean ended=endNext;endNext=false;return ended; }
     }
     @Implements(AudioTrack.class)
     public static class Output extends ShadowAudioTrack {
+        @org.robolectric.annotation.RealObject private AudioTrack output;
+        static int budget,perWrite,totalWritten,queuedBeforePlay,head;
+        @Implementation protected int getPlaybackHeadPosition(){return head;}
+        static Runnable onWrite;
         // A full audio sink must yield, allowing seek and pause commands through.
         @Implementation protected int write(short[] data,int offset,int size,int mode) {
-            assertEquals(AudioTrack.WRITE_NON_BLOCKING,mode); return 0;
+            assertEquals(AudioTrack.WRITE_NON_BLOCKING,mode);
+            int count=Math.min(size,Math.min(budget,perWrite));budget-=count;totalWritten+=count;
+            if(output.getPlayState()!=AudioTrack.PLAYSTATE_PLAYING)queuedBeforePlay=totalWritten;
+            if(onWrite!=null){Runnable callback=onWrite;onWrite=null;callback.run();}
+            return count;
         }
+    }
+    @org.junit.Before public void resetOutput(){Output.budget=0;Output.perWrite=4096;Output.totalWritten=0;Output.queuedBeforePlay=0;Output.onWrite=null;Decoder.onSeek=null;Decoder.endNext=false;Output.head=0;}
+    @Test public void n64PrimesAudioBeforeStartingAndPartialWritesRemainResponsive() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try{
+            Output.budget=16384;Output.perWrite=1024;
+            service.play(Collections.singletonList(track("Game/One.MINIUSF")),0);drain(service);
+            assertTrue(service.playing);assertEquals(AudioTrack.PLAYSTATE_STOPPED,((AudioTrack)field(service,"audio")).getPlayState());
+            assertEquals(1024,Output.totalWritten);
+            Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idleFor(java.time.Duration.ofMillis(200));
+            assertEquals(16384,Output.queuedBeforePlay);assertEquals(16384,Output.totalWritten);
+            assertEquals(AudioTrack.PLAYSTATE_PLAYING,((AudioTrack)field(service,"audio")).getPlayState());
+            service.seek(5000);drain(service);assertEquals(-1,service.seekTarget);assertTrue(service.playing);
+            assertEquals(AudioTrack.PLAYSTATE_PLAYING,((AudioTrack)field(service,"audio")).getPlayState());
+            Output.budget=16384;Output.totalWritten=0;Output.onWrite=service::pause;
+            service.play(Collections.singletonList(track("Another.usf")),0);drain(service);
+            assertFalse(service.playing);assertEquals(1024,Output.totalWritten);
+            assertEquals(AudioTrack.PLAYSTATE_PAUSED,((AudioTrack)field(service,"audio")).getPlayState());
+            service.toggle();drain(service);assertTrue(service.playing);
+            service.stopPlayback(null);drain(service);assertFalse(service.playing);assertNull(field(service,"audio"));
+        }finally{c.destroy();}
+    }
+    @Test public void queuedN64TailFinishesBeforeTheNextTrackStarts() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try{
+            Library.Track first=track("First.usf"),second=track("Second.spc");Output.budget=4096;Decoder.endNext=true;
+            service.play(java.util.Arrays.asList(first,second),0);drain(service);assertSame(first,service.current);assertTrue(service.playing);
+            Output.head=1024;Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idleFor(java.time.Duration.ofMillis(20));assertSame(first,service.current);
+            Output.head=2048;Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idleFor(java.time.Duration.ofMillis(10));
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();drain(service);assertSame(second,service.current);
+        }finally{c.destroy();}
     }
     private static Object field(Object object,String name) throws Exception {
         Field f=PlaybackService.class.getDeclaredField(name); f.setAccessible(true); return f.get(object);
