@@ -75,3 +75,11 @@ Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
 They are build dependencies and are not packaged as app functionality.
 
 Original header logo and app artwork retain the repository MIT licence.
+
+## Doto
+
+Copyright 2024-2024 The Doto Project Authors. Designed by Óliver Lalan.
+https://github.com/oliverlalan/Doto — SIL Open Font License 1.1.
+Unmodified variable font from revision 1c587f2eed62cb257055540ac2a15f356070414f,
+rendered with rounded dots (ROND 100) and weight 800 for playlist headings.
+Font and full licence: `app/src/main/assets/fonts/doto.ttf` and `Doto-OFL.txt`.

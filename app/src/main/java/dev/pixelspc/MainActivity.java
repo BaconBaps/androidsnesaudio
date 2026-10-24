@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
     private int backgroundColor,textColor,mutedColor,accentColor,borderColor;
     private PlayerTheme theme,playbackTheme,listTheme;
     private PlayerSkin skin;
-    private Typeface pixel;
+    private Typeface pixel,dotMatrix;
     private Library library;
     private TrackFavorites favourites;
     private SoundFonts soundFonts;
@@ -48,7 +48,8 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         applyPalette(ThemeStore.selected(this));
-        pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf"); skin=new PlayerSkin(this);
+        pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
+        dotMatrix=new Typeface.Builder(getAssets(),"fonts/doto.ttf").setFontVariationSettings("'ROND' 100, 'wght' 800").build(); skin=new PlayerSkin(this);
         try { library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
         catch(Exception e) { dialog().setTitle("Library could not be read").setMessage(e.getMessage()).setPositiveButton("Close",(d,w)->finish()).show(); return; }
         soundFonts=new SoundFonts(this);
@@ -105,7 +106,7 @@ public class MainActivity extends Activity {
         libraryButton=button("LIBRARY ▾",accentColor,theme.libraryButtonBackground()); libraryButton.setBackground(skin.button(theme.libraryButtonBackground()));libraryButton.setContentDescription("Open music library");editTarget(libraryButton,"Library button","libraryButton","accent"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setClipToPadding(true); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=root;
-        gameTitle=text("Your music library",23,theme.heading); gameTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); gameTitle.setMaxLines(2);editTarget(gameTitle,"Game heading","heading"); add(content,gameTitle,-1,-2); gap(content,5);
+        gameTitle=text("Your music library",26,theme.heading); gameTitle.setTypeface(dotMatrix); gameTitle.setMaxLines(2);editTarget(gameTitle,"Game heading","heading"); add(content,gameTitle,-1,-2); gap(content,5);
         gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2);editTarget(gameMeta,"Secondary text","muted"); gap(content,10);
         LinearLayout listHeader=row(); listHeader.setBackground(skin.panel(backgroundColor)); listHeader.setPadding(dp(10),0,dp(10),0); listHeading=pixel("TRACKLIST",8,theme.heading); add(listHeader,listHeading,-2,-2); View listRail=new View(this); listRail.setBackground(skin.rail(theme.secondary)); LinearLayout.LayoutParams listRailParams=new LinearLayout.LayoutParams(0,dp(6),1); listRailParams.setMargins(dp(10),0,dp(10),0); listHeader.addView(listRail,listRailParams); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,28);editTarget(listHeader,"Section headings","heading","secondary","border");
         FrameLayout playlistFrame=new FrameLayout(this); playlistFrame.setContentDescription("Tracklist frame");

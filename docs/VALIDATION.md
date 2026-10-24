@@ -335,3 +335,9 @@ example-spectrum fixtures. Library screenshots show the new pixel heading.
 These are not physical-device captures. Device touch/colour-drag responsiveness,
 provider behavior and launcher rendering remain device checks. No native audio
 engine, library schema or storage permission was changed by this feature.
+
+## Dot matrix heading (v1.17.1)
+
+The playlist/game heading uses the bundled OFL-licensed Doto variable font,
+with rounded dots and weight 800. Native-graphics Robolectric screenshots
+were reviewed for heading readability; all 91 tests and Android lint pass.
