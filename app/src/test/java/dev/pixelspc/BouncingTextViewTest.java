@@ -21,6 +21,10 @@ public class BouncingTextViewTest {
         assertEquals(50,BouncingTextView.offsetAt(5400,100,50),.001);
         assertEquals(0,BouncingTextView.offsetAt(6400,100,50),.001);
         assertEquals(0,BouncingTextView.offsetAt(5000,0,50),0);
+        float startingStep=BouncingTextView.offsetAt(1300,100,50)-BouncingTextView.offsetAt(1200,100,50);
+        float middleStep=BouncingTextView.offsetAt(2200,100,50)-BouncingTextView.offsetAt(2100,100,50);
+        float endingStep=BouncingTextView.offsetAt(3200,100,50)-BouncingTextView.offsetAt(3100,100,50);
+        assertTrue(startingStep<middleStep); assertEquals(startingStep,endingStep,.001);
     }
     @Test public void titleUpdatesDoNotRestartMotionAndShortTextStaysStill() {
         BouncingTextView title=new BouncingTextView(RuntimeEnvironment.getApplication());

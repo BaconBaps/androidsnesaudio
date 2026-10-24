@@ -70,6 +70,9 @@ public class PlayerUiTest {
             assertNull(findDescription(a.getWindow().getDecorView(),"Import music"));
             capture(a,"soundtrack-library.png");
             View title=findText(a.getWindow().getDecorView(),"Donkey Kong Country");
+            assertTrue(title instanceof BouncingTextView); assertEquals(1,((TextView)title).getMaxLines());
+            TextView now=(TextView)findText(a.getWindow().getDecorView(),"No track selected");
+            assertTrue(now instanceof BouncingTextView); assertEquals(1,now.getMaxLines()); assertTrue(now.getTypeface().isBold());
             View meta=findText(a.getWindow().getDecorView(),"Super Nintendo  ·  7 tracks");
             View heading=findText(a.getWindow().getDecorView(),"TRACKLIST");
             assertNotNull(meta);

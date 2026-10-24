@@ -341,3 +341,12 @@ engine, library schema or storage permission was changed by this feature.
 The playlist/game heading uses the bundled OFL-licensed Doto variable font,
 with rounded dots and weight 800. Native-graphics Robolectric screenshots
 were reviewed for heading readability; all 91 tests and Android lint pass.
+
+## Single-line dot matrix titles (v1.17.2)
+
+Game/playlist headings and Now Playing titles use the same single-line
+BouncingTextView, which pauses for 1.2 seconds at either edge and uses a cosine
+ease in/out in both directions. Short titles remain still; repeated playback
+updates do not restart motion. Now Playing uses Doto weight 900 and retains
+the theme accent colour. UI assertions verify both titles are single line
+and the Now Playing font remains bold; motion checks verify easing symmetry.

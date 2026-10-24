@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
     private int backgroundColor,textColor,mutedColor,accentColor,borderColor;
     private PlayerTheme theme,playbackTheme,listTheme;
     private PlayerSkin skin;
-    private Typeface pixel,dotMatrix;
+    private Typeface pixel,dotMatrix,dotMatrixBold;
     private Library library;
     private TrackFavorites favourites;
     private SoundFonts soundFonts;
@@ -49,7 +49,8 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         applyPalette(ThemeStore.selected(this));
         pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
-        dotMatrix=new Typeface.Builder(getAssets(),"fonts/doto.ttf").setFontVariationSettings("'ROND' 100, 'wght' 800").build(); skin=new PlayerSkin(this);
+        dotMatrix=new Typeface.Builder(getAssets(),"fonts/doto.ttf").setFontVariationSettings("'ROND' 100, 'wght' 800").build();
+        dotMatrixBold=new Typeface.Builder(getAssets(),"fonts/doto.ttf").setFontVariationSettings("'ROND' 100, 'wght' 900").setWeight(900).build(); skin=new PlayerSkin(this);
         try { library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
         catch(Exception e) { dialog().setTitle("Library could not be read").setMessage(e.getMessage()).setPositiveButton("Close",(d,w)->finish()).show(); return; }
         soundFonts=new SoundFonts(this);
@@ -106,7 +107,7 @@ public class MainActivity extends Activity {
         libraryButton=button("LIBRARY ▾",accentColor,theme.libraryButtonBackground()); libraryButton.setBackground(skin.button(theme.libraryButtonBackground()));libraryButton.setContentDescription("Open music library");editTarget(libraryButton,"Library button","libraryButton","accent"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setClipToPadding(true); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=root;
-        gameTitle=text("Your music library",26,theme.heading); gameTitle.setTypeface(dotMatrix); gameTitle.setMaxLines(2);editTarget(gameTitle,"Game heading","heading"); add(content,gameTitle,-1,-2); gap(content,5);
+        gameTitle=trackTitle("Your music library",26,theme.heading); gameTitle.setTypeface(dotMatrix);editTarget(gameTitle,"Game heading","heading"); add(content,gameTitle,-1,-2); gap(content,5);
         gameMeta=text("Import a track or a game set.",12,mutedColor); add(content,gameMeta,-1,-2);editTarget(gameMeta,"Secondary text","muted"); gap(content,10);
         LinearLayout listHeader=row(); listHeader.setBackground(skin.panel(backgroundColor)); listHeader.setPadding(dp(10),0,dp(10),0); listHeading=pixel("TRACKLIST",8,theme.heading); add(listHeader,listHeading,-2,-2); View listRail=new View(this); listRail.setBackground(skin.rail(theme.secondary)); LinearLayout.LayoutParams listRailParams=new LinearLayout.LayoutParams(0,dp(6),1); listRailParams.setMargins(dp(10),0,dp(10),0); listHeader.addView(listRail,listRailParams); status=pixel("READY",7,mutedColor); add(listHeader,status,-2,20); add(content,listHeader,-1,28);editTarget(listHeader,"Section headings","heading","secondary","border");
         FrameLayout playlistFrame=new FrameLayout(this); playlistFrame.setContentDescription("Tracklist frame");
@@ -119,7 +120,7 @@ public class MainActivity extends Activity {
         LinearLayout playerHeading=row(); View rail=new View(this); rail.setBackground(skin.rail(playbackTheme.secondary)); playerHeading.addView(rail,new LinearLayout.LayoutParams(dp(32),dp(7))); TextView tag=pixel(" NOW PLAYING",7,playbackTheme.heading); add(playerHeading,tag,-2,-2); View playerRail=new View(this); playerRail.setBackground(skin.rail(playbackTheme.secondary)); LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(0,dp(6),1); railParams.setMargins(dp(8),0,dp(8),0); playerHeading.addView(playerRail,railParams); TextView quality=pixel("♪  44.1 kHz",6,playbackTheme.muted); add(playerHeading,quality,-2,-2); add(playerPanel,playerHeading,-1,22);editTarget(playerHeading,"Player heading","player.heading","player.secondary");
         visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(playbackTheme);editTarget(visualizer,"Spectrum colours","player.spectrumLow","player.spectrumMid","player.spectrumHigh","player.spectrumPeak","player.spectrumBackground","player.heading"); add(playerPanel,visualizer,-1,126); gap(playerPanel,6);
         LinearLayout readout=column(); readout.setBackground(skin.well(playbackTheme.value("readout",playbackTheme.background)));editTarget(readout,"Track readout","player.readout","player.accent","player.muted"); readout.setPadding(dp(8),dp(4),dp(8),dp(4)); add(playerPanel,readout,-1,-2);
-        nowTitle=trackTitle("No track selected",17,playbackTheme.accent); nowTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(readout,nowTitle,-1,26);editTarget(nowTitle,"Track title","player.accent");
+        nowTitle=trackTitle("No track selected",22,playbackTheme.accent); nowTitle.setTypeface(dotMatrixBold); add(readout,nowTitle,-1,30);editTarget(nowTitle,"Track title","player.accent");
         nowArtist=text("Choose a track to press play",11,playbackTheme.muted); nowArtist.setSingleLine(true); add(readout,nowArtist,-1,20);editTarget(nowArtist,"Artist text","player.muted");
         seek=(SeekBar)getLayoutInflater().inflate(R.layout.player_seek,playerPanel,false); seek.setPadding(dp(12),0,dp(12),0); seek.setProgressTintList(null); seek.setProgressBackgroundTintList(null); seek.setThumbTintList(null); seek.setProgressDrawable(skin.progress(playbackTheme)); seek.setThumb(skin.thumb(playbackTheme.accent)); seek.setSplitTrack(false); seek.setContentDescription("Playback position"); LinearLayout.LayoutParams seekParams=new LinearLayout.LayoutParams(-1,dp(32)); seekParams.setMargins(dp(18),0,dp(18),0); playerPanel.addView(seek,seekParams);editTarget(seek,"Progress bar","player.accent","player.secondary");
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { public void onProgressChanged(SeekBar s,int p,boolean user) { if(user) updateTime(p); } public void onStartTrackingTouch(SeekBar s) { seeking=true; } public void onStopTrackingTouch(SeekBar s) { seeking=false; if(player!=null) player.seek(s.getProgress()); } });
