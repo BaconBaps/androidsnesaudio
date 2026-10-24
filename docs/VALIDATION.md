@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Eighty-one JUnit/Robolectric tests, zero failures and zero skipped:
+Eighty-two JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -284,3 +284,16 @@ open the soundtrack action menu. A narrow-screen layout check verifies all five
 playback controls retain at least 48 dp touch areas, visible gaps and fit within
 a 320 dp screen. The updated screenshots remain native-graphics Robolectric
 renders; device touch/long-press behavior remains for physical-device testing.
+
+## Pixel cog and themed menu (24 October 2026, v1.16.0)
+
+Android build, 82 JUnit/Robolectric tests and lint pass. Menu tests navigate music
+shortcuts, Playback tools and Settings, verify unavailable export/MIDI actions
+are disabled, return to the parent menu and exercise the queue shortcut. Existing
+theme selection, SoundFont management, favourites and Exit tests now navigate the
+actual themed dialogs instead of Android PopupMenu. The header check verifies
+that the cog has no background or image tint. Screenshots of the main menu and
+both submenus are native-graphics Robolectric renders in Llama; existing light
+and dark palette screenshots show the new cog. The vector is original MIT app
+artwork, with merged pixel runs and short paths; no external logo art was copied.
+Physical-device navigation and touches remain device checks.

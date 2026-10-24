@@ -123,7 +123,7 @@ public class PlayerUiTest {
             }
             findDescription(a.getWindow().getDecorView(),"Add DK Island Swing to favourites").performClick();
             findDescription(a.getWindow().getDecorView(),"App menu").performClick();
-            org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu().getMenu().performIdentifierAction(6,0);
+            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Favourites").performClick();
             assertNotNull(findText(a.getWindow().getDecorView(),"Favourite tracks"));
             assertNull(findText(a.getWindow().getDecorView(),"Theme"));
             assertNotNull(findText(a.getWindow().getDecorView(),"DK Island Swing"));
@@ -186,11 +186,24 @@ public class PlayerUiTest {
             assertEquals("custom",new SoundFonts(app).overrideId("/fixture/song.mid"));assertEquals(SoundFonts.BUILTIN,banks.defaultId());
         } finally {extra.delete();}
     }
+    @Test public void themedMenuGroupsNavigateAndUnavailableTrackActionsStayDisabled() throws Exception {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();a.selectTheme("desktop-98");findDescription(a.getWindow().getDecorView(),"App menu").performClick();
+            android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();View decor=menu.getWindow().getDecorView();
+            for(String label:new String[]{"Import music","Library","Playback queue","Favourites","Playback tools","Settings","Exit app"})assertNotNull(findDescription(decor,label));
+            assertNotNull(findText(decor,"MUSIC"));assertNotNull(findText(decor,"PREFERENCES"));captureView(decor,"app-menu.png",774,1200);
+            findDescription(decor,"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();
+            assertFalse(findDescription(decor,"Export current track…").isEnabled());assertFalse(findDescription(decor,"Track SoundFont…").isEnabled());assertTrue(findDescription(decor,"Sleep timer").isEnabled());captureView(decor,"playback-menu.png",774,712);
+            findDescription(decor,"Back to app menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
+            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();assertNotNull(findDescription(decor,"Color theme"));assertNotNull(findDescription(decor,"SoundFonts"));assertNotNull(findDescription(decor,"About ChipPlayer 199x"));captureView(decor,"settings-menu.png",774,696);
+            assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK)));assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK)));menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback queue").performClick();assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));
+        }
+    }
     @Test public void soundFontMenuShowsDefaultBankAndLaunchesDocumentPicker() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             findDescription(c.get().getWindow().getDecorView(),"App menu").performClick();
-            PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
-            assertFalse(menu.getMenu().findItem(9).isEnabled());menu.getMenu().performIdentifierAction(8,0);
+            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Settings").performClick();
+            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"SoundFonts").performClick();
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertTrue(dialog.getListView().getAdapter().getItem(0).toString().contains("Pixel GM"));
             captureView(dialog.getWindow().getDecorView(),"soundfonts.png",720,350);
@@ -203,7 +216,8 @@ public class PlayerUiTest {
     @Test public void themePickerPersistsDarkModeAcrossRecreation() {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             findDescription(c.get().getWindow().getDecorView(),"App menu").performClick();
-            org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu().getMenu().performIdentifierAction(2,0);
+            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Settings").performClick();
+            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Color theme").performClick();
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
             assertEquals(2,grid.getColumnCount()); assertEquals(PlayerTheme.ALL.length,grid.getChildCount());
@@ -269,10 +283,10 @@ public class PlayerUiTest {
     @Test public void appMenuOffersExitAndClosesTask() {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); findDescription(a.getWindow().getDecorView(),"App menu").performClick();
-            PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
-            assertNotNull(menu); assertEquals("Exit app",menu.getMenu().findItem(4).getTitle());
+            android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull(menu);assertNotNull(findDescription(menu.getWindow().getDecorView(),"Exit app"));
             // Selecting Exit waits for service teardown before closing the task.
-            menu.getMenu().performIdentifierAction(4,0);
+            findDescription(menu.getWindow().getDecorView(),"Exit app").performClick();
             try {
                 java.lang.reflect.Field worker=PlaybackService.class.getDeclaredField("worker"); worker.setAccessible(true);
                 Shadows.shadowOf(((android.os.Handler)worker.get(service)).getLooper()).idle();
@@ -292,7 +306,7 @@ public class PlayerUiTest {
             for(String label:new String[]{"App menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
                 assertNull(((View)v.getParent()).getBackground());
-                assertNotNull(v.getBackground());
+                assertNull(v.getBackground());assertNull(((ImageButton)v).getImageTintList());
                 assertEquals(a.dp(40),v.getWidth()); assertEquals(a.dp(40),v.getHeight());
                 if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
                 assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());

@@ -15,7 +15,7 @@ for emulators). This is a debug-signed development build, not a Play Store relea
 The app was previously named PixelSPC; installing this update keeps your library,
 favourites, and saved theme.
 
-Tap **⋮ → Import music**, or **Library → Import music**, to open the themed
+Tap **cog → Import music**, or **Library → Import music**, to open the themed
 import screen. Choose files or a folder through Android's access picker, then
 review the checked items and choose **Add** or **Add and queue**. **Cancel**
 closes the review without copying anything. Tap a track to play. Use the fixed player panel
@@ -47,10 +47,10 @@ a soundtrack.
 
 The game title, metadata, Tracklist header, and outer tracklist edging stay fixed
 while tracks scroll. The bottom border remains visible at every scroll position.
-Theme selection and Help also live in the **⋮** menu. The four light palettes use
+Theme selection, SoundFonts and About live in **cog → Settings**. The four light palettes use
 softer frame shadows, while the playback deck keeps its dark finish.
 
-Choose **⋮ → Exit app** or the notification’s pixel **× Exit app** action to stop playback, release the audio device, remove the
+Choose **cog → Exit app** or the notification’s pixel **× Exit app** action to stop playback, release the audio device, remove the
 notification, and close the app’s task. Normal Home/Back navigation continues to
 allow background playback. Android may cache the idle process after Exit, but the
 playback service is stopped. Notifications use Android’s standard background with no custom color or artwork. Android controls the media notification layout; newer
@@ -62,7 +62,7 @@ for development. The app requests no Internet or broad storage permission.
 
 ## Export, favourites, and sleep timer
 
-Long-press a track, or choose **⋮ → Export current track…**, to save audio as a
+Long-press a track, or choose **cog → Playback tools → Export current track…**, to save audio as a
 WAV file. Choose a start time and duration in `minutes:seconds`, optionally add a
 short fade in/out, then choose the destination with Android’s Save picker. The
 full-track shortcut uses the track’s tagged duration (or its default duration).
@@ -72,13 +72,13 @@ separate decoder, so playback can continue. Cancel stops preparation and attempt
 to remove the empty destination; providers that refuse deletion may leave a file
 to remove manually. No phone sound settings or extra permissions are needed.
 
-Tap **☆** beside a track to favourite it. **⋮ → Show favourites** collects starred
+Tap **☆** beside a track to favourite it. **cog → Favourites** collects starred
 tracks across games; tap one to play the favourites queue. Stars survive app
 restarts. Duplicate imports have independent favourites, and deleting an import
-clears its stars. Choose a game from Library, or **⋮ → Back to soundtrack**, to
+clears its stars. Choose a game from Library, or **cog → Back to soundtrack**, to
 leave the favourites view.
 
-**⋮ → Sleep timer** offers Off, 15, 30, 60, or 90 minutes. Playback pauses when
+**cog → Playback tools → Sleep timer** offers Off, 15, 30, 60, or 90 minutes. Playback pauses when
 the timer expires, including with Loop on, keeping the track and position for
 later. The menu shows the remaining minutes. The timer continues while using
 other apps; Exit cancels it.
@@ -109,7 +109,7 @@ labels are vertically centered with their rails.
 
 The Library button and playlist sit above a separate, darker Now Playing deck.
 Its spectrum sits above the track details and transport controls; the darker
-palette adapts each theme’s accent to keep text readable. Header actions are collected in the single ⋮ menu.
+palette adapts each theme’s accent to keep text readable. Header actions are collected in the single pixel-cog menu.
 
 Original pixel PNGs give every theme raised metal borders, corner screws, inset
 displays, metallic section rails, pressed controls, and a ridged seek thumb. Six
@@ -124,7 +124,7 @@ choices are preserved. [Skin assets and regeneration](SKIN.md).
 
 ## Themes
 
-Choose **⋮ → Choose color theme** to choose a palette
+Choose **cog → Settings → Color theme** to choose a palette
 from a grid of miniature player previews. The selected card has a checkmark. The choice is saved
 between launches and updates the controls, dialogs, system-bar icons, and pixel
 spectrum without interrupting playback. Choose Pixel Light, Pixel Dark, or one of
@@ -265,14 +265,13 @@ The built-in **Pixel GM** bank provides an original, synthetic retro sound with
 waveforms rather than recorded acoustic instruments. An original 16-second
 [Pixel Steps MIDI demo](../downloads/ChipPlayer-MIDI-demo.mid) is available to try.
 
-Open **SoundFonts…** from the app menu to import uncompressed `.sf2` banks, see
+Open **cog → Settings → SoundFonts** to import uncompressed `.sf2` banks, see
 sizes, select a default, rename or delete imported banks. Files are copied once
 into private storage. This version accepts banks up to **64 MiB** to keep mobile
 memory use manageable; SF3, SFZ, DLS and compressed/archive banks are not supported.
 Use an extracted `.sf2` file. The built-in bank remains available as a fallback.
 
-Hold a MIDI track and choose **Choose SoundFont…**, or use **Current track
-SoundFont…** in the menu, to override the default for that track. Choose **Follow
+Hold a MIDI track and choose **Choose SoundFont…**, or use **cog → Playback tools → Track SoundFont…**, to override the default for that track. Choose **Follow
 default bank** to clear its override. Changing a bank restores the current track's
 position and paused/playing state after seeking. Deleting a bank clears its
 references; original source files remain untouched. WAV exports use the selected
@@ -319,7 +318,7 @@ background of the review screen and survives rotation. Once Add is pressed, the
 screen finishes the import before closing. If a batch fails, previously added
 sets from that batch are removed; pre-existing library entries stay intact.
 
-Open **⋮ → Show playback queue** to see tracks combined across imports. Hold an
+Open **cog → Playback queue** to see tracks combined across imports. Hold an
 entry to move it up/down, remove it, choose a MIDI bank or export audio. Removing
 the current playing entry advances to the next remaining entry; removing it while
 paused prepares the next entry without playing. Queue removal keeps the library
@@ -343,3 +342,21 @@ a divider. There is no longer a Delete button beside every Library entry.
 Playback controls have larger touch areas and wider gaps, with a larger central
 Play/Pause button. Widths and gaps adapt on narrow screens; Shuffle and Loop keep
 their borderless appearance.
+
+## Pixel cog and themed menu
+
+The header menu is an original flat, transparent pixel cog using green/gold from
+the sound-chip logo. It has no chrome button background or tint. Regenerate its
+vector with `scripts/generate-menu-cog.py`.
+
+The themed menu has pixel section headings, matching panel textures, colours and
+focus/pressed states, with scrollable contents on smaller screens:
+
+- **Music:** Import music, Library, Playback queue and Favourites.
+- **Playback tools:** export the current track, its MIDI SoundFont assignment and
+  the sleep timer. Track-specific actions are disabled when unavailable.
+- **Settings:** colour theme, SoundFont bank management and About/licences.
+- **Exit app:** separated at the bottom of the main menu.
+
+Submenus have a Back control; Android Back also returns to the main menu. Close
+and an outside tap dismiss the menu. Existing playback continues during navigation.
