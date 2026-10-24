@@ -36,4 +36,19 @@ public class BouncingTextViewTest {
         title.setText("Hi"); title.measure(View.MeasureSpec.makeMeasureSpec(120,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(40,View.MeasureSpec.EXACTLY)); title.layout(0,0,120,40);
         assertEquals(0,title.currentOffset(),0);
     }
+    @Test public void scrollingRevealsGlyphsOriginallyOutsideTheViewport() {
+        BouncingTextView title=new BouncingTextView(RuntimeEnvironment.getApplication());
+        title.setTextColor(android.graphics.Color.WHITE);title.setTextSize(20);
+        title.setText("                              HIDDEN END");
+        title.measure(View.MeasureSpec.makeMeasureSpec(100,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(48,View.MeasureSpec.EXACTLY));title.layout(0,0,100,48);
+        android.graphics.Bitmap before=android.graphics.Bitmap.createBitmap(100,48,android.graphics.Bitmap.Config.ARGB_8888);
+        title.draw(new android.graphics.Canvas(before));assertEquals(0,ink(before));
+        float overflow=title.getLayout().getLineWidth(0)-100;
+        long end=1300+(long)Math.ceil(overflow/(32*title.getResources().getDisplayMetrics().density)*1000);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(end));
+        assertEquals(overflow,title.currentOffset(),.1);
+        android.graphics.Bitmap after=android.graphics.Bitmap.createBitmap(100,48,android.graphics.Bitmap.Config.ARGB_8888);
+        title.draw(new android.graphics.Canvas(after));assertTrue("Previously hidden suffix must actually be drawn",ink(after)>100);
+    }
+    private static int ink(android.graphics.Bitmap bitmap){int count=0;for(int y=0;y<bitmap.getHeight();y++)for(int x=0;x<bitmap.getWidth();x++)if((bitmap.getPixel(x,y)>>>24)>0)count++;return count;}
 }

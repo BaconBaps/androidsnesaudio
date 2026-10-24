@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Ninety-one JUnit/Robolectric tests, zero failures and zero skipped:
+Ninety-two JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -350,3 +350,13 @@ ease in/out in both directions. Short titles remain still; repeated playback
 updates do not restart motion. Now Playing uses Doto weight 900 and retains
 the theme accent colour. UI assertions verify both titles are single line
 and the Now Playing font remains bold; motion checks verify easing symmetry.
+
+## Overflow rendering correction (v1.17.3)
+
+The shared BouncingTextView now draws the complete text Layout behind a fixed
+viewport clip. Moving TextView.onDraw previously moved an internally clipped
+viewport, leaving the original offscreen glyphs invisible. The correction
+applies to playlist/game headings, Now Playing and tracklist entries.
+A native-graphics regression test starts with an empty visible prefix and
+verifies the previously offscreen suffix produces visible pixels at the far
+edge; timing/easing, unchanged-title and short-title checks remain in place.

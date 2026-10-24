@@ -41,9 +41,16 @@ public final class BouncingTextView extends TextView {
         return offsetAt(SystemClock.uptimeMillis()-started,Math.max(0,width-getWidth()+getPaddingLeft()+getPaddingRight()),32*getResources().getDisplayMetrics().density);
     }
     @Override protected void onDraw(Canvas canvas) {
+        if(getLayout()==null)return;
         float offset=currentOffset(); canvas.save();
-        canvas.clipRect(getPaddingLeft(),0,getWidth()-getPaddingRight(),getHeight()); canvas.translate(-offset,0);
-        super.onDraw(canvas); canvas.restore();
+        // TextView.onDraw clips to its original viewport before drawing its Layout.
+        // Move the full Layout behind our fixed clip instead, revealing hidden glyphs.
+        canvas.clipRect(getCompoundPaddingLeft(),getCompoundPaddingTop(),getWidth()-getCompoundPaddingRight(),getHeight()-getCompoundPaddingBottom());
+        getPaint().setColor(getCurrentTextColor());
+        getPaint().drawableState=getDrawableState();
+        float top=getCompoundPaddingTop()+Math.max(0,(getHeight()-getCompoundPaddingTop()-getCompoundPaddingBottom()-getLayout().getHeight())/2f);
+        canvas.translate(getCompoundPaddingLeft()-getLayout().getLineLeft(0)-offset,top);
+        getLayout().draw(canvas); canvas.restore();
         if(!frozen && getLayout()!=null && getLayout().getLineWidth(0)>getWidth()-getPaddingLeft()-getPaddingRight() && isShown()) postInvalidateOnAnimation();
     }
 }
