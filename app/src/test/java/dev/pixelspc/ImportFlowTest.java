@@ -74,4 +74,8 @@ public class ImportFlowTest {
         File track=source("One.minipsf",1),lib=source("Base.psflib",2);List<ImportDocuments.Item> items=Arrays.asList(item(track,"Game/Tracks/One.minipsf"),item(lib,"Game/Libraries/Base.psflib"));
         List<Library.Game> added=ImportBatch.run(context,items,Collections.singleton(items.get(0).key()),"PSF folder");assertEquals(1,added.get(0).tracks.size());File root=new File(context.getFilesDir(),"sets/"+added.get(0).id+"/psf");assertTrue(new File(root,"game/tracks/one.minipsf").isFile());assertTrue(new File(root,"game/libraries/base.psflib").isFile());
     }
+    @Test public void miniUsfSelectionAutomaticallyIncludesUnselectedCompanionLibraries()throws Exception{
+        File track=source("One.MINIUSF",1),lib=source("Base.USFLIB",2);List<ImportDocuments.Item> items=Arrays.asList(item(track,"Game/Tracks/One.MINIUSF"),item(lib,"Game/Libraries/Base.USFLIB"));
+        List<Library.Game> added=ImportBatch.run(context,items,Collections.singleton(items.get(0).key()),"N64 folder");assertEquals(1,added.get(0).tracks.size());File root=new File(context.getFilesDir(),"sets/"+added.get(0).id+"/psf");assertTrue(new File(root,"game/tracks/one.miniusf").isFile());assertTrue(new File(root,"game/libraries/base.usflib").isFile());
+    }
 }

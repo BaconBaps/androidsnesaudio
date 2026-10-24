@@ -19,6 +19,7 @@ final class LibraryPlatforms {
         if(s.equals("nes") || s.contains("nintendo nes") || s.contains("nintendo entertainment system") || s.equals("famicom")) return "NES / Famicom";
         if(s.contains("mega drive") || s.contains("megadrive") || s.equals("genesis") || s.equals("sega genesis")) return "Mega Drive / Genesis";
         if(s.equals("sony playstation") || s.equals("playstation") || s.equals("ps1") || s.equals("psx")) return "PlayStation";
+        if(s.equals("n64") || s.equals("nintendo 64") || s.equals("nintendo64")) return "Nintendo 64";
         if(s.contains("game gear")) return "Game Gear";
         if(s.contains("master system")) return "Master System";
         if(s.contains("pc engine") || s.contains("turbografx")) return "PC Engine / TurboGrafx-16";

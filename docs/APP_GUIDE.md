@@ -141,6 +141,7 @@ theme’s accent and secondary colors.
 | Files | Supported content |
 | --- | --- |
 | `.mid`, `.midi` | Standard MIDI type 0/1 with PPQ timing; built-in Pixel GM or imported `.sf2` banks |
+| `.usf`, `.miniusf` | Nintendo 64 soundtracks; import shared `.usflib` files together in a ZIP or folder |
 | `.psf`, `.minipsf` | Original PlayStation soundtracks; import shared `.psflib` files together in a ZIP |
 | `.spc` | Super Nintendo tracks, including ID666 metadata |
 | `.rsn`, `.rar` | RAR-based SPC sets (including solid RAR4 archives) |
@@ -188,8 +189,7 @@ on its own. A miniPSF selected by itself cannot access sibling library documents
 use a complete ZIP set. Libraries are retained privately but hidden from the
 track list. Metadata groups these soundtracks under PlayStation.
 
-Original PlayStation **PSF version 1** is supported. PSF2, PSP and other xSF
-variants are not included. No BIOS is needed. PSF length/fade tags determine the
+Original PlayStation **PSF version 1** is supported. PSF2 and PSP formats are not included. Nintendo 64 USF is supported separately. No BIOS is needed. PSF length/fade tags determine the
 normal ending; absent length defaults to three minutes plus fade. Loop keeps the
 emulated program running, and export uses an independent decoder. Long seeks
 emulate the intervening audio, so catching up can take a moment.
@@ -306,8 +306,8 @@ request broad storage access.
 
 Loose files are imported together as a set, with archive files imported as their
 own sets. Folder names are used when music metadata supplies no game name.
-Relative PSF paths are preserved and available `.psflib` dependencies are copied
-automatically when PSF tracks are selected. They do not appear as playable tracks.
+Relative PSF/USF paths are preserved and available `.psflib` / `.usflib` dependencies are copied
+automatically when PSF/USF tracks are selected. They do not appear as playable tracks.
 For direct file selection, choose the needed libraries too, or import the complete
 PSF folder/ZIP. Sources are kept unchanged.
 
@@ -416,3 +416,26 @@ Editor tools always use readable fixed colours, independently of the draft. If a
 saved palette makes app text hard to see, **hold the grey cog** to open the fixed
 Saved themes manager and choose or edit a palette. Colour choices are not blocked
 by automatic contrast rules.
+
+## Nintendo 64 USF sets
+
+Import a ZIP or folder containing `.usf` / `.miniusf` tracks and all referenced
+`.usflib` files, retaining the original folders. In the import review, available
+libraries are included automatically with selected tracks and hidden from the
+playlist. A self-contained `.usf` can be imported alone. Selecting a miniUSF
+alone does not grant access to its sibling files; choose the full folder or ZIP.
+N64 tracks appear under **Nintendo 64** in the library.
+
+USF title/game/artist and length/fade tags are used. With no length tag the
+default is three minutes plus a fade. Loop keeps the emulated program running
+without a timed restart; a one-shot program may still fall silent. WAV export
+uses its own decoder. Seeking replays the emulation and may take longer than
+SPC; the existing **SEEKING** indicator and interruptible steps apply.
+
+The portable LazyUSF2 decoder is built for ARM64 and x86_64 without a game ROM
+or BIOS. Native tests use an original generated tone program; real game
+compatibility, battery use and speed still need testing on an Android device.
+
+In theme edit mode, only the first tracklist row is an edit target. Its colours
+apply across the list. Highlights are clipped to the visible playlist, keeping
+the Now Playing controls accessible.

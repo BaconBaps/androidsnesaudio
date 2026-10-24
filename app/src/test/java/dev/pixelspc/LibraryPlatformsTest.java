@@ -12,6 +12,8 @@ public class LibraryPlatformsTest {
         assertEquals("PlayStation",LibraryPlatforms.canonical("Sony PlayStation"));
         assertEquals("PlayStation",LibraryPlatforms.canonical("PS1"));
         assertEquals("PlayStation",LibraryPlatforms.canonical("PSX"));
+        assertEquals("Nintendo 64",LibraryPlatforms.canonical("N64"));
+        assertEquals("Nintendo 64",LibraryPlatforms.canonical("Nintendo64"));
     }
     @Test public void metadataAliasesShareAPlatformWithoutGuessingUnknownVgmSystems() {
         assertEquals("Super Nintendo",LibraryPlatforms.platform(game("a","SNES","Super Famicom","Super Nintendo")));

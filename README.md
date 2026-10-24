@@ -2,7 +2,7 @@
 
 A pixel-styled Android player for retro game soundtracks, with ten themes,
 favourites, WAV export, a sleep timer, and a home-screen widget.
-Plays SPC/RSN, PlayStation PSF and MIDI with your choice of SoundFonts.
+Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
 
 **[Download the Android APK](https://github.com/BaconBaps/androidsnesaudio/raw/refs/heads/main/downloads/ChipPlayer-199x-debug.apk)** · Android 8.0+ · 64-bit ARM
 

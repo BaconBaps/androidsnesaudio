@@ -83,3 +83,10 @@ https://github.com/oliverlalan/Doto — SIL Open Font License 1.1.
 Unmodified variable font from revision 1c587f2eed62cb257055540ac2a15f356070414f,
 rendered with rounded dots (ROND 100) and weight 800 for playlist headings.
 Font and full licence: `app/src/main/assets/fonts/doto.ttf` and `Doto-OFL.txt`.
+
+## Nintendo 64 USF playback
+
+LazyUSF2 / Mupen64Plus from Cog revision
+`1ef38735c065da74c499eda05e0ae7b1e953586c`. GPL-2.0-or-later and CC0 components;
+see LazyUSF2-NOTICE.txt and the retained source headers in third_party/lazyusf2.
+The combined build remains GPLv3. No game ROM, BIOS or N64 soundtrack is bundled.

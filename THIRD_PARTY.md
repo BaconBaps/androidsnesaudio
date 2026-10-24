@@ -1,7 +1,7 @@
 # Third-party software
 
 ChipPlayer 199x original application code and artwork retain the MIT license.
-The combined APK contains GPL-covered PSF emulation and is distributed under
+The combined APK contains GPL-covered PSF and USF emulation and is distributed under
 **GPL version 3**; see [COPYING-GPL-3](COPYING-GPL-3). Complete corresponding
 source, local modifications and build scripts are in this repository.
 No game music or ROMs are distributed in this repository or APK.
@@ -73,3 +73,23 @@ Winamp artwork, logos, or music are bundled.
 Gradle (Apache 2.0), Android Gradle Plugin and Android SDK/NDK tools
 (their respective Android/Apache licenses), JUnit (EPL 1.0), Robolectric (MIT).
 They are build dependencies and are not packaged as app functionality.
+
+## Nintendo 64 USF emulation
+
+LazyUSF2 from Cog revision `1ef38735c065da74c499eda05e0ae7b1e953586c`,
+[upstream source](https://github.com/losnoco/Cog/tree/1ef38735c065da74c499eda05e0ae7b1e953586c/Frameworks/lazyusf2/lazyusf2),
+is retained in `third_party/lazyusf2`. Mupen64Plus CPU/hardware/HLE source headers
+permit GPL-2.0-or-later; the low-level RSP by Iconoclast carries CC0 dedication.
+X-Scale CIC and Berkeley debugger components retain BSD-2/BSD-3 notices,
+reproduced in the APK licence screen. LazyUSF2 glue and resampling are
+distributed with the GPL project. Headers and
+full licence text are retained. We select GPLv3 for the combined APK.
+
+The portable cached interpreter is compiled for both Android architectures; no
+JIT or executable-memory allocation is used. Unused recompiler implementations
+are omitted while referenced type/prototype headers are retained. Local changes
+add bounded CPU/RSP execution, bounded error messages, audio DMA checks and
+DAC-rate masking. `app/src/main/cpp/usf_decoder.cpp` implements the bounded
+container loader, independent states, 44.1 kHz rendering, seek, loop and fade.
+No proprietary BIOS, game ROM, or soundtrack data is bundled. The native tests
+generate an original MIPS/AI tone program; see `tests/make-usf-fixtures.py`.

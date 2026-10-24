@@ -45,4 +45,8 @@ public class ImportDocumentsTest {
         List<ImportDocuments.Child> files=new ArrayList<>();for(int i=0;i<1001;i++)files.add(file("f"+i,i+".spc"));Map<String,List<ImportDocuments.Child>> map=Collections.singletonMap("root",files);
         try{ImportDocuments.walk(tree(map),"root");fail();}catch(IOException expected){assertTrue(expected.getMessage().contains("1000"));}
     }
+    @Test public void n64FolderScanIncludesTracksAndSharedLibraries()throws Exception{
+        Map<String,List<ImportDocuments.Child>> map=new HashMap<>();map.put("root",Arrays.asList(file("mini","One.MINIUSF"),file("full","Two.USF"),file("lib","Base.USFLIB")));
+        List<ImportDocuments.Item> items=ImportDocuments.walk(tree(map),"root");assertEquals(3,items.size());assertTrue(items.get(0).dependency());assertFalse(items.get(1).dependency());assertFalse(items.get(2).dependency());
+    }
 }

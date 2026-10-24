@@ -1,0 +1,18 @@
+LazyUSF2 Nintendo 64 audio decoder
+
+Source: https://github.com/losnoco/Cog/tree/1ef38735c065da74c499eda05e0ae7b1e953586c/Frameworks/lazyusf2/lazyusf2
+
+Mupen64Plus CPU/hardware and HLE sources: GPL version 2 or later, with original
+copyright notices retained in third_party/lazyusf2. RSP low-level core by
+Iconoclast: CC0 Public Domain Dedication, with notices in rsp_lle.
+X-Scale CIC and Berkeley debugger code: BSD-2/BSD-3; see LazyUSF2-BSD.txt. LazyUSF2 glue
+and resampler are distributed with the GPL project. Full GPL texts are bundled
+in this screen and the repository. The combined APK is GPL version 3.
+
+ChipPlayer changes: a portable cached-interpreter build for ARM64/x86_64,
+per-instance CPU/RSP execution limits, bounded error strings, audio DMA bounds
+checks and DAC-rate masking. The app's USF loader validates sparse patches and
+keeps library references inside the imported set. Original test fixtures contain
+a newly written MIPS tone program, not Nintendo code or sampled game audio.
+Complete corresponding source and reproducible build scripts:
+https://github.com/BaconBaps/androidsnesaudio

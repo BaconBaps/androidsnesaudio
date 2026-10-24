@@ -202,6 +202,25 @@ public class PlayerUiTest {
             c.recreate();a=c.get();assertNotNull(a.editDraft());assertEquals(Integer.valueOf(0xffe9556f),a.editDraft().colors.get("player.spectrumLow"));assertNotNull(findText(a.getWindow().getDecorView(),"Frozen song"));findDescription(a.getWindow().getDecorView(),"Cancel theme edit").performClick();assertNull(a.editDraft());assertEquals("light",ThemeStore.selected(app).id);assertTrue(new ThemeStore(app).drafts().isEmpty());assertTrue(service.playing);assertNotNull(findText(a.getWindow().getDecorView(),"Live song"));
         }
     }
+    @Test public void themeEditorOffersOneTrackEntryAndClipsItToThePlaylist() throws Exception {
+        org.json.JSONArray tracks=new org.json.JSONArray();for(int i=0;i<30;i++)tracks.put(new org.json.JSONObject().put("path","/fixture/"+i+".spc").put("title","Track "+i).put("game","Game").put("artist","Composer").put("system","Super Nintendo").put("index",0).put("length",180000));
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",tracks)).toString().getBytes("UTF-8"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();a.beginThemeEdit(ThemeStore.from(PlayerTheme.find("dark"),false));
+            c.recreate();a=c.get();View decor=a.getWindow().getDecorView();decor.measure(View.MeasureSpec.makeMeasureSpec(822,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1782,View.MeasureSpec.EXACTLY));decor.layout(0,0,822,1782);
+            java.util.List<ThemeEditor.Target> targets=org.robolectric.util.ReflectionHelpers.getField(a,"editTargets");
+            assertEquals(1,targets.stream().filter(t->t.title.equals("Tracklist entry")).count());
+            ThemeEditor.Target entry=targets.stream().filter(t->t.title.equals("Tracklist entry")).findFirst().get();
+            View overlay=findDescription(decor,"Frozen theme preview. Use Parts or tap an element to edit colours.");FrameLayout frame=(FrameLayout)overlay.getParent();
+            Rect first=ThemeEditor.visibleBounds(frame,entry.view,new Rect());assertFalse(first.isEmpty());
+            ScrollView scroll=findScroll(decor);Rect viewport=ThemeEditor.visibleBounds(frame,scroll,new Rect());assertTrue(viewport.contains(first));
+            scroll.scrollTo(0,10000);assertTrue(ThemeEditor.visibleBounds(frame,entry.view,new Rect()).isEmpty());
+            ThemeEditor.Target title=targets.stream().filter(t->t.title.equals("Track title")).findFirst().get();Rect titleBounds=ThemeEditor.visibleBounds(frame,title.view,new Rect());assertFalse(titleBounds.isEmpty());
+            android.view.MotionEvent tap=android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_UP,titleBounds.centerX(),titleBounds.centerY(),0);overlay.dispatchTouchEvent(tap);tap.recycle();
+            android.app.Dialog picker=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(picker.getWindow().getDecorView(),"Track title"));findDescription(picker.getWindow().getDecorView(),"DONE").performClick();
+            scroll.scrollTo(0,0);capture(a,"theme-editor-tracklist.png");
+        }
+    }
     @Test public void savedCustomThemeLoadsAfterRecreationAndInOtherScreens() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get();a.beginThemeEdit(ThemeStore.from(PlayerTheme.find("dark"),false));a.paintTheme("background",0xff222244);a.paintTheme("player.spectrumHigh",0xffffbbaa);a.paintTheme("player.heading",0xffffbbaa);a.repaintTheme();findDescription(a.getWindow().getDecorView(),"Save custom theme").performClick();android.app.Dialog name=org.robolectric.shadows.ShadowDialog.getLatestDialog();((EditText)findDescription(name.getWindow().getDecorView(),"Theme name")).setText("Moonlight");findDescription(name.getWindow().getDecorView(),"SAVE THEME").performClick();

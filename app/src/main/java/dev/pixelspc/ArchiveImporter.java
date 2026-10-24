@@ -9,9 +9,9 @@ import java.nio.file.*;
 public final class ArchiveImporter {
     static final long FILE_LIMIT=32L*1024*1024, TOTAL_LIMIT=256L*1024*1024;
     public static final int TRACK_LIMIT=1000;
-    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf","mid","midi"));
+    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf","usf","miniusf","mid","midi"));
     public static boolean supported(String name) { return FORMATS.contains(extension(name)); }
-    static boolean dependency(String name) { return extension(name).equals("psflib"); }
+    static boolean dependency(String name) { return extension(name).equals("psflib") || extension(name).equals("usflib"); }
     static String extension(String name) { int p=name.lastIndexOf('.'); return p<0?"":name.substring(p+1).toLowerCase(Locale.ROOT); }
     public static final class Entry {
         public final File file; public final String name;
@@ -51,7 +51,7 @@ public final class ArchiveImporter {
                 Entry item=storedEntry(destination,name,0,psfPaths);
                 try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,out,budget); }
                 result.add(item);
-            } else throw new IOException("Choose an SPC, RSN, PSF, MIDI, ZIP, or supported chiptune file");
+            } else throw new IOException("Choose an SPC, RSN, PSF, USF, MIDI, ZIP, or supported chiptune file");
             if(result.isEmpty()) throw new IOException("No supported music files found in this set");
             result.sort(Comparator.comparing(e->e.name.toLowerCase(Locale.ROOT)));
             return result;
@@ -67,22 +67,22 @@ public final class ArchiveImporter {
     }
     private static Entry storedEntry(File directory,String raw,int index,Set<String> seen) throws IOException {
         String ext=extension(raw);
-        if(!ext.equals("psf") && !ext.equals("minipsf") && !ext.equals("psflib")) return entry(directory,raw,index);
+        if(!ext.equals("psf") && !ext.equals("minipsf") && !ext.equals("psflib") && !ext.equals("usf") && !ext.equals("miniusf") && !ext.equals("usflib")) return entry(directory,raw,index);
         String normalized=raw.replace('\\','/');
-        if(normalized.startsWith("/") || normalized.indexOf(':')>=0 || normalized.indexOf('\0')>=0) throw new IOException("Invalid PSF archive path");
+        if(normalized.startsWith("/") || normalized.indexOf(':')>=0 || normalized.indexOf('\0')>=0) throw new IOException("Invalid soundtrack archive path");
         StringBuilder relative=new StringBuilder();
         for(String part:normalized.split("/")) {
-            if(part.equals("..")) throw new IOException("PSF archive path escapes its import");
+            if(part.equals("..")) throw new IOException("Soundtrack archive path escapes its import");
             if(part.isEmpty() || part.equals(".")) continue;
-            if(part.length()>240 || relative.length()>1000) throw new IOException("PSF archive path is too long");
+            if(part.length()>240 || relative.length()>1000) throw new IOException("Soundtrack archive path is too long");
             if(relative.length()>0) relative.append('/'); relative.append(part);
         }
-        if(!seen.add(relative.toString().toLowerCase(Locale.ROOT))) throw new IOException("Duplicate PSF archive path");
+        if(!seen.add(relative.toString().toLowerCase(Locale.ROOT))) throw new IOException("Duplicate Soundtrack archive path");
         StringBuilder stored=new StringBuilder(relative);
         for(int n=0;n<stored.length();n++) { char c=stored.charAt(n); if(c>='A' && c<='Z') stored.setCharAt(n,(char)(c+32)); }
         File root=new File(directory,"psf").getCanonicalFile(),file=new File(root,stored.toString()).getCanonicalFile();
-        if(!file.getPath().startsWith(root.getPath()+File.separator)) throw new IOException("PSF archive path escapes its import");
-        if(!file.getParentFile().isDirectory() && !file.getParentFile().mkdirs()) throw new IOException("Cannot create PSF library folder");
+        if(!file.getPath().startsWith(root.getPath()+File.separator)) throw new IOException("Soundtrack archive path escapes its import");
+        if(!file.getParentFile().isDirectory() && !file.getParentFile().mkdirs()) throw new IOException("Cannot create soundtrack library folder");
         return new Entry(file,normalized.substring(normalized.lastIndexOf('/')+1));
     }
     static Entry entry(File dir,String raw,int index) throws IOException {

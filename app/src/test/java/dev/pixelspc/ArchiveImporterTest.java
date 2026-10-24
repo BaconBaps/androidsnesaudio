@@ -32,6 +32,15 @@ public class ArchiveImporterTest {
         assertTrue(mini.file.getPath().endsWith("psf/game/tracks/one.minipsf"));
         assertFalse(ArchiveImporter.supported("base.psflib")); assertTrue(ArchiveImporter.supported("track.MINIPSF"));
     }
+    @Test public void usfLibrariesKeepRelativePathsAndAreNotPlayableEntries() throws Exception {
+        File zip=new File(root,"n64.zip");
+        try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(zip))){for(String name:new String[]{"Game/LIB/Base.USFLIB","GAME/Tracks/One.MINIUSF","Two.USF"}){out.putNextEntry(new ZipEntry(name));out.write(1);out.closeEntry();}}
+        File dest=new File(root,"set");List<ArchiveImporter.Entry> tracks=ArchiveImporter.extract(zip,"n64.zip",dest);
+        assertEquals(2,tracks.size());assertTrue(new File(dest,"psf/game/lib/base.usflib").isFile());assertTrue(new File(dest,"psf/game/tracks/one.miniusf").isFile());
+        assertFalse(ArchiveImporter.supported("base.USFLIB"));assertTrue(ArchiveImporter.dependency("base.USFLIB"));assertTrue(ArchiveImporter.supported("track.USF"));assertTrue(ArchiveImporter.supported("track.MINIUSF"));
+        File bad=new File(root,"bad-usf.zip");try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(bad))){out.putNextEntry(new ZipEntry("../Base.USFLIB"));out.write(1);out.closeEntry();}
+        File rejected=new File(root,"rejected");try{ArchiveImporter.extract(bad,"bad-usf.zip",rejected);fail();}catch(IOException expected){}assertFalse(rejected.exists());
+    }
     @Test public void psfTraversalAndCaseCollisionsRollBackTheWholeTree() throws Exception {
         for(String bad:new String[]{"../../outside.psflib","/outside.psf","C:/outside.minipsf","Game/A.PSF"}) {
             File zip=new File(root,"bad.zip");

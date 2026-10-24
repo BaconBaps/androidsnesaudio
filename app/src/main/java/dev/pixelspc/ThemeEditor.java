@@ -36,10 +36,16 @@ final class ThemeEditor {
         FrameLayout frame=new FrameLayout(host);if(root.getParent()!=null)((ViewGroup)root.getParent()).removeView(root);frame.addView(root,new FrameLayout.LayoutParams(-1,-1));Overlay overlay=new Overlay(host,frame,targets);frame.addView(overlay,new FrameLayout.LayoutParams(-1,-1));shell.addView(frame,new LinearLayout.LayoutParams(-1,0,1));host.setContentView(shell);
         cancel.setOnClickListener(v->host.cancelThemeEdit());save.setOnClickListener(v->host.saveThemeEdit());elements.setOnClickListener(v->parts(host,targets));
     }
+    // Honour all ancestor clips, including the scrolling playlist viewport.
+    static Rect visibleBounds(FrameLayout frame,View view,Rect result){
+        if(!view.getLocalVisibleRect(result)){result.setEmpty();return result;}
+        try{frame.offsetDescendantRectToMyCoords(view,result);if(!result.intersect(0,0,frame.getWidth(),frame.getHeight()))result.setEmpty();}
+        catch(IllegalArgumentException e){result.setEmpty();}return result;
+    }
     private static final class Overlay extends View {
         final MainActivity host;final FrameLayout frame;final List<Target> targets;final Paint paint=new Paint();final Rect rectangle=new Rect();
         Overlay(MainActivity host,FrameLayout frame,List<Target> targets){super(host);this.host=host;this.frame=frame;this.targets=new ArrayList<>(targets);setContentDescription("Frozen theme preview. Use Parts or tap an element to edit colours.");setFocusable(true);setClickable(true);paint.setColor(0x779de2ef);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(host,1));paint.setPathEffect(new DashPathEffect(new float[]{dp(host,4),dp(host,5)},0));}
-        Rect bounds(Target target){Rect r=rectangle;target.view.getDrawingRect(r);try{frame.offsetDescendantRectToMyCoords(target.view,r);}catch(IllegalArgumentException e){r.setEmpty();}return r;}
+        Rect bounds(Target target){return visibleBounds(frame,target.view,rectangle);}
         @Override protected void onDraw(Canvas canvas){for(Target target:targets){Rect r=bounds(target);if(r.width()>0&&r.height()>0)canvas.drawRect(r,paint);}}
         @Override public boolean onTouchEvent(MotionEvent event){if(event.getAction()==MotionEvent.ACTION_UP){Target selected=null;long area=Long.MAX_VALUE;for(Target t:targets){Rect r=bounds(t);long size=(long)r.width()*r.height();if(r.contains((int)event.getX(),(int)event.getY())&&size<area){selected=t;area=size;}}if(selected!=null)picker(host,selected);performClick();}return true;}
         @Override public boolean performClick(){super.performClick();return true;}

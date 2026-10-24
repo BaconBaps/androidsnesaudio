@@ -28,7 +28,7 @@ public class ImportActivity extends Activity {
                     List<ImportDocuments.Item> found=tree==null?ImportDocuments.files(context,uris):ImportDocuments.folder(context,tree);
                     Set<String> chosen=new HashSet<>();for(ImportDocuments.Item item:found)if(!item.dependency())chosen.add(item.key());
                     ImportDocuments.checkCancelled();items=found;selected=chosen;folder=tree!=null;includeSubfolders=true;label=folder?ImportDocuments.folderName(context,tree):found.size()==1?found.get(0).path.replaceFirst("\\.[^.]+$",""):"Selected music";
-                    if(chosen.isEmpty())error="No supported music found. Choose tracks, ZIP or RSN sets. PSF libraries are included with their tracks.";
+                    if(chosen.isEmpty())error="No supported music found. Choose tracks, ZIP or RSN sets. PSF/USF libraries are included with their tracks.";
                 }catch(Exception e){if(!Thread.currentThread().isInterrupted())error=e.getMessage()==null?"Could not read selected documents":e.getMessage();}
                 finally{scanning=false;update();}
             },"Browse music");task.start();
@@ -76,7 +76,7 @@ public class ImportActivity extends Activity {
     }
     private void renderRows(){
         rows.removeAllViews();List<ImportDocuments.Item> visible=visible();
-        if(visible.isEmpty()){TextView empty=label("No files selected\n\nSPC · RSN · ZIP · PSF · MIDI\nand other supported chiptunes",14,theme.muted);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(14),dp(28),dp(14),dp(28));rows.addView(empty,new LinearLayout.LayoutParams(-1,-2));}
+        if(visible.isEmpty()){TextView empty=label("No files selected\n\nSPC · RSN · ZIP · PSF · USF · MIDI\nand other supported chiptunes",14,theme.muted);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(14),dp(28),dp(14),dp(28));rows.addView(empty,new LinearLayout.LayoutParams(-1,-2));}
         for(ImportDocuments.Item item:visible){
             CheckBox choice=new CheckBox(this);choice.setText(item.size>=0?getString(R.string.import_file_size,item.path,android.text.format.Formatter.formatShortFileSize(this,item.size)):item.path);choice.setTextColor(theme.text);choice.setTextSize(14);choice.setButtonTintList(android.content.res.ColorStateList.valueOf(theme.accent));choice.setPadding(dp(8),dp(8),dp(8),dp(8));choice.setChecked(model.selected.contains(item.key()));choice.setEnabled(!model.scanning&&!model.importing);choice.setContentDescription("Select "+item.path);rows.addView(choice,new LinearLayout.LayoutParams(-1,-2));
             choice.setOnCheckedChangeListener((v,checked)->{if(checked)model.selected.add(item.key());else model.selected.remove(item.key());updateActions();});
@@ -84,7 +84,7 @@ public class ImportActivity extends Activity {
     }
     private void updateActions(){
         List<ImportDocuments.Item> visible=visible();int selected=0;for(ImportDocuments.Item item:visible)if(model.selected.contains(item.key()))selected++;
-        boolean busy=model.scanning||model.importing;count.setText(model.scanning?"Reading folder…":model.importing?"Adding music…":selected+" files selected"+(model.items.stream().anyMatch(ImportDocuments.Item::dependency)?" · PSF libraries included automatically":""));
+        boolean busy=model.scanning||model.importing;count.setText(model.scanning?"Reading folder…":model.importing?"Adding music…":selected+" files selected"+(model.items.stream().anyMatch(ImportDocuments.Item::dependency)?" · PSF/USF libraries included automatically":""));
         error.setText(model.error);error.setVisibility(model.error.isEmpty()?View.GONE:View.VISIBLE);progress.setVisibility(busy?View.VISIBLE:View.GONE);
         add.setEnabled(!busy&&selected>0);queue.setEnabled(!busy&&selected>0);add.setAlpha(add.isEnabled()?1:.4f);queue.setAlpha(queue.isEnabled()?1:.4f);
         files.setEnabled(!busy);folder.setEnabled(!busy);cancel.setEnabled(!model.importing);subfolders.setEnabled(!busy);all.setEnabled(!busy&&!visible.isEmpty());

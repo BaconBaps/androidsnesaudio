@@ -9,7 +9,7 @@ CMAKE_BIN="${ANDROID_HOME}/cmake/3.22.1/bin/cmake"
 "$CMAKE_BIN" -S app/src/main/cpp -B "$TEST_DIR/native-player" -DCMAKE_BUILD_TYPE=Release
 "$CMAKE_BIN" --build "$TEST_DIR/native-player" -j2
 mkdir -p "$TEST_DIR/classes"
-javac -d "$TEST_DIR/classes" app/src/main/java/dev/pixelspc/{Engine,RarReader,ArchiveImporter,PlaybackSeek,WavExporter}.java tests/{ArchiveSmoke,NativeSmoke,NativeSeekSmoke,NativeExportSmoke,PsfNativeSmoke,MidiNativeSmoke}.java
+javac -d "$TEST_DIR/classes" app/src/main/java/dev/pixelspc/{Engine,RarReader,ArchiveImporter,PlaybackSeek,WavExporter}.java tests/{ArchiveSmoke,NativeSmoke,NativeSeekSmoke,NativeExportSmoke,PsfNativeSmoke,UsfNativeSmoke,MidiNativeSmoke}.java
 NATIVE_PATH="$TEST_DIR/native-player:$TEST_DIR/native-player/gme/gme"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.ArchiveSmoke "$1" "$2"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.NativeSmoke "$1" "$2"
@@ -20,3 +20,6 @@ java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.Psf
 
 python3 tests/make-midi-fixtures.py "$TEST_DIR/midi"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.MidiNativeSmoke "$TEST_DIR/midi" app/src/main/assets/soundfonts/Pixel-GM.sf2 downloads/ChipPlayer-MIDI-demo.mid
+
+python3 tests/make-usf-fixtures.py "$TEST_DIR/usf"
+java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.UsfNativeSmoke "$TEST_DIR/usf"

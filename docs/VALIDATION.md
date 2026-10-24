@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Ninety-two JUnit/Robolectric tests, zero failures and zero skipped:
+Ninety-six JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -360,3 +360,20 @@ applies to playlist/game headings, Now Playing and tracklist entries.
 A native-graphics regression test starts with an empty visible prefix and
 verifies the previously offscreen suffix produces visible pixels at the far
 edge; timing/easing, unchanged-title and short-title checks remain in place.
+
+## Nintendo 64 and editor hit regions (v1.18.0)
+
+- Both ARM64 and x86_64 APKs compile with the portable LazyUSF2 interpreter and
+  low-level RSP. Native USF fixture checks cover six playable variants,
+  sustained audio, seek, fade, loop, independent WAV export, concurrent states,
+  ZIP libraries, Unicode/CP1252 tags, malformed data and post-error recovery.
+- AddressSanitizer plus leak detection pass valid render/reset/seek and invalid
+  container/state/dependency/DMA/no-audio checks; see USF_SUPPORT.md.
+- SPC/RSN archive and 65-track native smoke checks, SPC/VGZ seek/export checks,
+  PlayStation PSF and MIDI native tests pass with the combined engine.
+- Theme editor exposes only the first tracklist row, clips all target bounds
+  through ancestor viewports, and preserves frozen targets after recreation.
+  A 30-row UI test verifies hidden rows cannot intercept Now Playing edits;
+  screenshot: screenshots/theme-editor-tracklist.png.
+- 96 JUnit/Robolectric tests pass; Android lint reports no issues. Real device
+  USF playback, performance and long scrubs remain for user/device testing.
