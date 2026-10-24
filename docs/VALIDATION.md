@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Seventy-nine JUnit/Robolectric tests, zero failures and zero skipped:
+Eighty-one JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -272,3 +272,15 @@ Physical Android document-provider grants, cloud/offline providers and device
 background behavior still need device verification. No additional storage or
 network permission was added. The APK retains the existing package and signing
 certificate for in-place updates.
+
+## Library actions and controls (24 October 2026, v1.15.1)
+
+Android build, 81 JUnit/Robolectric tests and lint pass. The Library delete test
+now verifies that inline Delete buttons are absent, child-row long press opens
+an action menu, Delete has a visible separation from Add to queue, and deletion
+still requires confirmation. A new test verifies Add to queue preserves the
+current track/position while Play selects the soundtrack. Group headings do not
+open the soundtrack action menu. A narrow-screen layout check verifies all five
+playback controls retain at least 48 dp touch areas, visible gaps and fit within
+a 320 dp screen. The updated screenshots remain native-graphics Robolectric
+renders; device touch/long-press behavior remains for physical-device testing.

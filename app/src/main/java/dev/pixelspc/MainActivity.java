@@ -66,6 +66,10 @@ public class MainActivity extends Activity {
     private void gap(LinearLayout l,int h) { add(l,new View(this),1,h); }
     private void rule(LinearLayout l) { View v=new View(this); v.setBackgroundColor(borderColor); add(l,v,-1,1); }
     private TextView button(String label,int color,int background) { TextView t=pixel(label,9,color); t.setGravity(Gravity.CENTER); t.setBackground(skin.button(background)); t.setPadding(dp(10),0,dp(10),0); t.setClickable(true); t.setFocusable(true); return t; }
+    private void playbackControl(LinearLayout row,View control,float weight,int height) {
+        LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(height),weight);
+        params.setMargins(row.getChildCount()==0?0:dp(getResources().getConfiguration().screenWidthDp<360?6:8),0,0,0);row.addView(control,params);
+    }
     private ImageButton headerIcon(int image,String description) {
         ImageButton button=new ImageButton(this);
         button.setImageResource(image); button.setImageTintList(android.content.res.ColorStateList.valueOf(accentColor));
@@ -107,11 +111,11 @@ public class MainActivity extends Activity {
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { public void onProgressChanged(SeekBar s,int p,boolean user) { if(user) updateTime(p); } public void onStartTrackingTouch(SeekBar s) { seeking=true; } public void onStopTrackingTouch(SeekBar s) { seeking=false; if(player!=null) player.seek(s.getProgress()); } });
         time=text("0:00   /   --:--",10,playbackTheme.accent); time.setTypeface(Typeface.create("monospace",Typeface.BOLD)); time.setPadding(dp(8),0,0,0); add(playerPanel,time,-1,18);
         LinearLayout controls=row(); controls.setGravity(Gravity.CENTER);
-        shuffleButton=button("⇄",playbackTheme.muted,playbackTheme.background); shuffleButton.setTypeface(Typeface.DEFAULT); shuffleButton.setTextSize(10); shuffleButton.setContentDescription("Toggle shuffle"); add(controls,shuffleButton,44,54); shuffleButton.setOnClickListener(v->{ if(player!=null) { player.setShuffle(!player.shuffle); updatePlayer(); Toast.makeText(this,player.shuffle?"Shuffle on · next track is random":"Shuffle off · play in order",Toast.LENGTH_SHORT).show(); } });
-        TextView prev=button("|◀",playbackTheme.text,playbackTheme.background); prev.setContentDescription("Previous track"); add(controls,prev,48,48); prev.setOnClickListener(v->{ if(player!=null) player.next(-1); });
-        playButton=button("▶",playbackTheme.onAccent,playbackTheme.accent); playButton.setTextSize(19); playButton.setContentDescription("Play"); LinearLayout.LayoutParams playParams=new LinearLayout.LayoutParams(dp(60),dp(50)); playParams.setMargins(dp(8),0,dp(8),0); controls.addView(playButton,playParams); playButton.setOnClickListener(v->toggle());
-        TextView next=button("▶|",playbackTheme.text,playbackTheme.background); next.setContentDescription("Next track"); add(controls,next,48,48); next.setOnClickListener(v->{ if(player!=null) player.next(1); });
-        repeatButton=button("↻",playbackTheme.muted,playbackTheme.background); repeatButton.setTypeface(Typeface.DEFAULT); repeatButton.setTextSize(10); repeatButton.setContentDescription("Toggle repeat track"); add(controls,repeatButton,44,54); repeatButton.setOnClickListener(v->{ if(player!=null) { player.setLoop(!player.repeat); updatePlayer(); Toast.makeText(this,player.repeat?"Loop on · keep the sound program running":"Loop off · fade and advance",Toast.LENGTH_SHORT).show(); } }); add(playerPanel,controls,-1,60);
+        shuffleButton=button("⇄",playbackTheme.muted,playbackTheme.background); shuffleButton.setTypeface(Typeface.DEFAULT); shuffleButton.setTextSize(10); shuffleButton.setContentDescription("Toggle shuffle"); playbackControl(controls,shuffleButton,1,60); shuffleButton.setOnClickListener(v->{ if(player!=null) { player.setShuffle(!player.shuffle); updatePlayer(); Toast.makeText(this,player.shuffle?"Shuffle on · next track is random":"Shuffle off · play in order",Toast.LENGTH_SHORT).show(); } });
+        TextView prev=button("|◀",playbackTheme.text,playbackTheme.background); prev.setContentDescription("Previous track"); prev.setTextSize(11);playbackControl(controls,prev,1,56); prev.setOnClickListener(v->{ if(player!=null) player.next(-1); });
+        playButton=button("▶",playbackTheme.onAccent,playbackTheme.accent); playButton.setTextSize(22); playButton.setContentDescription("Play"); playbackControl(controls,playButton,1.2f,60); playButton.setOnClickListener(v->toggle());
+        TextView next=button("▶|",playbackTheme.text,playbackTheme.background); next.setContentDescription("Next track"); next.setTextSize(11);playbackControl(controls,next,1,56); next.setOnClickListener(v->{ if(player!=null) player.next(1); });
+        repeatButton=button("↻",playbackTheme.muted,playbackTheme.background); repeatButton.setTypeface(Typeface.DEFAULT); repeatButton.setTextSize(10); repeatButton.setContentDescription("Toggle repeat track"); playbackControl(controls,repeatButton,1,60); repeatButton.setOnClickListener(v->{ if(player!=null) { player.setLoop(!player.repeat); updatePlayer(); Toast.makeText(this,player.repeat?"Loop on · keep the sound program running":"Loop off · fade and advance",Toast.LENGTH_SHORT).show(); } }); add(playerPanel,controls,-1,72);
         renderTracks(); updatePlayer();
     }
     public void renderTracks() {
@@ -184,7 +188,20 @@ public class MainActivity extends Activity {
     public static String clock(int ms) { return String.format(Locale.ROOT,"%d:%02d",Math.max(ms,0)/60000,(Math.max(ms,0)/1000)%60); }
     private View gameRow(Library.Game game) {
         LinearLayout line=row(); line.setPadding(dp(8),dp(10),dp(8),dp(10));
-        LinearLayout names=column();  TextView title=text(game.name,16,listTheme.text); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(getString(R.string.library_entry,getResources().getQuantityString(R.plurals.track_count,game.tracks.size(),game.tracks.size()),systemLabel(game)),11,listTheme.muted),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); TextView delete=button("DELETE",listTheme.accent,listTheme.surface); delete.setTextSize(6); delete.setFocusable(false); delete.setContentDescription("Delete "+game.name+" from library"); add(line,delete,66,38); delete.setOnClickListener(v->{ if(libraryPicker!=null) libraryPicker.dismiss(); confirmDelete(game); }); return line;
+        LinearLayout names=column();  TextView title=text(game.name,16,listTheme.text); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(getString(R.string.library_entry,getResources().getQuantityString(R.plurals.track_count,game.tracks.size(),game.tracks.size()),systemLabel(game)),11,listTheme.muted),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); line.setContentDescription("Soundtrack "+game.name+". Hold for actions"); return line;
+    }
+    private void libraryActions(Library.Game game) {
+        LinearLayout actions=column();actions.setPadding(dp(20),dp(8),dp(20),dp(8));
+        TextView play=button("PLAY",accentColor,theme.surface);play.setContentDescription("Play soundtrack "+game.name);add(actions,play,-1,48);gap(actions,8);
+        TextView enqueue=button("ADD TO QUEUE",accentColor,theme.surface);enqueue.setContentDescription("Add "+game.name+" to queue");add(actions,enqueue,-1,48);
+        gap(actions,24);rule(actions);gap(actions,16);
+        TextView delete=button("DELETE",textColor,theme.surface);delete.setContentDescription("Delete "+game.name+" from library");add(actions,delete,-1,48);
+        AlertDialog menu=dialog().setTitle(game.name).setView(actions).setNegativeButton("CANCEL",null).show();
+        play.setTextColor(accentColor);enqueue.setTextColor(accentColor);delete.setTextColor(theme.dark?0xffffa0a8:0xffa32e3b);
+        play.setEnabled(player!=null&&!game.tracks.isEmpty());enqueue.setEnabled(player!=null&&!game.tracks.isEmpty());
+        play.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();selected=game;showQueue=false;showFavourites=false;notifyPermission();player.play(game.tracks,0);renderTracks();});
+        enqueue.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();player.appendTracks(game.tracks);showQueue=true;showFavourites=false;renderTracks();});
+        delete.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();confirmDelete(game);});
     }
     private void chooseGame() {
         if(library.games.isEmpty()) { pickFile(); return; }
@@ -211,6 +228,11 @@ public class MainActivity extends Activity {
             }
             public View getChildView(int group,int child,boolean last,View recycled,ViewGroup parent) { return gameRow(groups.get(group).games.get(child)); }
         });
+        list.setOnItemLongClickListener((parent,view,position,id)->{
+            long packed=list.getExpandableListPosition(position);
+            if(ExpandableListView.getPackedPositionType(packed)!=ExpandableListView.PACKED_POSITION_TYPE_CHILD)return false;
+            libraryActions(groups.get(ExpandableListView.getPackedPositionGroup(packed)).games.get(ExpandableListView.getPackedPositionChild(packed)));return true;
+        });
         android.content.SharedPreferences prefs=getSharedPreferences("library-browser",MODE_PRIVATE);
         String selectedPlatform=selected==null?"":LibraryPlatforms.platform(selected);
         for(int i=0;i<groups.size();i++) if(prefs.getBoolean("expanded:"+groups.get(i).name,groups.get(i).name.equals(selectedPlatform))) list.expandGroup(i);
@@ -219,7 +241,7 @@ public class MainActivity extends Activity {
         Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
         Dialog picker=new Dialog(themed); picker.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout body=column(); body.setBackground(skin.chassis(backgroundColor)); body.setPadding(dp(12),dp(12),dp(12),dp(12));
-        TextView title=text("Library",26,textColor); add(body,title,-1,44); gap(body,8);
+        TextView title=text("Library",26,textColor); add(body,title,-1,44); add(body,text("Hold a soundtrack for actions",12,mutedColor),-1,24);gap(body,8);
         body.addView(list,new LinearLayout.LayoutParams(-1,0,1)); gap(body,8);
         LinearLayout actions=row(); TextView close=button("CLOSE",accentColor,backgroundColor),importMusic=button("IMPORT MUSIC",accentColor,backgroundColor);
         LinearLayout.LayoutParams closeParams=new LinearLayout.LayoutParams(0,dp(44),1); closeParams.setMargins(0,0,dp(8),0); actions.addView(close,closeParams);
@@ -409,7 +431,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipPlayer 199x · v1.15.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipPlayer 199x · v1.15.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

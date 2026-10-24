@@ -218,6 +218,29 @@ public class PlayerUiTest {
             assertFalse(text(c.get().getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
         }
     }
+    @Test @Config(shadows={PlaybackResumeTest.Decoder.class,PlaybackResumeTest.Output.class})
+    public void libraryLongPressAddsWithoutInterruptingAndPlayStartsTheSoundtrack() throws Exception {
+        org.json.JSONObject t=new org.json.JSONObject().put("path","/fixture/tone.spc").put("title","Tone").put("game","Game").put("artist","").put("system","SNES").put("index",0).put("length",180000).put("loopLength",0);
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",new org.json.JSONArray().put(t))).toString().getBytes("UTF-8"));
+        Library.Track live=new Library.Track();live.path="/fixture/live.spc";live.title="Live";live.game="Other game";live.artist="";live.system="SNES";live.length=180000;service.current=live;service.queue=java.util.Collections.singletonList(live);service.index=0;service.position=12000;service.playing=true;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");int row=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0));
+            assertFalse(list.getOnItemLongClickListener().onItemLongClick(list,null,0,0));assertTrue(list.getOnItemLongClickListener().onItemLongClick(list,null,row,0));
+            AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Add Game to queue").performClick();
+            assertEquals(2,service.queue.size());assertSame(live,service.current);assertEquals(12000,service.position);assertTrue(service.playing);assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");row=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0));list.getOnItemLongClickListener().onItemLongClick(list,null,row,0);
+            actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Play soundtrack Game").performClick();assertEquals(1,service.queue.size());assertEquals("/fixture/tone.spc",service.current.path);assertNull(findText(a.getWindow().getDecorView(),"Playback queue"));
+        }
+    }
+    @Test @Config(qualifiers="w320dp-h640dp-xhdpi")
+    public void largerPlaybackControlsStaySeparatedAndInsideANarrowScreen() {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();View decor=a.getWindow().getDecorView();decor.measure(View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1280,View.MeasureSpec.EXACTLY));decor.layout(0,0,640,1280);
+            View previous=findDescription(decor,"Previous track");LinearLayout controls=(LinearLayout)previous.getParent();assertEquals(5,controls.getChildCount());
+            for(int i=0;i<controls.getChildCount();i++){View control=controls.getChildAt(i);assertTrue(control.getWidth()>=a.dp(48));assertTrue(control.getHeight()>=a.dp(48));assertTrue(control.getRight()<=controls.getWidth());if(i>0)assertTrue(control.getLeft()-controls.getChildAt(i-1).getRight()>=a.dp(4));}
+        }
+    }
     @Test public void libraryDeleteRequiresConfirmationAndUpdatesTheEmptyView() throws Exception {
         org.json.JSONObject t=new org.json.JSONObject().put("path","/fixture/tone.spc").put("title","Tone").put("game","Game").put("artist","").put("system","SNES").put("index",0).put("length",180000).put("loopLength",0);
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",new org.json.JSONArray().put(t))).toString().getBytes("UTF-8"));
@@ -227,7 +250,14 @@ public class PlayerUiTest {
             android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             // Force row inflation just as a rendered library picker would.
             captureView(browser.getWindow().getDecorView(),"library-delete.png",774,1500);
-            findDescription(browser.getWindow().getDecorView(),"Delete Game from library").performClick();
+            assertNull(findDescription(browser.getWindow().getDecorView(),"Delete Game from library"));
+            ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
+            int position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0));
+            assertTrue(list.getOnItemLongClickListener().onItemLongClick(list,null,position,0));
+            AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();captureView(actions.getWindow().getDecorView(),"library-actions.png",720,850);
+            View addQueue=findDescription(actions.getWindow().getDecorView(),"Add Game to queue"),delete=findDescription(actions.getWindow().getDecorView(),"Delete Game from library");
+            assertSame(addQueue.getParent(),delete.getParent());assertTrue(delete.getTop()-addQueue.getBottom()>=a.dp(32));
+            delete.performClick();
             AlertDialog confirm=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertEquals(1,new Library(app).games.size());
             confirm.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();

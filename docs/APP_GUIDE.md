@@ -34,7 +34,8 @@ Playback continues in the background with notification and lock-screen controls.
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
 
-Open **Library** and tap **Delete** beside a soundtrack to remove that import and
+Open **Library** and hold a soundtrack to open **Play**, **Add to queue**, and
+a separated **Delete** action. Choose **Delete** to remove that import and
 its private music files after confirmation. Duplicate imports are separate entries;
 your original files are kept. Deleting the queued soundtrack stops its playback.
 The tracklist only shows a centered Import music button when empty. The larger
@@ -330,3 +331,15 @@ For a MIDI track with an explicit bank assignment, the app's scrolling Now Playi
 title shows **Track Name (with SoundFont Name)**. Bank renames update the displayed
 name. Tracks following the default bank and other file formats keep their original
 title; library metadata and exported filenames are unchanged.
+
+## Library actions and playback controls
+
+Tap a Library soundtrack to browse it. Hold its row to open a themed action menu:
+**Play** starts its first track, **Add to queue** appends all its tracks without
+interrupting current playback, and **Delete** removes its private library copy
+after confirmation. Delete is separated from the other actions by extra space and
+a divider. There is no longer a Delete button beside every Library entry.
+
+Playback controls have larger touch areas and wider gaps, with a larger central
+Play/Pause button. Widths and gaps adapt on narrow screens; Shuffle and Loop keep
+their borderless appearance.
