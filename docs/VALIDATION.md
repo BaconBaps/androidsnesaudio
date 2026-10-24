@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Eighty-five JUnit/Robolectric tests, zero failures and zero skipped:
+Ninety-one JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -311,3 +311,27 @@ label and refreshes the main header. Existing menu/action screenshots now includ
 Rename with Delete still separated. The cog generator uses only neutral greys.
 Previously imported MIDI titles are retained until re-import, because legacy
 records do not retain original filenames for all archive entries.
+
+## Interactive custom themes (24 October 2026, v1.17.0)
+
+Android build, 91 JUnit/Robolectric tests and lint pass. New persistence tests
+cover named palettes, independent player/library/spectrum roles, updating an
+existing profile, independent duplicates/imports, serialization round trips,
+invalid versions/base names/roles/alpha colours, file-size limits and fallback
+when a selected custom ID is absent.
+
+UI tests tap the actual preview overlay and verify that a Library-button tap
+opens colour tools rather than importing music. They exercise swatches, popup
+Undo preserving earlier edits, spectrum colours, snapshot stability while the
+service advances, draft retention across recreation, and Cancel restoring the
+live player without saving. Save tests name a palette and verify restoration in
+the main window, import screen and widget heading. Export/import tests use the
+real document-result paths with local provider streams and verify an independent
+loaded copy. Existing built-in palette and playback/UI tests remain passing.
+
+`theme-editor.png`, `theme-colour-picker.png` and `saved-themes.png` are
+native-graphics Robolectric renders of the actual controls and frozen metadata/
+example-spectrum fixtures. Library screenshots show the new pixel heading.
+These are not physical-device captures. Device touch/colour-drag responsiveness,
+provider behavior and launcher rendering remain device checks. No native audio
+engine, library schema or storage permission was changed by this feature.

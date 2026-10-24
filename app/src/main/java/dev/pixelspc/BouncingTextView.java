@@ -10,7 +10,8 @@ import android.widget.TextView;
 
 /** Overflowing titles travel to the end and back, pausing at each edge. */
 public final class BouncingTextView extends TextView {
-    private long started;
+    private long started;private boolean frozen;
+    void setFrozen(boolean frozen){this.frozen=frozen;invalidate();}
     public BouncingTextView(Context context) {
         super(context); setSingleLine(true); setHorizontallyScrolling(true);
         setEllipsize(null); setGravity(Gravity.START|Gravity.CENTER_VERTICAL);
@@ -35,6 +36,7 @@ public final class BouncingTextView extends TextView {
         return (float)(overflow*(1+Math.cos(Math.PI*phase/travel))/2);
     }
     float currentOffset() {
+        if(frozen)return 0;
         float width=getLayout()==null?0:getLayout().getLineWidth(0);
         return offsetAt(SystemClock.uptimeMillis()-started,Math.max(0,width-getWidth()+getPaddingLeft()+getPaddingRight()),32*getResources().getDisplayMetrics().density);
     }
@@ -42,6 +44,6 @@ public final class BouncingTextView extends TextView {
         float offset=currentOffset(); canvas.save();
         canvas.clipRect(getPaddingLeft(),0,getWidth()-getPaddingRight(),getHeight()); canvas.translate(-offset,0);
         super.onDraw(canvas); canvas.restore();
-        if(getLayout()!=null && getLayout().getLineWidth(0)>getWidth()-getPaddingLeft()-getPaddingRight() && isShown()) postInvalidateOnAnimation();
+        if(!frozen && getLayout()!=null && getLayout().getLineWidth(0)>getWidth()-getPaddingLeft()-getPaddingRight() && isShown()) postInvalidateOnAnimation();
     }
 }

@@ -21,7 +21,7 @@ public class ExportActivity extends Activity {
     private boolean choosing;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        PlayerTheme theme=PlayerTheme.find(getSharedPreferences("appearance",MODE_PRIVATE).getString("theme","light"));
+        PlayerTheme theme=ThemeStore.selected(this);
         getWindow().setStatusBarColor(theme.background); getWindow().setNavigationBarColor(theme.background);
         getWindow().getDecorView().setSystemUiVisibility(theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|(Build.VERSION.SDK_INT>=27?View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR:0));
         PlayerSkin skin=new PlayerSkin(this);
@@ -60,7 +60,7 @@ public class ExportActivity extends Activity {
         body.addView(view,new LinearLayout.LayoutParams(-1,dp(52))); return view;
     }
     private TextView button(LinearLayout body,String text,PlayerTheme theme,PlayerSkin skin) {
-        TextView view=label(body,text,14,theme.accent); view.setGravity(Gravity.CENTER); view.setBackground(skin.button(theme.background)); view.setClickable(true); view.setFocusable(true); view.setMinHeight(dp(48)); return view;
+        TextView view=label(body,text,14,theme.buttonText(theme.accent)); view.setGravity(Gravity.CENTER); view.setBackground(skin.button(theme.buttonFace(theme.background))); view.setClickable(true); view.setFocusable(true); view.setMinHeight(dp(48)); return view;
     }
     private void setInputsEnabled(boolean enabled) { start.setEnabled(enabled); duration.setEnabled(enabled); fade.setEnabled(enabled); save.setEnabled(enabled); whole.setEnabled(enabled && getIntent().getIntExtra("length",180000)<=WavExporter.MAX_DURATION_MS); }
     private void chooseDestination() {

@@ -17,7 +17,7 @@ public class PlayerWidget extends AppWidgetProvider {
         if(ids.length!=0) manager.updateAppWidget(ids,views(context,PlaybackService.instance));
     }
     static RemoteViews views(Context context,PlaybackService service) {
-        PlayerTheme theme=PlayerTheme.find(context.getSharedPreferences("appearance",Context.MODE_PRIVATE).getString("theme","light")).nowPlaying();
+        PlayerTheme theme=ThemeStore.selected(context).nowPlaying();
         RemoteViews views=new RemoteViews(context.getPackageName(),R.layout.player_widget);
         views.setInt(R.id.widget_root,"setBackgroundColor",theme.background);
         views.setInt(R.id.widget_band,"setBackgroundColor",theme.secondary);
@@ -27,7 +27,7 @@ public class PlayerWidget extends AppWidgetProvider {
         Library.Track track=loaded?service.current:null;
         views.setTextViewText(R.id.widget_title,loaded?track.title:context.getString(R.string.widget_empty));
         views.setTextViewText(R.id.widget_artist,loaded?(track.artist.isEmpty()?track.game:track.artist+" · "+track.game):context.getString(R.string.app_name));
-        views.setTextColor(R.id.widget_heading,theme.accent); views.setTextColor(R.id.widget_title,theme.accent);
+        views.setTextColor(R.id.widget_heading,theme.heading); views.setTextColor(R.id.widget_title,theme.accent);
         views.setTextColor(R.id.widget_artist,theme.muted); views.setTextColor(R.id.widget_time,theme.accent); views.setTextColor(R.id.widget_duration,theme.accent);
         int position=loaded?service.position:0;
         views.setChronometer(R.id.widget_time,SystemClock.elapsedRealtime()-position,null,playing && service.seekTarget<0);

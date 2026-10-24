@@ -14,7 +14,7 @@ public final class ThemePreview extends View {
     private static final int[] BARS={3,5,8,6,4,7,9,5,3,6,8,4};
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
-        super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.accent); setSelected(selected); setClickable(true); setFocusable(true);
+        super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context); well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
     }
     private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
@@ -30,11 +30,12 @@ public final class ThemePreview extends View {
         for(int row=0;row<2;row++) { box(canvas,row==0?listTheme.accent:listTheme.muted,17,42+row*9,64-row*13,2); box(canvas,theme.border,17,47+row*9,126,1); }
         well.setBounds(13,61,147,111); well.draw(canvas);
         int grid=PlayerTheme.blend(playbackTheme.background,playbackTheme.text,.12f);
-        for(int i=0;i<BARS.length;i++) for(int j=0;j<9;j++)
-            box(canvas,j<BARS[i]?(j>6?playbackTheme.secondary:playbackTheme.accent):grid,17+i*11,88-j*2.3f,7,1.5f);
+        for(int i=0;i<BARS.length;i++) for(int j=0;j<9;j++){
+            int lit=playbackTheme.spectrumGradient()?(j<4?PlayerTheme.blend(playbackTheme.spectrumLow,playbackTheme.spectrumMid,j/3f):PlayerTheme.blend(playbackTheme.spectrumMid,playbackTheme.spectrumHigh,(j-4)/4f)):(j>6?playbackTheme.spectrumHigh:playbackTheme.spectrumLow);
+            box(canvas,j<BARS[i]?lit:grid,17+i*11,88-j*2.3f,7,1.5f);}
         box(canvas,playbackTheme.accent,17,95,64,2);
         box(canvas,playbackTheme.accent,17,103,91,1); key.setBounds(123,96,146,110); key.draw(canvas);
-        text(canvas,"▶",playbackTheme.onAccent,131,105,7,true);
+        text(canvas,"▶",playbackTheme.buttonText(playbackTheme.onAccent),131,105,7,true);
         text(canvas,theme.name,theme.text,9,134,11,true);
         paint.setColor(isSelected()?theme.accent:theme.border); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(isSelected()?3:1);
         canvas.drawRect(1.5f,1.5f,158.5f,148.5f,paint); paint.setStyle(Paint.Style.FILL);

@@ -49,6 +49,14 @@ Plays SPC/RSN, PlayStation PSF and MIDI with your choice of SoundFonts.
     <td><img src="docs/screenshots/app-menu.png" width="300" alt="Themed menu grouped into Music, Player and Preferences" /></td>
     <td><img src="docs/screenshots/playback-menu.png" width="300" alt="Playback submenu with export, track SoundFont and sleep timer" /></td>
   </tr>
+  <tr>
+    <th>Paint your theme</th>
+    <th>Colour tools</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/theme-editor.png" width="300" alt="Frozen theme edit mode with tappable UI targets and Save or Cancel controls" /></td>
+    <td><img src="docs/screenshots/theme-colour-picker.png" width="300" alt="Pixel colour tools with spectrum roles, saturation and brightness, hue and swatches" /></td>
+  </tr>
 </table>
 
 [See all ten themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipPlayer-MIDI-demo.mid).

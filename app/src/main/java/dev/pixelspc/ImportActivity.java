@@ -44,11 +44,11 @@ public class ImportActivity extends Activity {
     int dp(float value){return (int)(value*getResources().getDisplayMetrics().density+.5f);}
     private LinearLayout column(){LinearLayout v=new LinearLayout(this);v.setOrientation(LinearLayout.VERTICAL);return v;}
     private TextView label(String text,int size,int color){TextView v=new TextView(this);v.setText(text);v.setTextSize(size);v.setTextColor(color);return v;}
-    private TextView button(String text){TextView v=label(text,8,theme.accent);v.setTypeface(pixel);v.setGravity(Gravity.CENTER);v.setPadding(dp(6),0,dp(6),0);v.setBackground(skin.button(theme.surface));v.setContentDescription(text);return v;}
+    private TextView button(String text){TextView v=label(text,8,theme.buttonText(theme.accent));v.setTypeface(pixel);v.setGravity(Gravity.CENTER);v.setPadding(dp(6),0,dp(6),0);v.setBackground(skin.button(theme.buttonFace(theme.surface)));v.setContentDescription(text);return v;}
     private void pair(LinearLayout row,View left,View right){LinearLayout.LayoutParams a=new LinearLayout.LayoutParams(0,dp(46),1);a.setMargins(0,0,dp(8),0);row.addView(left,a);row.addView(right,new LinearLayout.LayoutParams(0,dp(46),1));}
     @Override public void onCreate(Bundle state){
         super.onCreate(state);model=(Model)getLastNonConfigurationInstance();if(model==null)model=new Model(this);model.owner=this;
-        theme=PlayerTheme.find(getSharedPreferences("appearance",MODE_PRIVATE).getString("theme","light"));skin=new PlayerSkin(this);pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
+        theme=ThemeStore.selected(this);skin=new PlayerSkin(this);pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
         getWindow().setStatusBarColor(theme.background);getWindow().setNavigationBarColor(theme.background);getWindow().getDecorView().setSystemUiVisibility(theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         LinearLayout body=column();body.setPadding(dp(16),dp(14),dp(16),dp(14));body.setBackgroundColor(theme.background);setContentView(body);
         body.setOnApplyWindowInsetsListener((v,insets)->{body.setPadding(dp(16),dp(14)+insets.getSystemWindowInsetTop(),dp(16),dp(14)+insets.getSystemWindowInsetBottom());return insets.consumeSystemWindowInsets();});

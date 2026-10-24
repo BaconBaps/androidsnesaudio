@@ -1,24 +1,38 @@
 package dev.pixelspc;
 
+import java.util.*;
+
 /** UI roles shared by the player, dialogs, system bars, and pixel spectrum. */
 public final class PlayerTheme {
     public final String id,name,inspiration;
     public final boolean dark;
-    public final int background,text,muted,accent,onAccent,border,surface,secondary;
+    public final int background,text,muted,accent,onAccent,border,surface,secondary,heading;
+    public final int spectrumBackground,spectrumLow,spectrumMid,spectrumHigh,spectrumPeak;
+    final Map<String,Integer> colors;final String prefix,baseId;
 
     private PlayerTheme(String id,String name,String inspiration,boolean dark,int background,int text,int accent,int secondary) {
-        this.id=id; this.name=name; this.inspiration=inspiration; this.dark=dark;
-        this.background=background; this.text=text; this.accent=accent; this.secondary=secondary;
-        border=blend(background,text,.22f);
-        surface=blend(background,accent,dark?.14f:.06f);
-        int quiet=text;
-        for(int step=0;step<=20;step++) {
-            quiet=blend(text,background,.24f*(1-step/20f));
-            if(contrast(background,quiet)>=4.5 && contrast(surface,quiet)>=4.5) break;
-        }
-        muted=quiet;
-        onAccent=contrast(accent,0xff181820)>contrast(accent,0xffffffff)?0xff181820:0xffffffff;
+        this(id,name,inspiration,dark,background,text,accent,secondary,Collections.emptyMap(),"",id);
     }
+    private PlayerTheme(String id,String name,String inspiration,boolean dark,int bg,int fg,int ac,int second,Map<String,Integer> colors,String prefix,String baseId) {
+        this.id=id;this.name=name;this.inspiration=inspiration;this.colors=Collections.unmodifiableMap(new HashMap<>(colors));this.prefix=prefix;this.baseId=baseId;
+        background=value("background",bg);text=value("text",fg);accent=value("accent",ac);secondary=value("secondary",second);
+        this.dark=colors.isEmpty()?dark:luminance(background)<.35;
+        border=value("border",blend(background,text,.22f));surface=value("surface",blend(background,accent,this.dark?.14f:.06f));
+        int quiet=text;for(int step=0;step<=20;step++){quiet=blend(text,background,.24f*(1-step/20f));if(contrast(background,quiet)>=4.5&&contrast(surface,quiet)>=4.5)break;}
+        muted=value("muted",quiet);onAccent=value("onAccent",contrast(accent,0xff181820)>contrast(accent,0xffffffff)?0xff181820:0xffffffff);
+        heading=value("heading",prefix.equals("player.")?accent:text);
+        spectrumBackground=value("spectrumBackground",this.dark?blend(background,0xff000000,.42f):surface);
+        spectrumLow=value("spectrumLow",accent);spectrumMid=value("spectrumMid",accent);spectrumHigh=value("spectrumHigh",secondary);spectrumPeak=value("spectrumPeak",secondary);
+    }
+    int value(String role,int fallback){Integer color=colors.get(prefix+role);return color==null?fallback:color;}
+    int buttonFace(int fallback){return value("button",fallback);}
+    int buttonText(int fallback){
+        if(colors.containsKey(prefix+"buttonText"))return value("buttonText",fallback);
+        if(colors.containsKey(prefix+"button")){int bg=buttonFace(background);return contrast(bg,0xff181820)>contrast(bg,0xffffffff)?0xff181820:0xffffffff;}
+        return fallback;
+    }
+    boolean spectrumGradient(){return colors.containsKey(prefix+"spectrumLow")||colors.containsKey(prefix+"spectrumMid")||colors.containsKey(prefix+"spectrumHigh");}
+    static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors){PlayerTheme t=find(base);return new PlayerTheme(id,name,"Custom theme",t.dark,t.background,t.text,t.accent,t.secondary,colors,"",t.id);}
     public static final PlayerTheme[] ALL={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),
         new PlayerTheme("dark","Pixel Dark","Deep ocean & electric teal",true,0xff08191e,0xffd6f3ef,0xff53d8d0,0xffffbd80),
@@ -40,7 +54,7 @@ public final class PlayerTheme {
             lightAccent=blend(accent,0xffffffff,step/20f);
             if(contrast(blend(bg,lightAccent,.14f),lightAccent)>=4.5) break;
         }
-        return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary);
+        return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary,colors,"player.",baseId);
     }
     /** Quieter list surfaces with palette-matched text that keeps its contrast. */
     public PlayerTheme library() {
@@ -50,9 +64,9 @@ public final class PlayerTheme {
             adjusted=blend(accent,dark?0xffffffff:0xff000000,step/20f);
             if(contrast(bg,adjusted)>=4.5 && contrast(blend(bg,adjusted,dark?.14f:.06f),adjusted)>=4.5) break;
         }
-        return new PlayerTheme(id+"-library",name,inspiration,dark,bg,text,adjusted,secondary);
+        return new PlayerTheme(id+"-library",name,inspiration,dark,bg,text,adjusted,secondary,colors,"library.",baseId);
     }
-    public int libraryButtonBackground() { return blend(background,0xffffffff,dark?.075f:.16f); }
+    public int libraryButtonBackground() { return value("libraryButton",blend(background,0xffffffff,dark?.075f:.16f)); }
     public String label() { return name+"\n"+inspiration; }
     static int blend(int a,int b,float amount) {
         int r=Math.round(((a>>16)&255)*(1-amount)+((b>>16)&255)*amount);

@@ -356,7 +356,7 @@ focus/pressed states, with scrollable contents on smaller screens:
 - **Music:** Import music, Library, Playback queue and Favourites.
 - **Playback tools:** export the current track, its MIDI SoundFont assignment and
   the sleep timer. Track-specific actions are disabled when unavailable.
-- **Settings:** colour theme, SoundFont bank management and About/licences.
+- **Settings:** colour theme, custom themes, SoundFont bank management and About/licences.
 - **Exit app:** separated at the bottom of the main menu.
 
 Submenus have a Back control; Android Back also returns to the main menu. Close
@@ -376,3 +376,43 @@ to 80 characters and Save, or Cancel to keep the old name. This changes only tha
 library entry's label; track metadata, source files, private paths, favourites,
 SoundFont assignments and playback queue are preserved. Delete remains separated
 below Rename and still requires confirmation.
+
+## Interactive custom themes
+
+The Library window heading now uses the same pixel font as the Library button
+and spectrum headings.
+
+Open **cog → Settings → Color theme → Edit theme**, or **Custom themes → Create**.
+The real interface becomes a **frozen preview**, labelled **Theme edit** with
+outlined colour targets. Audio continues playing. Existing palette files and
+preferences are unchanged until you Save; **×** or Android Back cancels the draft
+and returns to the current live player. Edits and the frozen snapshot survive
+rotation. When no audio spectrum is available, static example bars help preview
+colours.
+
+Tap a preview element to open its colour tools. **Parts** lists the available
+areas if tapping a small target is difficult. Tabs choose properties such as
+background, text, button face/label, headings and accents. The spectrum has low,
+middle, high, peak and screen colours; choosing its range colours enables a
+three-stop gradient. Use the colour square for saturation/brightness, drag the
+hue strip, or tap a swatch. The swatch and colour readout respond immediately;
+the app preview updates after a short drag pause. **Undo** restores the properties
+to when that popup opened; **Done** returns to the frozen preview.
+
+**Save** asks for a theme name. Editing a built-in creates an independent custom
+palette; editing an existing saved theme updates it. Built-in themes remain
+available. Custom themes appear in the normal preview grid and in **Saved themes**.
+Tap a saved preview for **Use**, **Edit**, **Duplicate**, **Rename**, **Export** or
+**Delete**. Deleting the active custom theme returns to its base palette.
+
+Use **Import** in Saved themes to load a shared `.chiptheme.json` file. Export
+uses Android's Save picker. Files contain only a version, name, built-in base and
+opaque RGB colour roles; imports create independent copies rather than replacing
+another theme. Up to 40 custom themes can be stored, with theme files limited to
+64 KiB. The player, import/export screens and home-screen widget load the selected
+custom palette. Decorative skin textures and logo artwork remain fixed.
+
+Editor tools always use readable fixed colours, independently of the draft. If a
+saved palette makes app text hard to see, **hold the grey cog** to open the fixed
+Saved themes manager and choose or edit a palette. Colour choices are not blocked
+by automatic contrast rules.
