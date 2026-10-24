@@ -43,19 +43,51 @@ source to develop a RAR archiver. Adding GPL components to the same APK therefor
 requires resolving the distribution-licence compatibility rather than simply
 copying the PSF core into the current build.
 
-## Concrete options
+## RSN-preserving replacement verified on the supplied archive
 
-1. **Continue PSF first with a GPL-compatible build.** Evaluate and replace the
-   UnRAR-licensed importer with a compatible RAR extraction implementation,
-   preserve RSN support with regression tests, integrate a BIOS-free PSF engine,
-   and publish all required source and licence notices for the resulting build.
-   This changes dependency and distribution terms; the user's own MIT-licensed
-   source need not lose its existing MIT grant.
-2. **Keep the current dependency/licensing arrangement while adding MIDI first.**
-   Evaluate a permissively licensed MIDI synthesizer and user-selectable
-   SoundFonts, and continue investigating a suitable PSF core independently.
+UnRAR/Junrar is not the only way to import RSN. **unarr** is a separate archive
+extractor, derived from The Unarchiver work, under LGPLv3. Its stated purpose
+includes RAR filters and solid compression:
+https://github.com/selmf/unarr/tree/29084afa8d507b34558f2936ec789edcd116e306
 
-No PSF core, BIOS image, new redistribution terms or advertised PSF extension has
-been added to the app during this assessment. A decoder decision should precede
-implementation. Whichever route is selected needs real sample-set testing and
-separate decoder states so import/export cannot corrupt active playback.
+Its licence is available here:
+https://github.com/selmf/unarr/blob/29084afa8d507b34558f2936ec789edcd116e306/COPYING
+
+Host verification on 24 October 2026:
+
+- Compiled the RAR reader from that pinned unarr revision.
+- Extracted the supplied `sf2t.rsn`: **37 entries, including 36 SPC tracks**,
+  totaling **2,383,802 bytes**.
+- Independently extracted the same archive with the app's current Junrar 7.5.5.
+- Compared each entry's original filename, uncompressed length, and SHA-256:
+  **every entry matched**.
+- Fixture archive SHA-256:
+  `396f0bfdad65164fff99ce4e58ad54d53140812847ccb6765485305f97b3c6d1`.
+
+Libarchive was also checked. The installed 3.7.4 reader fails on this same
+archive with `RAR solid archive support unavailable.` The latest source checked
+(`8509b99a248c52b676491a8675c3f92c7b5673bc`) still has this rejection in its RAR4
+reader. It is therefore not an adequate replacement for the current RSN feature.
+
+## Recommended implementation path
+
+Preserving RSN import is a requirement, rather than a tradeoff for PSF:
+
+1. Integrate the pinned unarr RAR reader on Android and replace Junrar only after
+   the existing RSN tests pass. Retain ZIP import and the current extraction
+   limits, traversal protections and transactional import behavior.
+2. Test solid RAR4, stored and compressed entries, RAR filters, malformed archives,
+   duplicate filenames and failure cleanup on both supported Android ABIs.
+   The host comparison proves this supplied archive, not every RSN variant.
+3. Integrate a BIOS-free PSF decoder and preserve PSF library dependencies inside
+   the import boundary. The PeOPS source checked permits GPLv2 **or later**;
+   unarr's LGPLv3 can be combined through a GPLv3-compatible distribution path,
+   with the required source and licence notices. Preserve existing MIT grants on
+   the app's own source; do not silently describe the combined build as MIT-only.
+4. Verify PSF playback, seeking, looping, metadata, WAV export and isolated decoder
+   states. Re-run SPC/RSN playback and export regression checks before releasing.
+5. Add MIDI/SoundFont support after the PSF work.
+
+The host experiment has not replaced the Android importer or added PSF playback.
+No BIOS image or new decoder has been bundled, and no APK update is being claimed
+by this assessment. The released app retains its existing RSN implementation.
