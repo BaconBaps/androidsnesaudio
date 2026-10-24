@@ -32,6 +32,9 @@ public final class Library {
     public Game importFile(Uri uri) throws Exception {
         String name="music";
         try(Cursor c=context.getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)) { if(c!=null && c.moveToFirst()) name=c.getString(0); }
+        return importFile(uri,name);
+    }
+    Game importFile(Uri uri,String name) throws Exception {
         File temp=File.createTempFile("import-",".tmp",context.getCacheDir());
         File dir=new File(context.getFilesDir(),"sets/"+UUID.randomUUID());
         boolean saved=false;
@@ -39,7 +42,7 @@ public final class Library {
             try(InputStream in=context.getContentResolver().openInputStream(uri); OutputStream out=new FileOutputStream(temp)) {
                 if(in==null) throw new IOException("Cannot read selected file");
                 byte[] b=new byte[16384]; int n; long total=0;
-                while((n=in.read(b))!=-1) { total+=n; if(total>128L*1024*1024) throw new IOException("Import is limited to 128 MB"); out.write(b,0,n); }
+                while((n=in.read(b))!=-1) { if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Import cancelled"); total+=n; if(total>128L*1024*1024) throw new IOException("Import is limited to 128 MB"); out.write(b,0,n); }
             }
             List<ArchiveImporter.Entry> entries=ArchiveImporter.extract(temp,name,dir);
             Game game=new Game(); game.id=dir.getName(); game.name=name.replaceFirst("\\.[^.]+$","");

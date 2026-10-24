@@ -38,6 +38,15 @@ public class SoundFontsTest {
         assertFalse(added.file.exists());assertTrue(source.exists());assertEquals("",store.overrideId("first.mid"));assertEquals("",store.overrideId("second.mid"));assertEquals(SoundFonts.BUILTIN,store.defaultId());assertEquals(store.banks().get(0).file.getAbsolutePath(),store.pathFor("first.mid"));
         try{store.delete(store.banks().get(0));fail();}catch(IOException expected){assertEquals(1,store.banks().size());}
     }
+    @Test public void nowPlayingNamesOnlyExplicitMidiBanksAndFollowsRenames() throws Exception {
+        File source=new File(context.getCacheDir(),"bank.sf2");Files.write(source.toPath(),new byte[]{1,2,3});SoundFonts.Bank bank=store.importBank(Uri.fromFile(source));
+        Library.Track track=new Library.Track();track.path="/music/song.mid";track.title="Overworld";store.setDefault(bank.id);
+        assertEquals("Overworld",store.nowPlayingTitle(track));store.setTrack(track.path,bank.id);assertEquals("Overworld (with SoundFont)",store.nowPlayingTitle(track));
+        store.rename(bank,"F-Zero");assertEquals("Overworld (with F-Zero)",new SoundFonts(context).nowPlayingTitle(track));
+        store.setTrack(track.path,SoundFonts.BUILTIN);assertEquals("Overworld (with Pixel GM)",store.nowPlayingTitle(track));
+        track.path="/music/song.spc";store.setTrack(track.path,bank.id);assertEquals("Overworld",store.nowPlayingTitle(track));
+        track.path="/music/song.mid";store.setTrack(track.path,bank.id);store.delete(bank);assertEquals("Overworld",store.nowPlayingTitle(track));
+    }
     @Test public void invalidBankRollsBackWithoutPreferencesOrPartialFiles() throws Exception {
         store.banks();File source=new File(context.getCacheDir(),"invalid.sf2");Files.write(source.toPath(),new byte[]{1,2,3});NativeCheck.reject=true;
         try{store.importBank(Uri.fromFile(source));fail();}catch(IOException expected){assertEquals("Invalid SoundFont",expected.getMessage());}

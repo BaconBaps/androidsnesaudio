@@ -43,7 +43,7 @@ public class PlayerUiTest {
             assertEquals(android.view.Gravity.CENTER,((LinearLayout)importButton.getParent()).getGravity());
             assertNull(findDescription(a.getWindow().getDecorView(),"Import music")); importButton.performClick();
             android.content.Intent picker=Shadows.shadowOf(a).getNextStartedActivityForResult().intent;
-            assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction()); assertEquals("*/*",picker.getType());
+            assertEquals(ImportActivity.class.getName(),picker.getComponent().getClassName());
             assertFalse(text(a.getWindow().getDecorView()).contains("A little player"));
             assertFalse(text(a.getWindow().getDecorView()).contains("YOUR SOUNDTRACKS"));
             assertFalse(text(a.getWindow().getDecorView()).contains("16-BIT"));
@@ -146,6 +146,31 @@ public class PlayerUiTest {
             assertTrue(findDescription(c.get().getWindow().getDecorView(),"Continuous loop on").isSelected());
             findDescription(c.get().getWindow().getDecorView(),"Shuffle on").performClick();
             findDescription(c.get().getWindow().getDecorView(),"Continuous loop on").performClick(); assertFalse(service.shuffle); assertFalse(service.repeat);
+        }
+    }
+    @Test public void addAndQueuePreservesPlaybackShowsQueueAndLabelsMidiBank() throws Exception {
+        Library.Track live=new Library.Track();live.path="/fixture/live.mid";live.title="Overworld";live.game="First game";live.artist="Composer";live.system="MIDI";live.length=180000;
+        service.queue=new java.util.ArrayList<>(java.util.Collections.singletonList(live));service.current=live;service.index=0;service.position=73000;service.playing=true;
+        File bank=new File(app.getFilesDir(),"soundfonts/queue-test.sf2");bank.getParentFile().mkdirs();Files.write(bank.toPath(),new byte[]{1});app.getSharedPreferences("soundfonts",0).edit().putString("name:queue-test","F-Zero").commit();SoundFonts fonts=new SoundFonts(app);fonts.setTrack(live.path,"queue-test");
+        org.json.JSONObject track=new org.json.JSONObject().put("path","/fixture/added.spc").put("title","New track").put("game","Second game").put("artist","Composer").put("system","Super Nintendo").put("index",0).put("length",180000).put("loopLength",0);
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Second game").put("id","new-import").put("tracks",new org.json.JSONArray().put(track))).toString().getBytes("UTF-8"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();a.onActivityResult(4,android.app.Activity.RESULT_OK,new android.content.Intent().putStringArrayListExtra(ImportActivity.IDS,new java.util.ArrayList<>(java.util.Collections.singletonList("new-import"))).putExtra(ImportActivity.QUEUE,true));
+            assertSame(live,service.current);assertTrue(service.playing);assertEquals(73000,service.position);assertEquals(2,service.queue.size());assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));assertNotNull(findText(a.getWindow().getDecorView(),"New track"));
+            assertTrue(findText(a.getWindow().getDecorView(),"Overworld (with F-Zero)") instanceof BouncingTextView);assertEquals("Overworld",live.title);
+            service.levels=new AudioSpectrum().analyze(AudioSpectrumTest.chord());a.selectTheme("desktop-98");capture(a,"playback-queue.png");
+            fonts.rename(new SoundFonts.Bank("queue-test","F-Zero",bank,false),"Renamed bank");service.listener.run();assertNotNull(findText(a.getWindow().getDecorView(),"Overworld (with Renamed bank)"));
+            findDescription(a.getWindow().getDecorView(),"Play New track").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();actions.getListView().performItemClick(null,0,0);assertEquals(1,service.index);assertSame(live,service.current);
+            findDescription(a.getWindow().getDecorView(),"Play New track").performLongClick();actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();actions.getListView().performItemClick(null,1,1);assertEquals(1,service.queue.size());assertSame(live,service.current);assertEquals(0,service.index);
+        } finally {bank.delete();}
+    }
+    @Test public void addOnlyRefreshesLibraryWithoutChangingQueue() throws Exception {
+        Library.Track live=new Library.Track();live.path="/fixture/live.spc";live.title="Live";live.game="Game";live.artist="";live.system="Super Nintendo";live.length=180000;service.queue=java.util.Collections.singletonList(live);service.current=live;service.index=0;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            org.json.JSONObject track=new org.json.JSONObject().put("path","/fixture/new.spc").put("title","Added song").put("game","Added game").put("artist","").put("system","Super Nintendo").put("index",0).put("length",180000).put("loopLength",0);
+            Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Added game").put("id","added").put("tracks",new org.json.JSONArray().put(track))).toString().getBytes("UTF-8"));
+            c.get().onActivityResult(4,android.app.Activity.RESULT_OK,new android.content.Intent().putStringArrayListExtra(ImportActivity.IDS,new java.util.ArrayList<>(java.util.Collections.singletonList("added"))));
+            assertEquals(1,service.queue.size());assertSame(live,service.current);assertNotNull(findText(c.get().getWindow().getDecorView(),"Added song"));assertNull(findText(c.get().getWindow().getDecorView(),"Playback queue"));
         }
     }
     @Test public void midiTrackOffersPersistentBankChoiceWithoutChangingDefault() throws Exception {

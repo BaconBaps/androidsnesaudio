@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Sixty-five JUnit/Robolectric tests, zero failures and zero skipped:
+Seventy-nine JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -244,3 +244,31 @@ produce audible PCM and reach the end. These are host/JNI tests, not a device
 listening pass; no claim of exact game instrument mapping is made. Supplied
 SoundFonts stay outside the repository and APK. Android build, all 65 tests and
 lint pass for the updated APK.
+
+## Import review, queue and MIDI titles (24 October 2026, v1.15.0)
+
+- Android build, 79 JUnit/Robolectric tests and lint pass. New provider tests
+  exercise granted tree URIs, root folder names, nested paths, music/dependency
+  filtering, repeated directories, invalid provider names and scan limits.
+- Review UI tests cover disabled empty actions, both Android picker intents,
+  multiple files, Cancel without copying, selection retention across rotation,
+  and separate Add/Add-and-queue results. Library import tests use a decoder
+  shadow for metadata; these do not establish native/device audio output.
+- Batch tests verify PSF folder/dependency paths and rollback after a later file
+  fails, including keeping original source files. Existing native sample tests
+  remain in `scripts/test-samples.sh` for ZIP/RSN, SPC, VGZ, PSF and MIDI regressions.
+- Service tests use a decoder and full-audio-sink shadow: append/reorder/removing
+  non-current entries keeps the decoder and position, removing the playing entry
+  advances, and an empty or paused queue does not start playback on append/removal.
+- Activity tests check Add leaves the queue alone, Add and queue refreshes the
+  library and appends without replacing current playback, queue actions adjust
+  the active index, and explicit MIDI bank titles scroll and follow bank renames.
+  Default-bank tracks and non-MIDI titles remain unmodified.
+- `import-music.png` and `playback-queue.png` are native-graphics Robolectric
+  captures of the real views with generated files/metadata and synthetic FFT
+  input, rather than physical-device captures or real game recordings.
+
+Physical Android document-provider grants, cloud/offline providers and device
+background behavior still need device verification. No additional storage or
+network permission was added. The APK retains the existing package and signing
+certificate for in-place updates.

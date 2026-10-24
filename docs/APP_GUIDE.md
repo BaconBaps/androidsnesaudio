@@ -15,8 +15,10 @@ for emulators). This is a debug-signed development build, not a Play Store relea
 The app was previously named PixelSPC; installing this update keeps your library,
 favourites, and saved theme.
 
-Tap **⋮ → Import music**, or **Library → Import music**, and select your
-file using Android's file picker. Tap a track to play. Use the fixed player panel
+Tap **⋮ → Import music**, or **Library → Import music**, to open the themed
+import screen. Choose files or a folder through Android's access picker, then
+review the checked items and choose **Add** or **Add and queue**. **Cancel**
+closes the review without copying anything. Tap a track to play. Use the fixed player panel
 for pause, previous/next, seeking, shuffle, and continuous looping. The outer
 buttons show ON/OFF states: left is Shuffle (changes the next track), right is
 Loop (lets the current sound program keep running). These two controls are
@@ -286,3 +288,45 @@ allows a two-second release/fade tail.
 
 No Mario/Doom samples or other game-derived SoundFonts are bundled. User-imported
 banks remain subject to their own licences.
+
+## Import review and playback queue
+
+The import window uses the selected app theme. **Choose files** supports multiple
+selections; **Choose folder** lists supported files recursively with relative
+paths. Uncheck **Include subfolders** to restrict music selection to the root.
+Use the checkboxes or **Select all** to review the selection. Unsupported files
+are omitted. Android still supplies the access-grant screen; the app does not
+request broad storage access.
+
+- **Cancel:** leave the review without importing.
+- **Add:** copy selected music to the library, leaving playback and its queue alone.
+- **Add and queue:** import and append the new tracks to the playback queue, then
+  show that queue. The current decoder, position and playing/paused state remain.
+  An empty queue is prepared without automatically playing; press Play to begin.
+
+Loose files are imported together as a set, with archive files imported as their
+own sets. Folder names are used when music metadata supplies no game name.
+Relative PSF paths are preserved and available `.psflib` dependencies are copied
+automatically when PSF tracks are selected. They do not appear as playable tracks.
+For direct file selection, choose the needed libraries too, or import the complete
+PSF folder/ZIP. Sources are kept unchanged.
+
+A review is limited to 1000 music files, 3000 folder entries, 16 directory levels,
+128 MiB of selected source data, 256 MiB of stored extracted files and 1000 decoded
+tracks. Existing per-file/archive limits still apply. Import work runs in the
+background of the review screen and survives rotation. Once Add is pressed, the
+screen finishes the import before closing. If a batch fails, previously added
+sets from that batch are removed; pre-existing library entries stay intact.
+
+Open **⋮ → Show playback queue** to see tracks combined across imports. Hold an
+entry to move it up/down, remove it, choose a MIDI bank or export audio. Removing
+the current playing entry advances to the next remaining entry; removing it while
+paused prepares the next entry without playing. Queue removal keeps the library
+copy. Selecting a soundtrack/favourite track for playback replaces the queue as
+before. The queue belongs to the running playback service; the library and
+SoundFont assignments persist across app restarts.
+
+For a MIDI track with an explicit bank assignment, the app's scrolling Now Playing
+title shows **Track Name (with SoundFont Name)**. Bank renames update the displayed
+name. Tracks following the default bank and other file formats keep their original
+title; library metadata and exported filenames are unchanged.

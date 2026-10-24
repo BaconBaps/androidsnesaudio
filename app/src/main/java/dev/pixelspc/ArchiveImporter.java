@@ -101,6 +101,6 @@ public final class ArchiveImporter {
     }
     static void copy(InputStream in,OutputStream out,Budget budget) throws IOException {
         LimitedOutput limited=new LimitedOutput(out,budget); byte[] b=new byte[16384]; int n;
-        while((n=in.read(b))!=-1) limited.write(b,0,n);
+        while((n=in.read(b))!=-1) {if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Import cancelled");limited.write(b,0,n); }
     }
 }

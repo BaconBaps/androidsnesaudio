@@ -77,6 +77,30 @@ public class PlaybackService extends Service {
         }
         return START_NOT_STICKY;
     }
+    public void appendTracks(List<Library.Track> tracks) {
+        if(tracks.isEmpty()) return;
+        List<Library.Track> updated=new ArrayList<>(queue);updated.addAll(tracks);queue=updated;
+        if(current==null) {index=0;current=queue.get(0);position=0;playing=false;repeat=isLooping(current);error="";}
+        // Keep a prepared queue while the user opens the import activity again.
+        startService(new Intent(this,PlaybackService.class));changed();
+    }
+    public void moveQueued(int from,int to) {
+        if(from<0||to<0||from>=queue.size()||to>=queue.size()||from==to)return;
+        List<Library.Track> updated=new ArrayList<>(queue);Collections.swap(updated,from,to);queue=updated;
+        if(index==from)index=to;else if(index==to)index=from;changed();
+    }
+    public void removeQueued(int at) {
+        if(at<0||at>=queue.size())return;List<Library.Track> updated=new ArrayList<>(queue);updated.remove(at);
+        if(at!=index) {queue=updated;if(at<index)index--;changed();return;}
+        if(updated.isEmpty()) {stopPlayback(null);return;}
+        int next=Math.min(at,updated.size()-1);
+        if(playing)play(updated,next);
+        else {
+            queue=updated;index=next;current=updated.get(next);position=0;repeat=isLooping(current);error="";
+            manager.abandonAudioFocusRequest(focus);worker.removeCallbacks(pump);
+            worker.post(()->{releaseAudio();position=0;changed();});
+        }
+    }
     public void play(List<Library.Track> tracks,int selected) {
         if(selected<0 || selected>=tracks.size()) return;
         sleepExpired=false; queue=new ArrayList<>(tracks); index=selected; current=queue.get(selected); error="";
@@ -132,7 +156,7 @@ public class PlaybackService extends Service {
         worker.post(()->{
             releaseAudio(); position=0;
             main.post(()->{
-                if(!destroyed) {
+                if(!destroyed && current==null) {
                     session.setMetadata(null);
                     session.setPlaybackState(new PlaybackState.Builder().setState(PlaybackState.STATE_STOPPED,0,0).build());
                     stopForeground(true); ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(1); stopSelf(); changed();

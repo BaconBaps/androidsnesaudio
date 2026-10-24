@@ -33,6 +33,14 @@ Plays SPC/RSN, PlayStation PSF and MIDI with your choice of SoundFonts.
     <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of ten retro-inspired theme previews" /></td>
     <td><img src="docs/screenshots/export-audio.png" width="300" alt="Save a track or trimmed clip as a WAV file with optional fades" /></td>
   </tr>
+  <tr>
+    <th>Import music</th>
+    <th>Playback queue</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/import-music.png" width="300" alt="Themed file and folder import review with Add and Add and queue actions" /></td>
+    <td><img src="docs/screenshots/playback-queue.png" width="300" alt="Queue across games with an assigned MIDI SoundFont shown in Now Playing" /></td>
+  </tr>
 </table>
 
 [See all ten themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipPlayer-MIDI-demo.mid).

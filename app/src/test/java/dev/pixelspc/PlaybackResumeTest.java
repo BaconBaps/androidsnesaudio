@@ -19,10 +19,10 @@ import static org.junit.Assert.*;
 public class PlaybackResumeTest {
     @Implements(value=Engine.class,isInAndroidSdk=false)
     public static class Decoder {
-        static int position,fontChanges;
+        static int position,fontChanges,opens;
         static Runnable onSeek;
         @Implementation protected static void __staticInitializer__() {}
-        @Implementation protected static long open(String path) { return 1; }
+        @Implementation protected static long open(String path) { opens++;return 1; }
         @Implementation protected static void close(long handle) {}
         @Implementation protected static void soundFont(long handle,String path) {fontChanges++;}
         @Implementation protected static void start(long h,int index,int length) { position=0; }
@@ -46,6 +46,28 @@ public class PlaybackResumeTest {
     }
     private static void drain(PlaybackService service) throws Exception {
         Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idle();
+    }
+    private Library.Track track(String path) {Library.Track t=new Library.Track();t.path=path;t.title=path;t.game="Game";t.artist="Artist";t.system="Super Nintendo";t.length=120000;return t;}
+    @Test public void appendingAndReorderingKeepCurrentDecoderAndPosition() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try {
+            Library.Track first=track("first.spc"),second=track("second.spc"),third=track("third.spc");Decoder.opens=0;
+            service.play(Collections.singletonList(first),0);drain(service);service.seek(5033);drain(service);int before=service.position;
+            service.appendTracks(java.util.Arrays.asList(second,third));drain(service);assertEquals(1,Decoder.opens);assertSame(first,service.current);assertTrue(service.playing);assertEquals(before,service.position);assertEquals(3,service.queue.size());
+            service.moveQueued(0,1);drain(service);assertEquals(1,service.index);assertSame(first,service.current);assertEquals(1,Decoder.opens);
+            service.removeQueued(0);drain(service);assertEquals(0,service.index);assertSame(first,service.current);assertEquals(1,Decoder.opens);assertEquals(before,service.position);
+            service.removeQueued(0);drain(service);assertSame(third,service.current);assertTrue(service.playing);assertEquals(2,Decoder.opens);
+        }finally{c.destroy();}
+    }
+    @Test public void emptyQueueIsPreparedWithoutAutoplayAndPausedRemovalStaysPaused() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try {
+            Library.Track first=track("first.spc"),second=track("second.spc");Decoder.opens=0;service.appendTracks(java.util.Arrays.asList(first,second));drain(service);
+            assertFalse(service.playing);assertSame(first,service.current);assertEquals(0,Decoder.opens);assertEquals(0L,field(service,"handle"));
+            service.toggle();drain(service);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();drain(service);assertTrue(service.playing);service.pause();drain(service);service.removeQueued(0);drain(service);
+            assertFalse(service.playing);assertSame(second,service.current);assertEquals(0,service.index);assertEquals(0L,field(service,"handle"));
+            service.toggle();drain(service);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();drain(service);assertTrue(service.playing);assertSame(second,service.current);
+        }finally{c.destroy();}
     }
     @Test public void changingMidiBankRestoresPositionAndPausedOrPlayingState() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();

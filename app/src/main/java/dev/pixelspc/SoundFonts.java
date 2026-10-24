@@ -36,6 +36,12 @@ final class SoundFonts {
         if(files!=null)for(File file:files) {String id=file.getName().replaceFirst("\\.sf2$","");result.add(new Bank(id,prefs.getString("name:"+id,"Imported SoundFont"),file,false));}
         result.subList(1,result.size()).sort(Comparator.comparing(b->b.name,String.CASE_INSENSITIVE_ORDER));return result;
     }
+    String nowPlayingTitle(Library.Track track) {
+        if(!midi(track.path))return track.title;String id=overrideId(track.path);if(id.isEmpty())return track.title;
+        String name=BUILTIN.equals(id)?"Pixel GM":prefs.getString("name:"+id,null);
+        if(name==null||(!BUILTIN.equals(id)&&!new File(context.getFilesDir(),"soundfonts/"+id+".sf2").isFile()))return track.title;
+        return track.title+" (with "+name+")";
+    }
     String defaultId() { return prefs.getString("default",BUILTIN); }
     String overrideId(String path) { return prefs.getString("track:"+path,""); }
     void setDefault(String id) { prefs.edit().putString("default",id).apply(); }
