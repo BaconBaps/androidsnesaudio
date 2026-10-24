@@ -194,14 +194,27 @@ public class MainActivity extends Activity {
         LinearLayout actions=column();actions.setPadding(dp(20),dp(8),dp(20),dp(8));
         TextView play=button("PLAY",accentColor,theme.surface);play.setContentDescription("Play soundtrack "+game.name);add(actions,play,-1,48);gap(actions,8);
         TextView enqueue=button("ADD TO QUEUE",accentColor,theme.surface);enqueue.setContentDescription("Add "+game.name+" to queue");add(actions,enqueue,-1,48);
+        gap(actions,8);TextView rename=button("RENAME",accentColor,theme.surface);rename.setContentDescription("Rename "+game.name+" in library");add(actions,rename,-1,48);
         gap(actions,24);rule(actions);gap(actions,16);
         TextView delete=button("DELETE",textColor,theme.surface);delete.setContentDescription("Delete "+game.name+" from library");add(actions,delete,-1,48);
         AlertDialog menu=dialog().setTitle(game.name).setView(actions).setNegativeButton("CANCEL",null).show();
-        play.setTextColor(accentColor);enqueue.setTextColor(accentColor);delete.setTextColor(theme.dark?0xffffa0a8:0xffa32e3b);
+        play.setTextColor(accentColor);enqueue.setTextColor(accentColor);rename.setTextColor(accentColor);delete.setTextColor(theme.dark?0xffffa0a8:0xffa32e3b);
         play.setEnabled(player!=null&&!game.tracks.isEmpty());enqueue.setEnabled(player!=null&&!game.tracks.isEmpty());
         play.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();selected=game;showQueue=false;showFavourites=false;notifyPermission();player.play(game.tracks,0);renderTracks();});
         enqueue.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();player.appendTracks(game.tracks);showQueue=true;showFavourites=false;renderTracks();});
+        rename.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();renameLibrary(game);});
         delete.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();confirmDelete(game);});
+    }
+    private void renameLibrary(Library.Game game) {
+        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
+        LinearLayout body=column();body.setPadding(dp(20),dp(8),dp(20),dp(8));
+        EditText name=new EditText(themed);name.setSingleLine(true);name.setTextColor(textColor);name.setText(game.name);name.setContentDescription("Library name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});add(body,name,-1,56);
+        AlertDialog rename=dialog().setTitle("Rename library").setView(body).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",null).show();
+        rename.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v->{
+            try {library.rename(game,name.getText().toString());rename.dismiss();renderTracks();}
+            catch(Exception e){name.setError(e.getMessage());}
+        });
+        name.requestFocus();name.selectAll();rename.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
     private void chooseGame() {
         if(library.games.isEmpty()) { pickFile(); return; }
@@ -463,7 +476,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipPlayer 199x · v1.16.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipPlayer 199x · v1.16.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

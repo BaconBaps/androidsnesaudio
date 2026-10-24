@@ -255,6 +255,15 @@ public class PlayerUiTest {
             for(int i=0;i<controls.getChildCount();i++){View control=controls.getChildAt(i);assertTrue(control.getWidth()>=a.dp(48));assertTrue(control.getHeight()>=a.dp(48));assertTrue(control.getRight()<=controls.getWidth());if(i>0)assertTrue(control.getLeft()-controls.getChildAt(i-1).getRight()>=a.dp(4));}
         }
     }
+    @Test public void libraryRenameMenuValidatesAndUpdatesTheDisplayedName() throws Exception {
+        org.json.JSONObject track=new org.json.JSONObject().put("path","/fixture/tone.spc").put("title","Tone").put("game","Game").put("artist","").put("system","SNES").put("index",0).put("length",180000).put("loopLength",0);
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",new org.json.JSONArray().put(track))).toString().getBytes("UTF-8"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");int row=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(0,0));list.getOnItemLongClickListener().onItemLongClick(list,null,row,0);
+            android.app.Dialog actions=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Rename Game in library").performClick();AlertDialog rename=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();EditText input=(EditText)findDescription(rename.getWindow().getDecorView(),"Library name");assertEquals("Game",input.getText().toString());
+            input.setText("  ");rename.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();assertTrue(rename.isShowing());assertNotNull(input.getError());input.setText("My favourites set");rename.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();assertFalse(rename.isShowing());assertEquals("My favourites set",new Library(app).games.get(0).name);assertNotNull(findText(a.getWindow().getDecorView(),"My favourites set"));assertNotNull(findText(a.getWindow().getDecorView(),"Tone"));
+        }
+    }
     @Test public void libraryDeleteRequiresConfirmationAndUpdatesTheEmptyView() throws Exception {
         org.json.JSONObject t=new org.json.JSONObject().put("path","/fixture/tone.spc").put("title","Tone").put("game","Game").put("artist","").put("system","SNES").put("index",0).put("length",180000).put("loopLength",0);
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Game").put("id","fixture").put("tracks",new org.json.JSONArray().put(t))).toString().getBytes("UTF-8"));

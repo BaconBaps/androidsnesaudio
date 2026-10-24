@@ -52,7 +52,7 @@ public final class Library {
                     int count=Engine.count(h); if(count<1 || count+game.tracks.size()>1000) throw new IOException("Set exceeds 1000 songs");
                     for(int i=0;i<count;i++) {
                         String[] info=Engine.info(h,i); Track t=new Track(); t.path=e.file.getAbsolutePath(); t.index=i;
-                        t.title=info[0].isEmpty()?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
+                        t.title=(SoundFonts.midi(e.name)||info[0].isEmpty())?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
                         t.game=info[1]; t.artist=info[2]; t.system=info[3]; t.length=Engine.length(h,i);
                         t.loopLength=e.file.getName().endsWith(".spc")?SpcTiming.loopLength(e.file):0;
                         game.tracks.add(t);
@@ -66,6 +66,13 @@ public final class Library {
             temp.delete();
             if(!saved) ArchiveImporter.removeTree(dir);
         }
+    }
+    public synchronized void rename(Game game,String name) throws Exception {
+        name=name==null?"":name.trim();
+        if(name.isEmpty()||name.length()>80)throw new IOException("Use a name between 1 and 80 characters");
+        if(!games.contains(game))throw new IOException("This library entry no longer exists");
+        String previous=game.name;game.name=name;
+        try {save();}catch(Exception failure){game.name=previous;throw failure;}
     }
     /** Removes only this import's private copy; source documents are never touched. */
     public synchronized void remove(Game game) throws Exception {

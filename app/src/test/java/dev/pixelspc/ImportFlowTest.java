@@ -64,6 +64,12 @@ public class ImportFlowTest {
         try{ImportBatch.run(context,items,selected,"Test");fail();}catch(IOException expected){assertEquals("Invalid music",expected.getMessage());}
         assertTrue(new Library(context).games.isEmpty());assertEquals(0,new File(context.getFilesDir(),"sets").listFiles().length);assertTrue(good.exists());assertTrue(archive.exists());
     }
+    @Test public void midiTitlesUseOriginalFilenamesInsteadOfInstrumentMetadata() throws Exception {
+        File single=source("Race Theme.MID",1);Library library=new Library(context);Library.Game direct=library.importFile(Uri.fromFile(single),single.getName());assertEquals("Race Theme",direct.tracks.get(0).title);
+        File archive=new File(context.getCacheDir(),"Midi set.zip");try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(archive))){for(String name:new String[]{"nested/Opening.midi","Another.mid","Track.spc"}){zip.putNextEntry(new ZipEntry(name));zip.write(1);zip.closeEntry();}}
+        Library.Game set=library.importFile(Uri.fromFile(archive),archive.getName());assertEquals("Another",set.tracks.get(0).title);assertEquals("Opening",set.tracks.get(1).title);assertEquals("Test track",set.tracks.get(2).title);
+        Library restored=new Library(context);assertEquals("Race Theme",restored.games.get(0).tracks.get(0).title);assertEquals("Opening",restored.games.get(1).tracks.get(1).title);
+    }
     @Test public void psfDirectoryImportPreservesNestedDependenciesAndHidesLibraries()throws Exception{
         File track=source("One.minipsf",1),lib=source("Base.psflib",2);List<ImportDocuments.Item> items=Arrays.asList(item(track,"Game/Tracks/One.minipsf"),item(lib,"Game/Libraries/Base.psflib"));
         List<Library.Game> added=ImportBatch.run(context,items,Collections.singleton(items.get(0).key()),"PSF folder");assertEquals(1,added.get(0).tracks.size());File root=new File(context.getFilesDir(),"sets/"+added.get(0).id+"/psf");assertTrue(new File(root,"game/tracks/one.minipsf").isFile());assertTrue(new File(root,"game/libraries/base.psflib").isFile());

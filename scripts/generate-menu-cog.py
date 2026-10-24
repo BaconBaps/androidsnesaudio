@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Original flat pixel cog, using the sound-chip logo's green/gold palette. MIT."""
+"""Original flat grey pixel cog. MIT."""
 import math,pathlib
 size=32
 mask=set()
@@ -16,7 +16,7 @@ for y in range(size):
   edge=any((x+dx,y+dy) in mask for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)])
   if r<4:continue
   if not inside and not edge:continue
-  color='#111725' if not inside or r<5.5 else '#FFCF36' if r>10 else '#64E660'
+  color='#242424' if not inside or r<5.5 else '#B8B8B8' if r>10 else '#8C8C8C'
   pixels[x,y]=color
 # Merge adjacent pixels, then keep each path short for Android vector caching.
 for y in range(size):

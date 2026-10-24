@@ -34,7 +34,7 @@ Playback continues in the background with notification and lock-screen controls.
 pauses playback. Music is copied into the app's private storage and survives app
 restarts; uninstalling removes imported files. Keep your original music files.
 
-Open **Library** and hold a soundtrack to open **Play**, **Add to queue**, and
+Open **Library** and hold a soundtrack to open **Play**, **Add to queue**, **Rename**, and
 a separated **Delete** action. Choose **Delete** to remove that import and
 its private music files after confirmation. Duplicate imports are separate entries;
 your original files are kept. Deleting the queued soundtrack stops its playback.
@@ -335,7 +335,8 @@ title; library metadata and exported filenames are unchanged.
 
 Tap a Library soundtrack to browse it. Hold its row to open a themed action menu:
 **Play** starts its first track, **Add to queue** appends all its tracks without
-interrupting current playback, and **Delete** removes its private library copy
+interrupting current playback, **Rename** changes its saved library label, and
+**Delete** removes its private library copy
 after confirmation. Delete is separated from the other actions by extra space and
 a divider. There is no longer a Delete button beside every Library entry.
 
@@ -345,8 +346,8 @@ their borderless appearance.
 
 ## Pixel cog and themed menu
 
-The header menu is an original flat, transparent pixel cog using green/gold from
-the sound-chip logo. It has no chrome button background or tint. Regenerate its
+The header menu is an original flat, transparent grey pixel cog. Its colours are
+neutral greys, with no green or gold. It has no chrome button background or tint. Regenerate its
 vector with `scripts/generate-menu-cog.py`.
 
 The themed menu has pixel section headings, matching panel textures, colours and
@@ -360,3 +361,18 @@ focus/pressed states, with scrollable contents on smaller screens:
 
 Submenus have a Back control; Android Back also returns to the main menu. Close
 and an outside tap dismiss the menu. Existing playback continues during navigation.
+
+## MIDI filenames and library labels
+
+New `.mid` / `.midi` imports use the original filename without its extension as
+the track title, including loose folder files and archive entries. Embedded MIDI
+track-name events are ignored for display because they often name instruments
+rather than songs. Explicit SoundFont suffixes still appear in Now Playing.
+Older imports retain their saved titles; re-import their original files/sets to
+use filename titles. Other music formats continue using their metadata titles.
+
+Hold an entry in **Library** and choose **Rename**. Enter a non-blank name of up
+to 80 characters and Save, or Cancel to keep the old name. This changes only that
+library entry's label; track metadata, source files, private paths, favourites,
+SoundFont assignments and playback queue are preserved. Delete remains separated
+below Rename and still requires confirmation.

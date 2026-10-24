@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Eighty-two JUnit/Robolectric tests, zero failures and zero skipped:
+Eighty-five JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -297,3 +297,17 @@ both submenus are native-graphics Robolectric renders in Llama; existing light
 and dark palette screenshots show the new cog. The vector is original MIT app
 artwork, with merged pixel runs and short paths; no external logo art was copied.
 Physical-device navigation and touches remain device checks.
+
+## MIDI filenames, grey cog and rename (24 October 2026, v1.16.1)
+
+Android build, 85 JUnit/Robolectric tests and lint pass. The import test verifies
+original filename titles for individual uppercase `.MID` and nested/archive
+`.mid`/`.midi` entries despite conflicting decoder metadata; non-MIDI metadata
+and persisted titles remain unchanged. Rename tests verify a saved, trimmed label,
+independence of duplicate imports, rejection of blank/overlong names, and unchanged
+track paths, files, favourites and SoundFont preferences. The UI test opens Rename
+from the long-press menu, keeps the dialog open on invalid input, saves the new
+label and refreshes the main header. Existing menu/action screenshots now include
+Rename with Delete still separated. The cog generator uses only neutral greys.
+Previously imported MIDI titles are retained until re-import, because legacy
+records do not retain original filenames for all archive entries.
