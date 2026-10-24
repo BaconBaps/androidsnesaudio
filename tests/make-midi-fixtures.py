@@ -25,3 +25,17 @@ b[8:12]=b'xxxx';(p/'invalid.sf2').write_bytes(b)
 b=bytearray(pathlib.Path('app/src/main/assets/soundfonts/Pixel-GM.sf2').read_bytes());at=b.index(b'phdr');struct.pack_into('<H',b,at+8+24,65535);(p/'bad-index.sf2').write_bytes(b)
 
 b=bytearray(pathlib.Path("app/src/main/assets/soundfonts/Pixel-GM.sf2").read_bytes());at=b.index(b"igen");struct.pack_into("<HH",b,at+8,0,32767);(p/"bad-offset.sf2").write_bytes(b)
+
+# Reproduce a one-shot sample with equal source loop markers at a nonzero
+# offset: TSF converts the exclusive loop end to start - 1. These are unused.
+b=bytearray(pathlib.Path("app/src/main/assets/soundfonts/Pixel-GM.sf2").read_bytes())
+at=b.index(b"shdr")+8+46;start=struct.unpack_from("<I",b,at+20)[0]
+struct.pack_into("<II",b,at+28,start,start)
+at=b.index(b"igen")+8+10*4;struct.pack_into("<HH",b,at,54,0)
+(p/"oneshot-unused-loops.sf2").write_bytes(b)
+# The same malformed markers in a genuinely active loop still fail.
+b=bytearray(pathlib.Path("app/src/main/assets/soundfonts/Pixel-GM.sf2").read_bytes())
+at=b.index(b"igen")+8;struct.pack_into("<HH",b,at,3,32767)
+(p/"bad-active-loop.sf2").write_bytes(b)
+
+(p/"oneshot.mid").write_bytes(midi(0,[event(0,b"\xc0\x08")+event(0,b"\x90\x3c\x64")+event(480,b"\x80\x3c\x00")+event(480,eot)]))

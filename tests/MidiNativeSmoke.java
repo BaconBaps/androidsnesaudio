@@ -30,7 +30,14 @@ public final class MidiNativeSmoke {
             Engine.seek(b,700);Engine.render(b,y);check(energy(y)>100,"Bank replacement broke another decoder");
         }finally{Engine.close(a);Engine.close(b);}
         for(String file:new String[]{"bad.mid","truncated.mid","smpte.mid"})try{long h=Engine.open(new File(dir,file).getPath());Engine.close(h);throw new AssertionError("Accepted "+file);}catch(IOException expected){System.out.println("PASS rejected "+file+": "+expected.getMessage());}
-        for(String file:new String[]{"invalid.sf2","bad-index.sf2","bad-offset.sf2"})try{Engine.validateSoundFont(new File(dir,file).getPath());throw new AssertionError("Accepted "+file);}catch(IOException expected){System.out.println("PASS rejected "+file+": "+expected.getMessage());}
+        for(String file:new String[]{"invalid.sf2","bad-index.sf2","bad-offset.sf2","bad-active-loop.sf2"})try{Engine.validateSoundFont(new File(dir,file).getPath());throw new AssertionError("Accepted "+file);}catch(IOException expected){System.out.println("PASS rejected "+file+": "+expected.getMessage());}
+        Engine.validateSoundFont(new File(dir,"oneshot-unused-loops.sf2").getPath());
+        long oneShot=Engine.open(new File(dir,"oneshot.mid").getPath());
+        try {
+            Engine.soundFont(oneShot,new File(dir,"oneshot-unused-loops.sf2").getPath());Engine.start(oneShot,0,4000);
+            short[] pcm=new short[4096];Engine.render(oneShot,pcm);check(energy(pcm)>100,"One-shot bank became silent");
+            System.out.println("PASS one-shot sample with unused reversed loop markers");
+        }finally{Engine.close(oneShot);}
         if(args.length>2) {
             long h=Engine.open(args[2]);try {
                 check(Engine.length(h,0)==18000,"Demo timing");Engine.soundFont(h,bank);Engine.start(h,0,18000);short[] pcm=new short[4096];long sum=0;boolean ended=false;

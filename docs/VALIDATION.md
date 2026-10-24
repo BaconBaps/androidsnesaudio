@@ -223,3 +223,24 @@ Pixel GM intentionally uses simple synthetic tones; these checks do not establis
 accurate acoustic instruments, compatibility with every game-specific bank or
 vendor-specific MIDI extension. Physical-device listening, routing, bank-switch
 latency and large-bank memory use remain device checks.
+
+## One-shot SoundFont compatibility (24 October 2026, v1.14.1)
+
+Reproduced the reported rejection with the supplied `illusion_of_gaia.sf2`.
+Three non-looping regions (Timpani, Hit, Gong) have unused loop markers that
+TinySoundFont converts to an end one sample before the start. The importer
+incorrectly required ordered loop markers for every region, even when unused.
+The supplied `F-Zero.sf2` did not contain regions triggering this check.
+
+Validation now follows the synthesizer's actual loop condition: only enabled
+loops with start before end require loop bounds checks. Sample playback bounds
+remain checked for every region. The native smoke test generates this exact
+one-shot pattern and verifies import and audible playback. Separate invalid
+sample offsets and genuinely active out-of-bounds loops remain rejected.
+
+`tests/SoundFontBankSmoke.java` validates both supplied banks and renders an
+original generated MIDI sequence selecting all 128 GM programs. Both banks
+produce audible PCM and reach the end. These are host/JNI tests, not a device
+listening pass; no claim of exact game instrument mapping is made. Supplied
+SoundFonts stay outside the repository and APK. Android build, all 65 tests and
+lint pass for the updated APK.

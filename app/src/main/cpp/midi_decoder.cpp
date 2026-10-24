@@ -136,7 +136,12 @@ std::unique_ptr<tsf,decltype(&tsf_close)> loadFont(const std::string& path){
     require(bool(f),"Could not load this SoundFont");int regions=0;
     for(int i=0;i<f->presetNum;i++)for(int j=0;j<f->presets[i].regionNum;j++){
         auto& r=f->presets[i].regions[j];regions++;
-        require(r.offset<r.end&&r.end<count&&r.loop_start<=r.loop_end&&r.loop_end<count,"SoundFont sample offsets are out of range");
+        require(r.offset<r.end&&r.end<count,"SoundFont sample offsets are out of range");
+        // Match TinySoundFont's doLoop condition. One-shot regions may carry
+        // unused/reversed loop markers (including endLoop - 1 after loading).
+        // They are never read by the renderer and must not reject the bank.
+        if(r.loop_mode!=TSF_LOOPMODE_NONE && r.loop_start<r.loop_end)
+            require(r.loop_end<count,"SoundFont loop offsets are out of range");
     }
     require(regions>0,"SoundFont contains no playable sample regions");return f;
 }
