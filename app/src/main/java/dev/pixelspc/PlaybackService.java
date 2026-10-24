@@ -88,10 +88,27 @@ public class PlaybackService extends Service {
         worker.post(()->{
             worker.removeCallbacks(pump); releaseAudio();
             try {
-                loaded=track; handle=Engine.open(track.path); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
+                loaded=track; handle=Engine.open(track.path); if(SoundFonts.midi(track.path)) Engine.soundFont(handle,new SoundFonts(this).pathFor(track.path)); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
                 int minimum=AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_16BIT);
                 audio=new AudioTrack.Builder().setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(new AudioFormat.Builder().setSampleRate(44100).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build()).setBufferSizeInBytes(Math.max(minimum,16384)).setTransferMode(AudioTrack.MODE_STREAM).build();
                 position=0; playing=true; audio.play(); worker.post(pump); changed();
+            } catch(Exception e) { failed(e); }
+        });
+    }
+    public void reloadSoundFont() {
+        if(current==null || !SoundFonts.midi(current.path)) return;
+        final Library.Track track=current; final int at=position; final boolean resume=playing;
+        worker.post(()->{
+            try {
+                if(handle==0 || loaded!=track) return;
+                worker.removeCallbacks(pump);
+                cancelSeek();
+                audio.pause();audio.flush();playing=false;
+                Engine.soundFont(handle,new SoundFonts(this).pathFor(track.path));
+                Engine.start(handle,track.index,track.length);Engine.setLoop(handle,repeat,track.length);
+                pcmOffset=pcm.length;pcmEnded=false;position=0;
+                seeking.begin(at);seekTarget=at;playing=resume;levels=new float[AudioSpectrum.BANDS];
+                worker.post(seekStep);changed();
             } catch(Exception e) { failed(e); }
         });
     }

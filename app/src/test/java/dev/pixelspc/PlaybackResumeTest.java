@@ -19,11 +19,12 @@ import static org.junit.Assert.*;
 public class PlaybackResumeTest {
     @Implements(value=Engine.class,isInAndroidSdk=false)
     public static class Decoder {
-        static int position;
+        static int position,fontChanges;
         static Runnable onSeek;
         @Implementation protected static void __staticInitializer__() {}
         @Implementation protected static long open(String path) { return 1; }
         @Implementation protected static void close(long handle) {}
+        @Implementation protected static void soundFont(long handle,String path) {fontChanges++;}
         @Implementation protected static void start(long h,int index,int length) { position=0; }
         @Implementation protected static void setLoop(long h,boolean enabled,int length) {}
         @Implementation protected static void seek(long h,int ms) {
@@ -45,6 +46,19 @@ public class PlaybackResumeTest {
     }
     private static void drain(PlaybackService service) throws Exception {
         Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idle();
+    }
+    @Test public void changingMidiBankRestoresPositionAndPausedOrPlayingState() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try {
+            Library.Track track=new Library.Track();track.path="fixture.mid";track.title="MIDI";track.length=120000;
+            Decoder.fontChanges=0;service.play(Collections.singletonList(track),0);drain(service);assertEquals(1,Decoder.fontChanges);
+            service.seek(5033);drain(service);int before=service.position;service.reloadSoundFont();drain(service);
+            assertEquals(2,Decoder.fontChanges);assertEquals("",service.error);assertTrue(service.playing);assertTrue("Resume may pre-render one 46 ms buffer",Math.abs(service.position-before)<=50);assertEquals(-1,service.seekTarget);
+            assertEquals(AudioTrack.PLAYSTATE_PLAYING,((AudioTrack)field(service,"audio")).getPlayState());
+            service.pause();drain(service);before=service.position;service.reloadSoundFont();drain(service);
+            assertEquals(3,Decoder.fontChanges);assertEquals("",service.error);assertFalse(service.playing);assertTrue(Math.abs(service.position-before)<=2);assertEquals(-1,service.seekTarget);
+            assertEquals(AudioTrack.PLAYSTATE_PAUSED,((AudioTrack)field(service,"audio")).getPlayState());
+        } finally {c.destroy();}
     }
     @Test public void stopClearsPlaybackAndNotificationAndAllowsAnotherTrack() throws Exception {
         ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();

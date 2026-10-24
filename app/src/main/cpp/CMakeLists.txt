@@ -19,10 +19,10 @@ add_library(unarr SHARED
     ${VENDOR}/unarr/lzmasdk/Ppmd7.c ${VENDOR}/unarr/lzmasdk/Ppmd7Dec.c ${VENDOR}/unarr/lzmasdk/Ppmd7aDec.c)
 target_include_directories(unarr PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/unarr-include)
 target_compile_definitions(unarr PRIVATE UNARR_EXPORT_SYMBOLS PUBLIC UNARR_IS_SHARED_LIBRARY)
-add_library(player SHARED player.cpp rar_reader.cpp psf_decoder.cpp
+add_library(player SHARED player.cpp rar_reader.cpp psf_decoder.cpp midi_decoder.cpp
     ${VENDOR}/psf-core/psx.cc ${VENDOR}/psf-core/psx_hw.cc ${VENDOR}/psf-core/peops/spu.cc)
 target_compile_features(player PRIVATE cxx_std_11)
-target_include_directories(player PRIVATE ${VENDOR}/psf-core)
+target_include_directories(player PRIVATE ${VENDOR}/psf-core ${VENDOR}/tinysoundfont)
 target_compile_options(player PRIVATE -fno-strict-aliasing -fwrapv)
 target_link_libraries(player PRIVATE gme::gme unarr z)
 if(NOT ANDROID)

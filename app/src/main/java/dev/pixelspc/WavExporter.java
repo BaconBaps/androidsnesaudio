@@ -23,7 +23,11 @@ final class WavExporter {
         }
     }
     static Decoder nativeDecoder(String path,int index,int length) throws IOException {
+        return nativeDecoder(path,index,length,null);
+    }
+    static Decoder nativeDecoder(String path,int index,int length,String soundFont) throws IOException {
         final long handle=Engine.open(path);
+        try { if(soundFont!=null) Engine.soundFont(handle,soundFont); } catch(IOException e) { Engine.close(handle);throw e; }
         return new Decoder() {
             public void start() throws IOException { Engine.start(handle,index,length); Engine.setLoop(handle,true,length); }
             public int tell() { return Engine.tell(handle); }

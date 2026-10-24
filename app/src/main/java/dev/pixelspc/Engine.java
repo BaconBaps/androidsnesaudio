@@ -3,6 +3,8 @@ import java.io.IOException;
 public final class Engine {
     static { System.loadLibrary("gme"); System.loadLibrary("player"); }
     public static native long open(String path) throws IOException;
+    public static native void soundFont(long handle,String path) throws IOException;
+    public static native void validateSoundFont(String path) throws IOException;
     public static native void close(long handle);
     public static native int count(long handle);
     public static native String[] info(long handle, int index) throws IOException;

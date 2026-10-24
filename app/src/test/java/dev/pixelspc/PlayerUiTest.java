@@ -26,6 +26,7 @@ public class PlayerUiTest {
         app.getSharedPreferences("library-browser",0).edit().clear().commit();
         app.getSharedPreferences("playback",0).edit().clear().commit();
         app.getSharedPreferences("favourites",0).edit().clear().commit();
+        app.getSharedPreferences("soundfonts",0).edit().clear().commit();
         serviceController=Robolectric.buildService(PlaybackService.class).create(); service=serviceController.get();
         Shadows.shadowOf(app).setComponentNameAndServiceForBindService(new android.content.ComponentName(app,PlaybackService.class),service.onBind(new android.content.Intent()));
     }
@@ -145,6 +146,33 @@ public class PlayerUiTest {
             assertTrue(findDescription(c.get().getWindow().getDecorView(),"Continuous loop on").isSelected());
             findDescription(c.get().getWindow().getDecorView(),"Shuffle on").performClick();
             findDescription(c.get().getWindow().getDecorView(),"Continuous loop on").performClick(); assertFalse(service.shuffle); assertFalse(service.repeat);
+        }
+    }
+    @Test public void midiTrackOffersPersistentBankChoiceWithoutChangingDefault() throws Exception {
+        org.json.JSONObject track=new org.json.JSONObject().put("path","/fixture/song.mid").put("title","Prelude").put("game","").put("artist","").put("system","MIDI").put("index",0).put("length",3000).put("loopLength",0);
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","MIDI demo").put("id","midi-fixture").put("tracks",new org.json.JSONArray().put(track))).toString().getBytes("UTF-8"));
+        SoundFonts banks=new SoundFonts(app);banks.banks();File extra=new File(app.getFilesDir(),"soundfonts/custom.sf2");Files.write(extra.toPath(),new byte[]{1});
+        app.getSharedPreferences("soundfonts",0).edit().putString("name:custom","Imported test bank").commit();
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            findDescription(c.get().getWindow().getDecorView(),"Play Prelude").performLongClick();
+            AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();actions.getListView().performItemClick(null,0,0);
+            AlertDialog picker=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertEquals(3,picker.getListView().getCount());
+            picker.getListView().performItemClick(null,2,2);org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertEquals("custom",new SoundFonts(app).overrideId("/fixture/song.mid"));assertEquals(SoundFonts.BUILTIN,banks.defaultId());
+        } finally {extra.delete();}
+    }
+    @Test public void soundFontMenuShowsDefaultBankAndLaunchesDocumentPicker() throws Exception {
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
+            findDescription(c.get().getWindow().getDecorView(),"App menu").performClick();
+            PopupMenu menu=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
+            assertFalse(menu.getMenu().findItem(9).isEnabled());menu.getMenu().performIdentifierAction(8,0);
+            AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertTrue(dialog.getListView().getAdapter().getItem(0).toString().contains("Pixel GM"));
+            captureView(dialog.getWindow().getDecorView(),"soundfonts.png",720,350);
+            dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            android.content.Intent picker=Shadows.shadowOf(c.get()).getNextStartedActivityForResult().intent;
+            assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT,picker.getAction());assertEquals("*/*",picker.getType());
         }
     }
     @Test public void themePickerPersistsDarkModeAcrossRecreation() {

@@ -38,6 +38,23 @@ retained in `third_party/psf-core`; this combined build chooses GPL version 3.
 See that directory's SOURCE.md for local threading and integration changes.
 No proprietary PlayStation BIOS is bundled or required. PSF2 is not supported.
 
+## MIDI synthesis and Pixel GM
+
+TinySoundFont by Bernhard Schelling (based on SFZero by Steve Folta), MIT.
+Unmodified header and licence from revision
+`853a0a171759f1ddba0de1442133a75912bbeffa` of
+https://github.com/schellingb/TinySoundFont are in `third_party/tinysoundfont`.
+The app adds a bounded SMF scheduler and SF2 table validation; FluidSynth is not
+bundled. No SoundFonts from TinySoundFont's examples are distributed.
+
+The included **Pixel GM** SoundFont and optional **Pixel Steps** MIDI demo are
+original MIT-licensed synthetic waveforms and an original musical phrase,
+respectively. No game audio was sampled. Rebuild them with
+`scripts/generate-soundfont.py` and `scripts/generate-midi-demo.py`.
+Pixel GM provides 128 GM program slots and a percussion preset with a deliberately
+simple retro sound; it is not an acoustic instrument library or a recreation of a game.
+User-imported banks retain their own licences and are not redistributed by the app.
+
 ## Press Start 2P
 
 Copyright 2012 The Press Start 2P Project Authors.

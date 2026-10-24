@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Fifty-nine JUnit/Robolectric tests, zero failures and zero skipped:
+Sixty-five JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -194,4 +194,32 @@ and background restrictions still need verification on a physical device.
 
 These are host native tests and Android Robolectric tests, not physical-device
 listening tests. Real-game PSF compatibility, Android speaker output and background
-behavior require device verification. PSF2 and MIDI are not supported by this build.
+behavior require device verification. That v1.13.0 build excludes PSF2 and MIDI;
+MIDI support is added in v1.14.0 below.
+
+## MIDI and SoundFonts (24 October 2026, v1.14.0)
+
+- Android build, 65 JUnit/Robolectric tests and lint pass. Added tests cover default
+  bank and per-track preference restoration, copied imports, rename/delete,
+  fallback after deletion, rejected import rollback, document-picker launch and
+  the MIDI track bank-choice menu and service-level position/paused-state
+  restoration when changing banks. UI renders use native-graphics Robolectric.
+- `tests/MidiNativeSmoke.java` runs actual JNI/TinySoundFont with original type 0
+  and type 1 fixtures, tempo changes, running status, program changes, sustained
+  notes and percussion. It checks audible PCM, arbitrary forward/backward seeks,
+  looping, straight playback end, independent WAV export, changing banks and
+  independent decoder state. Both the bundled Pixel GM and an external TimGM6mb
+  bank pass. TimGM is a local test input only; it is not distributed here.
+- Invalid running status, truncated MIDI, unsupported SMPTE timing, invalid SF2
+  headers and out-of-range table indexes are rejected. SF2 RIFF sizes, tables,
+  index ordering, instrument/sample references and preset expansion are bounded
+  before synthesis. Banks are limited to 64 MiB and MIDI data to 16 MiB.
+- The optional original MIDI demo is rendered through its complete 16-second
+  score and two-second tail. Regenerate it with `scripts/generate-midi-demo.py`.
+- Existing SPC/RSN, VGZ and PSF native regressions are rerun by
+  `scripts/test-samples.sh`; no supplied game music or external SoundFont is bundled.
+
+Pixel GM intentionally uses simple synthetic tones; these checks do not establish
+accurate acoustic instruments, compatibility with every game-specific bank or
+vendor-specific MIDI extension. Physical-device listening, routing, bank-switch
+latency and large-bank memory use remain device checks.

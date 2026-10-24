@@ -137,6 +137,7 @@ theme’s accent and secondary colors.
 
 | Files | Supported content |
 | --- | --- |
+| `.mid`, `.midi` | Standard MIDI type 0/1 with PPQ timing; built-in Pixel GM or imported `.sf2` banks |
 | `.psf`, `.minipsf` | Original PlayStation soundtracks; import shared `.psflib` files together in a ZIP |
 | `.spc` | Super Nintendo tracks, including ID666 metadata |
 | `.rsn`, `.rar` | RAR-based SPC sets (including solid RAR4 archives) |
@@ -252,3 +253,36 @@ Java Android views + Canvas pixel spectrum, an AudioTrack foreground service
 with MediaSession controls, unmodified Game Music Emu linked as a shared library,
 unarr for RSN extraction, and a BIOS-free Audio Overload/PeOPS PSF decoder. See [THIRD_PARTY.md](../THIRD_PARTY.md) for licenses,
 source provenance, and rebuilding/replacing the LGPL decoder.
+
+## MIDI and SoundFonts
+
+Import `.mid` / `.midi` through **Import music**, individually or inside a ZIP/RSN.
+The built-in **Pixel GM** bank provides an original, synthetic retro sound with
+128 General MIDI program slots and percussion. It is about 27 kB, using simple
+waveforms rather than recorded acoustic instruments. An original 16-second
+[Pixel Steps MIDI demo](../downloads/ChipPlayer-MIDI-demo.mid) is available to try.
+
+Open **SoundFonts…** from the app menu to import uncompressed `.sf2` banks, see
+sizes, select a default, rename or delete imported banks. Files are copied once
+into private storage. This version accepts banks up to **64 MiB** to keep mobile
+memory use manageable; SF3, SFZ, DLS and compressed/archive banks are not supported.
+Use an extracted `.sf2` file. The built-in bank remains available as a fallback.
+
+Hold a MIDI track and choose **Choose SoundFont…**, or use **Current track
+SoundFont…** in the menu, to override the default for that track. Choose **Follow
+default bank** to clear its override. Changing a bank restores the current track's
+position and paused/playing state after seeking. Deleting a bank clears its
+references; original source files remain untouched. WAV exports use the selected
+bank in an independent synthesizer.
+
+Playback supports tempo maps, running status, GM program/bank changes, velocity,
+sustain, pan/volume/expression and pitch bend, with 128 synthesis voices. Standard
+MIDI type 2, SMPTE timing and Doom MUS containers are not supported. SysEx and
+pressure messages are not synthesized. This lightweight synth does not implement
+every SF2 modulator/effect or vendor-specific GS/XG extension. Custom game banks
+may need matching MIDI instrument mappings. MIDI Loop repeats the complete file
+at its end marker; it does not infer game-specific loop markers. Straight playback
+allows a two-second release/fade tail.
+
+No Mario/Doom samples or other game-derived SoundFonts are bundled. User-imported
+banks remain subject to their own licences.

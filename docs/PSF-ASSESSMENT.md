@@ -84,7 +84,8 @@ reader. It is therefore not an adequate replacement for the current RSN feature.
   Backward seeks recreate the worker; forward seeks emulate and discard audio.
   CPU/HLE execution budgets report a driver error rather than an unbounded loop.
 - PSF metadata, length/fade tags, looping, platform grouping, the visualizer and
-  existing WAV export use the same app controls. PSF2 and MIDI are not implemented.
+  existing WAV export use the same app controls. PSF2 is not implemented. MIDI
+  support was subsequently added in v1.14.0; see [the app guide](APP_GUIDE.md).
 - The corresponding source and licences are included. See [THIRD_PARTY.md](../THIRD_PARTY.md).
 
 Native tests use an original generated MIPS/SPU tone in standalone and shared-library

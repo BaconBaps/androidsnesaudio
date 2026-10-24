@@ -9,7 +9,7 @@ import java.nio.file.*;
 public final class ArchiveImporter {
     static final long FILE_LIMIT=32L*1024*1024, TOTAL_LIMIT=256L*1024*1024;
     public static final int TRACK_LIMIT=1000;
-    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf"));
+    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf","mid","midi"));
     public static boolean supported(String name) { return FORMATS.contains(extension(name)); }
     static boolean dependency(String name) { return extension(name).equals("psflib"); }
     static String extension(String name) { int p=name.lastIndexOf('.'); return p<0?"":name.substring(p+1).toLowerCase(Locale.ROOT); }
@@ -51,7 +51,7 @@ public final class ArchiveImporter {
                 Entry item=storedEntry(destination,name,0,psfPaths);
                 try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,out,budget); }
                 result.add(item);
-            } else throw new IOException("Choose an SPC, RSN, PSF, ZIP, or supported chiptune file");
+            } else throw new IOException("Choose an SPC, RSN, PSF, MIDI, ZIP, or supported chiptune file");
             if(result.isEmpty()) throw new IOException("No supported music files found in this set");
             result.sort(Comparator.comparing(e->e.name.toLowerCase(Locale.ROOT)));
             return result;

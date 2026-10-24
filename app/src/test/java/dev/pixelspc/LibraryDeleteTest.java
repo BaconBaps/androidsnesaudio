@@ -26,10 +26,11 @@ public class LibraryDeleteTest {
         Library library=new Library(c); Library.Game removed=library.games.get(0);
         String key="track-loop:"+first+":0";
         c.getSharedPreferences("playback",0).edit().putBoolean(key,true).commit();
+        new SoundFonts(c).setTrack(first.toString(),"custom-bank");
         library.remove(removed);
         assertFalse(first.exists()); assertFalse(first.getParentFile().exists()); assertTrue(second.exists()); assertTrue(original.exists());
         Library restored=new Library(c); assertEquals(1,restored.games.size()); assertEquals("second",restored.games.get(0).id);
-        assertFalse(c.getSharedPreferences("playback",0).contains(key));
+        assertFalse(c.getSharedPreferences("playback",0).contains(key));assertEquals("",new SoundFonts(c).overrideId(first.toString()));
     }
     @Test public void deletionCannotEscapeThePrivateSetFolder() throws Exception {
         android.content.Context c=RuntimeEnvironment.getApplication();

@@ -104,7 +104,7 @@ public class ExportActivity extends Activity {
                 if(new StatFs(context.getCacheDir().getPath()).getAvailableBytes()<WavExporter.dataSize(options)+8*1024*1024) throw new IOException("Not enough free space to prepare this WAV.");
                 temporary=File.createTempFile("audio-export-",".wav",context.getCacheDir());
                 try(OutputStream output=new BufferedOutputStream(new FileOutputStream(temporary))) {
-                    WavExporter.write(WavExporter.nativeDecoder(source.getStringExtra("path"),source.getIntExtra("index",0),source.getIntExtra("length",180000)),output,options,p->{ percent=p; update(); });
+                    WavExporter.write(WavExporter.nativeDecoder(source.getStringExtra("path"),source.getIntExtra("index",0),source.getIntExtra("length",180000),SoundFonts.midi(source.getStringExtra("path"))?new SoundFonts(context).pathFor(source.getStringExtra("path")):null),output,options,p->{ percent=p; update(); });
                 }
                 WavExporter.checkCancelled();
                 try(InputStream input=new FileInputStream(temporary); OutputStream output=context.getContentResolver().openOutputStream(destination,"wt")) {

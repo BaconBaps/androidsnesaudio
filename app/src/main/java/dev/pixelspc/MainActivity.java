@@ -19,6 +19,7 @@ public class MainActivity extends Activity {
     private Typeface pixel;
     private Library library;
     private TrackFavorites favourites;
+    private SoundFonts soundFonts;
     private boolean showFavourites;
     private Library.Game selected;
     private PlaybackService player;
@@ -42,6 +43,7 @@ public class MainActivity extends Activity {
         pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf"); skin=new PlayerSkin(this);
         try { library=new Library(this); if(!library.games.isEmpty()) selected=library.games.get(library.games.size()-1); }
         catch(Exception e) { dialog().setTitle("Library could not be read").setMessage(e.getMessage()).setPositiveButton("Close",(d,w)->finish()).show(); return; }
+        soundFonts=new SoundFonts(this);
         favourites=new TrackFavorites(this); showFavourites=state!=null && state.getBoolean("showFavourites");
         buildUI();
     }
@@ -135,7 +137,7 @@ public class MainActivity extends Activity {
             star.setContentDescription((starred?"Remove ":"Add ")+track.title+(starred?" from favourites":" to favourites")); star.setSelected(starred); add(line,star,40,44);
             star.setOnClickListener(v->{ favourites.toggle(track); renderTracks(); });
             TextView duration=text(clock(track.length),11,listTheme.muted); duration.setGravity(Gravity.END|Gravity.CENTER_VERTICAL); add(line,duration,43,30); add(trackList,line,-1,57); rule(trackList);
-            line.setOnLongClickListener(v->{ exportTrack(track); return true; });
+            line.setOnLongClickListener(v->{ if(SoundFonts.midi(track.path)) dialog().setTitle(track.title).setItems(new String[]{"Choose SoundFont…","Export audio…"},(d,which)->{ if(which==0)chooseTrackSoundFont(track);else exportTrack(track); }).setNegativeButton("CANCEL",null).show();else exportTrack(track); return true; });
             line.setTooltipText("Hold to export audio");
             line.setContentDescription("Play "+track.title); line.setClickable(true); line.setFocusable(true); line.setOnClickListener(v->{ if(player!=null) { notifyPermission(); player.play(visible,index); } });
         }
@@ -233,9 +235,61 @@ public class MainActivity extends Activity {
         menu.getMenu().add(0,6,4,showFavourites?"Back to soundtrack":"Show favourites").setOnMenuItemClickListener(item->{ showFavourites=!showFavourites; renderTracks(); return true; });
         String sleep=player!=null && player.sleepRemainingMs()>0?"Sleep timer · "+((player.sleepRemainingMs()+59999)/60000)+" min left":"Sleep timer";
         menu.getMenu().add(0,7,5,sleep).setEnabled(player!=null).setOnMenuItemClickListener(item->{ chooseSleepTimer(); return true; });
-        menu.getMenu().add(0,4,6,"Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
+        menu.getMenu().add(0,8,6,"SoundFonts…").setOnMenuItemClickListener(item->{ manageSoundFonts();return true; });
+        menu.getMenu().add(0,9,7,"Current track SoundFont…").setEnabled(player!=null && player.current!=null && SoundFonts.midi(player.current.path)).setOnMenuItemClickListener(item->{ chooseTrackSoundFont(player.current);return true; });
+        menu.getMenu().add(0,4,8,"Exit app").setOnMenuItemClickListener(item->{ exitApp(); return true; });
         menu.show();
     }
+    private void soundFontChanged() { soundFontChanged(null); }
+    private void soundFontChanged(String affectedPath) {
+        if(player!=null && player.current!=null && (affectedPath==null?soundFonts.overrideId(player.current.path).isEmpty():player.current.path.equals(affectedPath))) player.reloadSoundFont();
+        Toast.makeText(this,"SoundFont saved",Toast.LENGTH_SHORT).show();
+    }
+    private void manageSoundFonts() {
+        try {
+            List<SoundFonts.Bank> banks=soundFonts.banks();String[] labels=new String[banks.size()];
+            for(int i=0;i<labels.length;i++) { SoundFonts.Bank bank=banks.get(i);labels[i]=(bank.id.equals(soundFonts.defaultId())?"★ ":"")+bank.name+" · "+android.text.format.Formatter.formatShortFileSize(this,bank.file.length()); }
+            dialog().setTitle("SoundFonts · choose a default").setItems(labels,(d,which)->bankActions(banks.get(which)))
+                .setNeutralButton("IMPORT .SF2…",(d,w)->pickSoundFont()).setNegativeButton("CLOSE",null).show();
+        } catch(Exception e) { soundFontError(e); }
+    }
+    private void bankActions(SoundFonts.Bank bank) {
+        String[] actions=bank.bundled?new String[]{"Use as default"}:new String[]{"Use as default","Rename","Delete"};
+        dialog().setTitle(bank.name).setItems(actions,(d,which)->{
+            if(which==0) {soundFonts.setDefault(bank.id);soundFontChanged();manageSoundFonts();}
+            else if(which==1) {
+                EditText input=new EditText(this);input.setText(bank.name);input.setSingleLine(true);
+                dialog().setTitle("Rename SoundFont").setView(input).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",(x,w)->{
+                    try {soundFonts.rename(bank,input.getText().toString());manageSoundFonts();}catch(Exception e){soundFontError(e);}
+                }).show();
+            } else dialog().setTitle("Delete SoundFont?").setMessage("Remove “"+bank.name+"” from ChipPlayer? Tracks using this bank will use the default bank. Your original file is kept.")
+                .setNegativeButton("CANCEL",null).setPositiveButton("DELETE",(x,w)->{
+                    try {soundFonts.delete(bank);soundFontChanged();manageSoundFonts();}catch(Exception e){soundFontError(e);}
+                }).show();
+        }).setNegativeButton("BACK",(d,w)->manageSoundFonts()).show();
+    }
+    private void chooseTrackSoundFont(Library.Track track) {
+        try {
+            List<SoundFonts.Bank> banks=soundFonts.banks();String[] labels=new String[banks.size()+1];labels[0]="Follow default bank";int checked=0;
+            for(int i=0;i<banks.size();i++){labels[i+1]=banks.get(i).name;if(banks.get(i).id.equals(soundFonts.overrideId(track.path)))checked=i+1;}
+            dialog().setTitle("SoundFont · "+track.title).setSingleChoiceItems(labels,checked,(d,which)->{
+                soundFonts.setTrack(track.path,which==0?"":banks.get(which-1).id);d.dismiss();soundFontChanged(track.path);
+            }).setNeutralButton("MANAGE BANKS",(d,w)->manageSoundFonts()).setNegativeButton("CANCEL",null).show();
+        } catch(Exception e) { soundFontError(e); }
+    }
+    private void pickSoundFont() {
+        if(busy) {Toast.makeText(this,"Wait for the current import",Toast.LENGTH_SHORT).show();return;}
+        Toast.makeText(this,"Choose an uncompressed .sf2 bank · up to 64 MiB",Toast.LENGTH_LONG).show();
+        startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),3);
+    }
+    private void importSoundFont(Uri uri) {
+        if(busy) return;busy=true;renderTracks();
+        importer.execute(()->{
+            try {SoundFonts.Bank bank=soundFonts.importBank(uri);main.post(()->{busy=false;if(!isDestroyed()){renderTracks();Toast.makeText(this,"Imported "+bank.name,Toast.LENGTH_SHORT).show();manageSoundFonts();}});}
+            catch(Exception e){main.post(()->{busy=false;if(!isDestroyed()){renderTracks();soundFontError(e);}});}
+        });
+    }
+    private void soundFontError(Exception e) { dialog().setTitle("SoundFont unavailable").setMessage(e.getMessage()).setPositiveButton("OK",null).show(); }
     private void chooseSleepTimer() {
         String[] choices={"Off","15 minutes","30 minutes","60 minutes","90 minutes"};
         int[] minutes={0,15,30,60,90};
@@ -274,6 +328,7 @@ public class MainActivity extends Activity {
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
         if(request==1 && result==RESULT_OK && data!=null && data.getData()!=null) importUri(data.getData());
+        if(request==3 && result==RESULT_OK && data!=null && data.getData()!=null) importSoundFont(data.getData());
     }
     void importUri(Uri uri) {
         busy=true; renderTracks();
@@ -326,7 +381,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipPlayer 199x · v1.13.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipPlayer 199x · v1.14.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets and PlayStation PSF/minipsf files. Import dependent PSF tracks as a ZIP containing their .psflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Pixel font: Press Start 2P (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");
