@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ChipPlayer 199x</string>
+    <string name="app_name">ChipAmp9x</string>
     <string name="artist_and_game">%1$s  ·  %2$s</string>
     <string name="position_and_duration">%1$s   /   %2$s</string>
     <string name="no_track_selected">No track selected</string>
@@ -20,7 +20,7 @@
         <item quantity="one">%d favourite · All games</item>
         <item quantity="other">%d favourites · All games</item>
     </plurals>
-    <string name="widget_name">ChipPlayer 199x · Now Playing</string>
+    <string name="widget_name">ChipAmp9x · Now Playing</string>
     <string name="widget_description">Now Playing with previous, play/pause and next controls</string>
     <string name="widget_now_playing">NOW PLAYING</string>
     <string name="widget_empty">Tap to choose a track</string>

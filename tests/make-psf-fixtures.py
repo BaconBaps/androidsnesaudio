@@ -13,7 +13,7 @@ pc=0x80010000+len(code)*4;add(0x08000000|((pc>>2)&0x3ffffff));add(0)
 exe=bytearray(2048);exe[:8]=b'PS-X EXE';struct.pack_into('<II',exe,0x10,0x80010000,0);struct.pack_into('<II',exe,0x18,0x80010000,len(code)*4);struct.pack_into('<I',exe,0x30,0x801fff00);exe+=b''.join(struct.pack('<I',x) for x in code)
 def psf(exe,tags):
  c=zlib.compress(exe);return b'PSF\x01'+struct.pack('<III',0,len(c),zlib.crc32(c))+c+b'[TAG]'+tags.encode()
-(p/'tone.psf').write_bytes(psf(exe,'title=PSF test tone\ngame=PSF Fixture\nartist=ChipPlayer test\nlength=0:02\nfade=0:01\n'))
+(p/'tone.psf').write_bytes(psf(exe,'title=PSF test tone\ngame=PSF Fixture\nartist=ChipAmp9x test\nlength=0:02\nfade=0:01\n'))
 (p/'base.psflib').write_bytes(psf(exe,'game=PSF Fixture\n'))
 patch=bytearray(2048);patch[:8]=b'PS-X EXE';struct.pack_into('<I',patch,0x18,0x80010000)
 (p/'mini.minipsf').write_bytes(psf(patch,'_lib=base.psflib\ntitle=Mini test tone\nlength=0:02\nfade=0:01\n'))

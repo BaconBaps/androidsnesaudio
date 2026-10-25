@@ -7,16 +7,16 @@ for y in range(size):
  for x in range(size):
   dx=x-15.5;dy=y-15.5;r=math.hypot(dx,dy);angle=math.atan2(dy,dx)
   tooth=abs((angle+math.pi/8)%(math.pi/4)-math.pi/8)<.19
-  if r<=10.5 or (r<=14.5 and tooth):mask.add((x,y))
+  if r<=10.5 or (r<=13.5 and tooth):mask.add((x,y))
 colors={};pixels={}
 for y in range(size):
  for x in range(size):
   r=math.hypot(x-15.5,y-15.5)
   inside=(x,y) in mask
-  edge=any((x+dx,y+dy) in mask for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)])
+  edge=any((x+dx,y+dy) in mask for dx in range(-2,3) for dy in range(-2,3))
   if r<4:continue
   if not inside and not edge:continue
-  color='#242424' if not inside or r<5.5 else '#B8B8B8' if r>10 else '#8C8C8C'
+  color='#000000' if not inside or r<5.5 else '#B8B8B8' if r>10 else '#8C8C8C'
   pixels[x,y]=color
 # Merge adjacent pixels, then keep each path short for Android vector caching.
 for y in range(size):

@@ -488,7 +488,7 @@ void usf_log_stop(void * state)
 }
 #endif
 
-/* ChipPlayer additions: per-instance watchdog and checked allocation state. */
+/* ChipAmp9x additions: per-instance watchdog and checked allocation state. */
 static uint64_t chip_time_ns(void) {
     struct timespec now;clock_gettime(CLOCK_MONOTONIC,&now);
     return (uint64_t)now.tv_sec*1000000000ull+now.tv_nsec;

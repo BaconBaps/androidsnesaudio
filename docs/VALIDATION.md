@@ -1,6 +1,6 @@
 # Validation evidence
 
-Android/UI checks updated in the managed Linux cloud environment on 24 October
+Android/UI checks updated in the managed Linux cloud environment on 25 October
 2026 (Europe/London). PSF and replacement RSN native checks were run on
 24 October; earlier checks are dated where applicable.
 
@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 24 October
 
 ## Automated tests
 
-Ninety-eight JUnit/Robolectric tests, zero failures and zero skipped:
+One hundred and one JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -44,7 +44,7 @@ Ninety-eight JUnit/Robolectric tests, zero failures and zero skipped:
 - The time display shows and clears the SEEKING target while catching up.
 - Submenu Import picker, centered empty-only tracklist Import, Library Delete
   confirmation, last-entry empty state, and Exit menu/task closure.
-- ChipPlayer 199x launcher label and accessible sound-chip logo; flat outer player background.
+- ChipAmp9x launcher label and accessible sound-chip logo; flat outer player background.
 - Flat heading with a raised menu button; retired themes fall back to Pixel Light.
 - One centered menu button in the header; playlist above the playback
   deck; spectrum inside the deck and before the seek/readout controls.
@@ -390,3 +390,22 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
   A second test verifies queued audio finishes before the next track starts.
 - 98 JUnit/Robolectric tests, Android lint, and the complete native SPC/RSN,
   VGZ seek/export, PSF, MIDI and USF regression suite pass.
+
+## ChipAmp9x branding and visualizers (v1.19.0, 25 October 2026)
+
+- Current app branding, accessible header, launcher/widget labels, notification,
+  export fallback, MIDI demo, original bank metadata, docs and downloads use
+  ChipAmp9x. The approved cream/green/gold wordmark has true transparency; the
+  grey settings cog has a thicker black pixel outline. The signing key and
+  application ID remain unchanged for installation/data compatibility. Original
+  copyright-holder names remain in their legal notices.
+- Tap cycles Spectrum, stereo Waveform, Stereo Scope and radial Orbit; hold
+  resets Spectrum. Selection persists through recreation and theme editing.
+  UI tests capture all four styles and verify cycling, persistence and frozen
+  editing. Waveform extraction tests cover silence, right-only audio, opposite
+  phase and unchanged input PCM. Traces use the stronger channel for triggering
+  and preserve independent left/right samples from decoded audio.
+- 101 JUnit/Robolectric tests and lint pass. The full native SPC/RSN, VGZ, PSF,
+  MIDI and USF regression suite passes with the renamed demo and regenerated
+  original SoundFont metadata. Device tap/animation behaviour remains for user
+  testing. No microphone or additional permission is required.

@@ -18,7 +18,7 @@ final class ChipLogo extends View {
     }
     private static synchronized void load(Context context) {
         if(bitmap!=null) return;
-        bitmap=BitmapFactory.decodeResource(context.getResources(),R.drawable.chipplayer_logo);
+        bitmap=BitmapFactory.decodeResource(context.getResources(),R.drawable.chipamp9x_logo);
         int left=bitmap.getWidth(),top=bitmap.getHeight(),right=-1,bottom=-1;
         int[] row=new int[bitmap.getWidth()];
         for(int y=0;y<bitmap.getHeight();y++) {

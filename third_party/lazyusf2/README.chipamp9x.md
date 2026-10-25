@@ -1,4 +1,4 @@
-# LazyUSF2 in ChipPlayer 199x
+# LazyUSF2 in ChipAmp9x 199x
 
 Source: https://github.com/losnoco/Cog/tree/1ef38735c065da74c499eda05e0ae7b1e953586c/Frameworks/lazyusf2/lazyusf2
 

@@ -19,7 +19,7 @@ python3 tests/make-psf-fixtures.py "$TEST_DIR/psf"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.PsfNativeSmoke "$TEST_DIR/psf"
 
 python3 tests/make-midi-fixtures.py "$TEST_DIR/midi"
-java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.MidiNativeSmoke "$TEST_DIR/midi" app/src/main/assets/soundfonts/Pixel-GM.sf2 downloads/ChipPlayer-MIDI-demo.mid
+java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.MidiNativeSmoke "$TEST_DIR/midi" app/src/main/assets/soundfonts/Pixel-GM.sf2 downloads/ChipAmp9x-MIDI-demo.mid
 
 python3 tests/make-usf-fixtures.py "$TEST_DIR/usf"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.UsfNativeSmoke "$TEST_DIR/usf"

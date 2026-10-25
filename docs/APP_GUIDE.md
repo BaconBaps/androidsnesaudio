@@ -1,18 +1,18 @@
-# ChipPlayer 199x
+# ChipAmp9x
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
 ten retro palettes, and a local library for the games you grew up with.
 
-<img src="screenshots/theme-desktop-98.png" width="300" alt="ChipPlayer 199x soundtrack library and player with live spectrum" />
+<img src="screenshots/theme-desktop-98.png" width="300" alt="ChipAmp9x soundtrack library and player with live spectrum" />
 
 ## Install without Android Studio
 
-Download [ChipPlayer-199x-debug.apk](../downloads/ChipPlayer-199x-debug.apk) to your Android device,
+Download [ChipAmp9x-debug.apk](../downloads/ChipAmp9x-debug.apk) to your Android device,
 open it, and allow installation from your browser or file manager when prompted.
 Requires **Android 8.0 or later and a 64-bit ARM device** (x86-64 is also included
 for emulators). This is a debug-signed development build, not a Play Store release.
 
-The app was previously named PixelSPC; installing this update keeps your library,
+Installing this update keeps your library,
 favourites, and saved theme.
 
 Tap **cog → Import music**, or **Library → Import music**, to open the themed
@@ -86,7 +86,7 @@ other apps; Exit cancels it.
 ## Home-screen widget
 
 Long-press your Android home screen, open **Widgets**, and add
-**ChipPlayer 199x · Now Playing**. The resizable widget follows your selected
+**ChipAmp9x · Now Playing**. The resizable widget follows your selected
 palette, with the player’s original nine-patch edging, title, artist/game,
 elapsed clock and Previous / Play-Pause / Next controls. Tap the heading or track
 name to open the app. When there is no loaded track, Play opens the app so you
@@ -96,7 +96,7 @@ The launcher runs the elapsed clock itself, without periodic background polling.
 The live spectrum remains in the app. The widget controls the same queue,
 shuffle and loop settings as the player; it does not start a separate decoder.
 
-<img src="screenshots/homescreen-widget.png" width="360" alt="ChipPlayer 199x Now Playing home-screen widget" />
+<img src="screenshots/homescreen-widget.png" width="360" alt="ChipAmp9x Now Playing home-screen widget" />
 
 The header uses the selected green sound-chip logo, with a transparent background
 and outlined lettering for light and dark palettes.
@@ -263,7 +263,7 @@ Import `.mid` / `.midi` through **Import music**, individually or inside a ZIP/R
 The built-in **Pixel GM** bank provides an original, synthetic retro sound with
 128 General MIDI program slots and percussion. It is about 27 kB, using simple
 waveforms rather than recorded acoustic instruments. An original 16-second
-[Pixel Steps MIDI demo](../downloads/ChipPlayer-MIDI-demo.mid) is available to try.
+[Pixel Steps MIDI demo](../downloads/ChipAmp9x-MIDI-demo.mid) is available to try.
 
 Open **cog → Settings → SoundFonts** to import uncompressed `.sf2` banks, see
 sizes, select a default, rename or delete imported banks. Files are copied once
@@ -444,3 +444,19 @@ N64 playback now uses an optimised decoder and a larger output buffer. It
 briefly buffers at startup and after a playing seek to help smooth CPU spikes;
 there may be a small delay before sound starts. Demanding game drivers may still
 need testing on your phone.
+
+## Hidden visualizer styles
+
+Tap the display to cycle **Spectrum → Waveform → Stereo Scope → Orbit → Spectrum**.
+Hold it to return directly to Spectrum. The chosen style is remembered after
+restarting the app and changing themes. No menu or extra buttons are needed.
+
+Waveform shows separate left/right traces from decoded PCM. Stereo Scope shows
+the stereo phase relationship; mono audio forms a vertical line, while wider
+stereo makes broader patterns. Orbit lays the 24 frequency bands around a ring.
+All four use the selected theme colours, settle when paused and remain still in
+theme edit mode. They use decoded music, with no microphone permission.
+
+The launcher, header logo, widget, notification, export filenames and downloads
+now use **ChipAmp9x**. The package identifier and signing key remain compatible
+with existing installations, so this update retains your music and preferences.

@@ -34,6 +34,7 @@ public class PlaybackService extends Service {
     private final short[] pcm=new short[4096];
     private final AudioSpectrum spectrum=new AudioSpectrum();
     public volatile float[] levels=new float[AudioSpectrum.BANDS];
+    public volatile float[] waveform=new float[AudioWaveform.SAMPLES];
     public volatile boolean playing=false,repeat=false,shuffle=false;
     public volatile int position=0,index=-1,seekTarget=-1;
     public volatile String error="";
@@ -42,7 +43,7 @@ public class PlaybackService extends Service {
     public Runnable listener;
 
     @Override public void onCreate() {
-        super.onCreate(); main=new Handler(getMainLooper()); thread=new HandlerThread("ChipPlayer audio",android.os.Process.THREAD_PRIORITY_AUDIO); thread.start(); worker=new Handler(thread.getLooper());
+        super.onCreate(); main=new Handler(getMainLooper()); thread=new HandlerThread("ChipAmp9x audio",android.os.Process.THREAD_PRIORITY_AUDIO); thread.start(); worker=new Handler(thread.getLooper());
         shuffle=getSharedPreferences("playback",MODE_PRIVATE).getBoolean("shuffle",false);
         repeat=defaultLoop=getSharedPreferences("playback",MODE_PRIVATE).getBoolean("loop",false);
         manager=(AudioManager)getSystemService(AUDIO_SERVICE);
@@ -50,7 +51,7 @@ public class PlaybackService extends Service {
             if(change==AudioManager.AUDIOFOCUS_GAIN) { if(resumeOnFocus) { resumeOnFocus=false; toggle(); } }
             else { resumeOnFocus=playing && change!=AudioManager.AUDIOFOCUS_LOSS; if(playing) pause(); }
         },main).build();
-        session=new MediaSession(this,"ChipPlayer 199x"); session.setCallback(new MediaSession.Callback() {
+        session=new MediaSession(this,"ChipAmp9x"); session.setCallback(new MediaSession.Callback() {
             @Override public void onPlay() { if(!playing) toggle(); }
             @Override public void onPause() { pause(); }
             @Override public void onSkipToNext() { next(1); }
@@ -133,7 +134,7 @@ public class PlaybackService extends Service {
                 Engine.soundFont(handle,new SoundFonts(this).pathFor(track.path));
                 Engine.start(handle,track.index,track.length);Engine.setLoop(handle,repeat,track.length);
                 pcmOffset=pcm.length;pcmEnded=false;position=0;
-                seeking.begin(at);seekTarget=at;playing=resume;levels=new float[AudioSpectrum.BANDS];
+                seeking.begin(at);seekTarget=at;playing=resume;levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES];
                 worker.post(seekStep);changed();
             } catch(Exception e) { failed(e); }
         });
@@ -220,7 +221,7 @@ public class PlaybackService extends Service {
                 if(audio!=null) { audio.pause(); audio.flush(); writtenFrames=0; }
                 pcmOffset=pcm.length; pcmEnded=false;
                 seekTarget=Math.max(0,Math.min(ms,repeat?Math.max(loaded.length,position):loaded.length));
-                seeking.begin(seekTarget); levels=new float[AudioSpectrum.BANDS];
+                seeking.begin(seekTarget); levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES];
                 changed(); worker.post(seekStep);
             } catch(Exception e) { failed(e); }
         });
@@ -262,7 +263,7 @@ public class PlaybackService extends Service {
             }
             if(pcmOffset==pcm.length) {
                 pcmEnded=Engine.render(handle,pcm); pcmOffset=0;
-                levels=spectrum.analyze(pcm);
+                levels=spectrum.analyze(pcm);waveform=AudioWaveform.analyze(pcm);
             }
             // Never block the control worker waiting for the device's audio sink.
             int n=audio.write(pcm,pcmOffset,pcm.length-pcmOffset,AudioTrack.WRITE_NON_BLOCKING);
@@ -280,7 +281,7 @@ public class PlaybackService extends Service {
         } catch(Exception e) { failed(e); }
     }};
     private void failed(Exception e) { error="Cannot play this track: "+e.getMessage(); playing=false; releaseAudio(); changed(); }
-    private void releaseAudio() { writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
+    private void releaseAudio() { writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
     private void changed() { main.post(()->{
         if(destroyed) return;
         if(current!=null) {
@@ -293,7 +294,7 @@ public class PlaybackService extends Service {
     }); }
     private PendingIntent action(String name,int code) { return PendingIntent.getService(this,code,new Intent(this,PlaybackService.class).setAction(name),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT); }
     private Notification notification() {
-        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("ChipPlayer 199x").setContentTitle(current==null?"ChipPlayer 199x":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
+        return new Notification.Builder(this,"music").setSmallIcon(dev.pixelspc.R.drawable.ic_player).setColorized(false).setSubText("ChipAmp9x").setContentTitle(current==null?"ChipAmp9x":current.title).setContentText(current==null?"Your retro soundtrack":current.game).setContentIntent(PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT)).setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(1,2,3)).addAction(android.R.drawable.ic_media_previous,"Previous",action("previous",1)).addAction(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,playing?"Pause":"Play",action("toggle",2)).addAction(android.R.drawable.ic_media_next,"Next",action("next",3)).addAction(R.drawable.ic_close,"Exit app",action("exit",5)).setDeleteIntent(action("stop",4)).setOngoing(playing).build();
     }
     @Override public void onDestroy() {
         instance=null; PlayerWidget.updateAll(this);

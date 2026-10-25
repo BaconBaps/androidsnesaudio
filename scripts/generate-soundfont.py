@@ -43,7 +43,7 @@ for program in range(129):
  phdr.append(name('Pixel GM %03d'%patch if bank==0 else 'Pixel drums')+P('HHHIII',patch,bank,len(pbag),0,0,0))
  pbag.append(P('HH',len(pgen),0));pgen.append(gen(41,program//8 if program<128 else 16))
 phdr.append(name('EOP')+P('HHHIII',0,0,len(pbag),0,0,0));pbag.append(P('HH',len(pgen),0));pgen.append(gen(0,0))
-info=listing('INFO',chunk('ifil',P('HH',2,1))+chunk('isng',b'EMU8000\0')+chunk('INAM',b'ChipPlayer Pixel GM\0')+chunk('ICOP',b'Original synthetic waveforms; MIT license\0'))
+info=listing('INFO',chunk('ifil',P('HH',2,1))+chunk('isng',b'EMU8000\0')+chunk('INAM',b'ChipAmp9x Pixel GM\0')+chunk('ICOP',b'Original synthetic waveforms; MIT license\0'))
 sdta=listing('sdta',chunk('smpl',b''.join(P('h',x) for x in samples)))
 pdta=listing('pdta',b''.join(chunk(tag,data) for tag,data in [('phdr',b''.join(phdr)),('pbag',b''.join(pbag)),('pmod',bytes(10)),('pgen',b''.join(pgen)),('inst',b''.join(inst)),('ibag',b''.join(bags)),('imod',bytes(10)),('igen',b''.join(gens)),('shdr',b''.join(headers))]))
 out=pathlib.Path('app/src/main/assets/soundfonts/Pixel-GM.sf2');out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(chunk('RIFF',b'sfbk'+info+sdta+pdta));print(out,out.stat().st_size)

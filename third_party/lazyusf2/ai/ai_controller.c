@@ -76,7 +76,7 @@ static unsigned int get_dma_duration(struct ai_controller* ai)
 
 static void do_dma(struct ai_controller* ai, const struct ai_dma* dma)
 {
-    /* ChipPlayer: a malformed sound program must not read beyond RDRAM. */
+    /* ChipAmp9x: a malformed sound program must not read beyond RDRAM. */
     if ((uint64_t)dma->address+dma->length>ai->ri->rdram.dram_size) {
         DebugMessage(ai->r4300->state,1,"N64 audio DMA lies outside RDRAM");return;
     }

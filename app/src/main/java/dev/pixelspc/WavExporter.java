@@ -92,6 +92,6 @@ final class WavExporter {
     static String filename(String title) {
         String clean=title.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]","_").trim();
         if(clean.length()>80) clean=clean.substring(0,80);
-        return (clean.isEmpty()?"ChipPlayer 199x export":clean)+".wav";
+        return (clean.isEmpty()?"ChipAmp9x export":clean)+".wav";
     }
 }

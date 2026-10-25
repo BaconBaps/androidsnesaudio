@@ -33,7 +33,7 @@ def sparse(state=b'',rom=b''):
  return part(rom)+part(state)
 def usf(reserved,tags=''):
  return b'PSF\x21'+block([len(reserved),0,0])+reserved+(b'[TAG]'+tags.encode() if tags else b'')
-tags='title=N64 test tone\ngame=N64 Fixture\nartist=ChipPlayer test\nlength=0:02\nfade=0:01\n'
+tags='title=N64 test tone\ngame=N64 Fixture\nartist=ChipAmp9x test\nlength=0:02\nfade=0:01\n'
 (p/'tone.usf').write_bytes(usf(sparse(s),tags))
 (p/'base.usflib').write_bytes(usf(sparse(s),'game=N64 Fixture\n'))
 (p/'mini.miniusf').write_bytes(usf(b'','_lib=base.usflib\n'+tags.replace('N64 test tone','Mini test tone')))

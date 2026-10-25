@@ -64,13 +64,13 @@ Reproduce the standalone sanitizer check after generating fixtures:
 ```sh
 source scripts/cloud-env.sh
 cmake_bin="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
-"$cmake_bin" -S app/src/main/cpp -B /tmp/chipplayer-usf-asan \
+"$cmake_bin" -S app/src/main/cpp -B /tmp/chipamp9x-usf-asan \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_C_FLAGS='-fsanitize=address -fno-omit-frame-pointer'
-"$cmake_bin" --build /tmp/chipplayer-usf-asan --target lazyusf2 -j4
+"$cmake_bin" --build /tmp/chipamp9x-usf-asan --target lazyusf2 -j4
 g++ -std=c++11 -O1 -g -fsanitize=address -fno-omit-frame-pointer \
   -Iapp/src/main/cpp -Ithird_party/lazyusf2 tests/UsfDecoderCheck.cpp \
-  app/src/main/cpp/usf_decoder.cpp /tmp/chipplayer-usf-asan/liblazyusf2.a \
+  app/src/main/cpp/usf_decoder.cpp /tmp/chipamp9x-usf-asan/liblazyusf2.a \
   -lz -lm -o /tmp/usf-check
 python3 tests/make-usf-fixtures.py /tmp/usf-fixtures
 ASAN_OPTIONS=detect_leaks=1 /tmp/usf-check /tmp/usf-fixtures

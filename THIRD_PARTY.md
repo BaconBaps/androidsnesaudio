@@ -1,6 +1,6 @@
 # Third-party software
 
-ChipPlayer 199x original application code and artwork retain the MIT license.
+ChipAmp9x original application code and artwork retain the MIT license.
 The combined APK contains GPL-covered PSF and USF emulation and is distributed under
 **GPL version 3**; see [COPYING-GPL-3](COPYING-GPL-3). Complete corresponding
 source, local modifications and build scripts are in this repository.
@@ -64,7 +64,7 @@ Font and license: `app/src/main/assets/fonts/`.
 ## Original player skin
 
 The nine-patches and PNG sprites in `app/src/main/res/drawable-*/` are
-original PixelSPC pixel artwork under this repository’s MIT license. Regenerate
+original app pixel artwork under this repository’s MIT license. Regenerate
 them with `python3 scripts/generate-skin.py`; no third-party skin images,
 Winamp artwork, logos, or music are bundled.
 

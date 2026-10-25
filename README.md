@@ -1,10 +1,11 @@
-# ChipPlayer 199x
+# ChipAmp9x
 
 A pixel-styled Android player for retro game soundtracks, with ten themes,
-favourites, WAV export, a sleep timer, and a home-screen widget.
+custom palettes, four audio visualizers, favourites, WAV export, a sleep timer,
+and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
 
-**[Download the Android APK](https://github.com/BaconBaps/androidsnesaudio/raw/refs/heads/main/downloads/ChipPlayer-199x-debug.apk)** · Android 8.0+ · 64-bit ARM
+**[Download the Android APK](https://github.com/BaconBaps/androidsnesaudio/raw/refs/heads/main/downloads/ChipAmp9x-debug.apk)** · Android 8.0+ · 64-bit ARM
 
 ## The app
 
@@ -14,8 +15,8 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
     <th>Pixel Light</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/theme-desktop-98.png" width="300" alt="ChipPlayer 199x in the Llama theme, with soundtrack tracks and the live pixel spectrum" /></td>
-    <td><img src="docs/screenshots/theme-light.png" width="300" alt="ChipPlayer 199x in the Pixel Light theme" /></td>
+    <td><img src="docs/screenshots/theme-desktop-98.png" width="300" alt="ChipAmp9x in the Llama theme, with soundtrack tracks and the live pixel spectrum" /></td>
+    <td><img src="docs/screenshots/theme-light.png" width="300" alt="ChipAmp9x in the Pixel Light theme" /></td>
   </tr>
   <tr>
     <th>Library</th>
@@ -41,6 +42,11 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
     <td><img src="docs/screenshots/import-music.png" width="300" alt="Themed file and folder import review with Add and Add and queue actions" /></td>
     <td><img src="docs/screenshots/playback-queue.png" width="300" alt="Queue across games with an assigned MIDI SoundFont shown in Now Playing" /></td>
   </tr>
+  <tr><th>Waveform</th><th>Orbit</th></tr>
+  <tr>
+    <td><img src="docs/screenshots/visualizer-waveform.png" width="300" alt="ChipAmp9x stereo waveform display" /></td>
+    <td><img src="docs/screenshots/visualizer-orbit.png" width="300" alt="ChipAmp9x radial audio spectrum" /></td>
+  </tr>
   <tr>
     <th>Player menu</th>
     <th>Playback tools</th>
@@ -59,7 +65,7 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
   </tr>
 </table>
 
-[See all ten themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipPlayer-MIDI-demo.mid).
+[See all ten themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
 
 ## Home-screen widget
 

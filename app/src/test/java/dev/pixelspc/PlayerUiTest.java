@@ -190,6 +190,22 @@ public class PlayerUiTest {
             assertEquals("custom",new SoundFonts(app).overrideId("/fixture/song.mid"));assertEquals(SoundFonts.BUILTIN,banks.defaultId());
         } finally {extra.delete();}
     }
+    @Test public void tapCyclesVisualizersAndSelectionSurvivesThemeEditingAndRecreation() throws Exception {
+        Library.Track demo=new Library.Track();demo.path="/fixture/pixel-steps.mid";demo.title="Pixel Steps";demo.game="Visualizer Sessions";demo.artist="ChipAmp9x";demo.system="MIDI";demo.index=0;demo.length=180000;
+        service.current=demo;service.queue=java.util.Collections.singletonList(demo);service.index=0;service.position=43000;
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),new org.json.JSONArray().put(new org.json.JSONObject().put("name","Visualizer Sessions").put("id","visualizer-demo").put("tracks",new org.json.JSONArray().put(demo.json()))).toString().getBytes("UTF-8"));
+        service.levels=new AudioSpectrum().analyze(AudioSpectrumTest.chord());
+        short[] pcm=AudioSpectrumTest.tone(440,.6,false);for(int i=0;i<2048;i++)pcm[i*2+1]=(short)(Math.cos(i*2*Math.PI*440/44100)*16000);service.waveform=AudioWaveform.analyze(pcm);service.playing=true;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();PixelVisualizer viz=findVisualizer(a.getWindow().getDecorView());
+            String[] names={"spectrum","waveform","stereo-scope","orbit"};
+            for(int i=0;i<4;i++){viz.setFrame(service.levels,service.waveform,true,true);assertEquals(i,viz.mode());capture(a,"visualizer-"+names[i]+".png");viz.performClick();}
+            assertEquals(0,viz.mode());viz.performClick();assertEquals(1,viz.mode());c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());
+            a.beginThemeEdit(ThemeStore.from(PlayerTheme.find("dark"),false));viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());viz.performClick();assertEquals(1,viz.mode());
+            c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());assertNotNull(a.editDraft());a.cancelThemeEdit();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());viz.performLongClick();assertEquals(0,viz.mode());
+        }
+    }
+    private PixelVisualizer findVisualizer(View view){if(view instanceof PixelVisualizer)return (PixelVisualizer)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){PixelVisualizer found=findVisualizer(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
     @Test public void themeEditorFreezesThePreviewAndCancelRestoresLiveState() throws Exception {
         Library.Track first=new Library.Track();first.path="/fixture/one.spc";first.title="Frozen song";first.game="Game";first.artist="Composer";first.system="Super Nintendo";first.length=180000;service.current=first;service.queue=java.util.Collections.singletonList(first);service.index=0;service.position=12000;service.playing=true;
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -248,7 +264,7 @@ public class PlayerUiTest {
             findDescription(decor,"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();
             assertFalse(findDescription(decor,"Export current track…").isEnabled());assertFalse(findDescription(decor,"Track SoundFont…").isEnabled());assertTrue(findDescription(decor,"Sleep timer").isEnabled());captureView(decor,"playback-menu.png",774,712);
             findDescription(decor,"Back to app menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
-            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();assertNotNull(findDescription(decor,"Color theme"));assertNotNull(findDescription(decor,"SoundFonts"));assertNotNull(findDescription(decor,"About ChipPlayer 199x"));captureView(decor,"settings-menu.png",774,696);
+            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();assertNotNull(findDescription(decor,"Color theme"));assertNotNull(findDescription(decor,"SoundFonts"));assertNotNull(findDescription(decor,"About ChipAmp9x"));captureView(decor,"settings-menu.png",774,696);
             assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK)));assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK)));menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback queue").performClick();assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));
         }
     }
@@ -360,9 +376,9 @@ public class PlayerUiTest {
     @Test public void headerIconsAreEqualAndSpectrumBelongsToThePlaybackDeck() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
-            View logo=findDescription(decor,"ChipPlayer 199x");
+            View logo=findDescription(decor,"ChipAmp9x");
             assertTrue(logo instanceof ChipLogo); assertEquals(a.dp(42),logo.getHeight()); assertTrue(logo.getWidth()>a.dp(150));
-            assertEquals("ChipPlayer 199x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
+            assertEquals("ChipAmp9x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
             assertTrue(((ViewGroup)a.findViewById(android.R.id.content)).getChildAt(0).getBackground() instanceof android.graphics.drawable.ColorDrawable);
             int top=-1;
             for(String label:new String[]{"App menu"}) {
@@ -373,7 +389,7 @@ public class PlayerUiTest {
                 if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
                 assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());
             }
-            View deck=findDescription(decor,"Now Playing panel"),spectrum=findDescription(decor,"Audio spectrum visualizer, 24 frequency bands");
+            View deck=findDescription(decor,"Now Playing panel"),spectrum=findDescription(decor,"SPECTRUM visualizer. Tap for WAVEFORM. Hold to return to spectrum.");
             assertSame(deck,spectrum.getParent());
             for(String label:new String[]{"TRACKLIST"," NOW PLAYING","♪  44.1 kHz","READY"}) {
                 TextView heading=(TextView)findText(decor,label); assertNotNull(heading);

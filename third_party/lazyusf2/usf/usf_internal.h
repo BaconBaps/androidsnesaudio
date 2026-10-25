@@ -191,7 +191,7 @@ typedef struct _precomp_block
 
 struct usf_state
 {
-    /* ChipPlayer: execution watchdog, reset for each output chunk. */
+    /* ChipAmp9x: execution watchdog, reset for each output chunk. */
     int64_t chip_budget;
     uint64_t chip_deadline;
     // main/main.c

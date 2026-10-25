@@ -9,7 +9,7 @@ X-Scale CIC and Berkeley debugger code: BSD-2/BSD-3; see LazyUSF2-BSD.txt. LazyU
 and resampler are distributed with the GPL project. Full GPL texts are bundled
 in this screen and the repository. The combined APK is GPL version 3.
 
-ChipPlayer changes: a portable cached-interpreter build for ARM64/x86_64,
+ChipAmp9x changes: a portable cached-interpreter build for ARM64/x86_64,
 per-instance CPU/RSP execution limits, bounded error strings, audio DMA bounds
 checks and DAC-rate masking. The app's USF loader validates sparse patches and
 keeps library references inside the imported set. Original test fixtures contain

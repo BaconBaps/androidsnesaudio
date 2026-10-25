@@ -1,4 +1,4 @@
-# ChipPlayer 199x raster chrome
+# ChipAmp9x raster chrome
 
 The late-90s desktop-player feel is built from original PNG assets, rather than a
 screenshot or a flat mockup. Text, spectrum bars and controls remain live Android

@@ -198,7 +198,7 @@ public class MainActivity extends Activity {
     }
     private void updateVisualizer() {
         if(editState!=null)return;
-        if(visualizer!=null && player!=null) visualizer.setFrame(player.levels,player.playing && player.seekTarget<0,player.current!=null);
+        if(visualizer!=null && player!=null) visualizer.setFrame(player.levels,player.waveform,player.playing && player.seekTarget<0,player.current!=null);
     }
     private void updateTime(int ms) { String end=player==null||player.current==null?"--:--":player.repeat?"∞ LOOP":clock(player.current.length); String label=getString(R.string.position_and_duration,clock(ms),end);
         if(player!=null && player.seekTarget>=0) label+="  ·  SEEKING → "+clock(player.seekTarget);
@@ -323,7 +323,7 @@ public class MainActivity extends Activity {
             menuEntry(entries,menu,sleep,player!=null,false,this::chooseSleepTimer);
         } else {
             menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
-            menuSection(entries,"APP");menuEntry(entries,menu,"About ChipPlayer 199x",true,false,this::about);
+            menuSection(entries,"APP");menuEntry(entries,menu,"About ChipAmp9x",true,false,this::about);
         }
         gap(body,10);TextView close=button("CLOSE",accentColor,backgroundColor);add(body,close,-1,44);close.setOnClickListener(v->menu.dismiss());
         menu.setContentView(body,new ViewGroup.LayoutParams(-1,-1));menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
@@ -352,7 +352,7 @@ public class MainActivity extends Activity {
                 dialog().setTitle("Rename SoundFont").setView(input).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",(x,w)->{
                     try {soundFonts.rename(bank,input.getText().toString());manageSoundFonts();}catch(Exception e){soundFontError(e);}
                 }).show();
-            } else dialog().setTitle("Delete SoundFont?").setMessage("Remove “"+bank.name+"” from ChipPlayer? Tracks using this bank will use the default bank. Your original file is kept.")
+            } else dialog().setTitle("Delete SoundFont?").setMessage("Remove “"+bank.name+"” from ChipAmp9x? Tracks using this bank will use the default bank. Your original file is kept.")
                 .setNegativeButton("CANCEL",null).setPositiveButton("DELETE",(x,w)->{
                     try {soundFonts.delete(bank);soundFontChanged();manageSoundFonts();}catch(Exception e){soundFontError(e);}
                 }).show();
@@ -488,14 +488,16 @@ public class MainActivity extends Activity {
     void beginThemeEdit(ThemeStore.Draft draft){
         if(editState!=null)return;if(busy){Toast.makeText(this,"Finish the import before editing a theme",Toast.LENGTH_SHORT).show();return;}editState=new ThemeEditor.State();editState.draft=draft;
         editState.tracks=new ArrayList<>(showQueue?(player==null?Collections.emptyList():player.queue):showFavourites?favourites.tracks(library.games):selected==null?Collections.emptyList():selected.tracks);
-        if(player!=null){editState.current=player.current;editState.position=player.position;editState.playing=player.playing;editState.repeat=player.repeat;editState.shuffle=player.shuffle;editState.levels=player.levels.clone();}
+        if(player!=null){editState.current=player.current;editState.position=player.position;editState.playing=player.playing;editState.repeat=player.repeat;editState.shuffle=player.shuffle;editState.levels=player.levels.clone();editState.waveform=player.waveform.clone();}
         float sum=0;for(float f:editState.levels)sum+=f;if(sum<.01f)for(int i=0;i<editState.levels.length;i++)editState.levels[i]=.2f+(i*7%13)/18f;
+        float energy=0;for(float value:editState.waveform)energy+=Math.abs(value);
+        if(energy<.01f)for(int i=0;i<AudioWaveform.POINTS;i++){editState.waveform[i*2]=.6f*(float)Math.sin(i*.18);editState.waveform[i*2+1]=.6f*(float)Math.cos(i*.18);}
         main.removeCallbacks(tick);repaintTheme();
     }
     private void renderEditPlayer(){
         Library.Track track=editState.current;nowTitle.setText(track==null?"Theme preview":soundFonts.nowPlayingTitle(track));nowArtist.setText(track==null?"Tap a part to edit its colours":track.artist+" · "+track.game);
         seek.setMax(track==null?180000:track.length);seek.setProgress(editState.position);time.setText(getString(R.string.position_and_duration,clock(editState.position),clock(track==null?180000:track.length)));
-        playButton.setText(editState.playing?"Ⅱ":"▶");styleMode(shuffleButton,editState.shuffle,"⇄","Shuffle");styleMode(repeatButton,editState.repeat,"↻","Continuous loop");visualizer.setFrozenFrame(editState.levels);
+        playButton.setText(editState.playing?"Ⅱ":"▶");styleMode(shuffleButton,editState.shuffle,"⇄","Shuffle");styleMode(repeatButton,editState.repeat,"↻","Continuous loop");visualizer.setFrozenFrame(editState.levels,editState.waveform);
     }
     private final Runnable repaintEdit=()->{if(editState!=null){applyPalette(editState.draft.theme());buildUI();}};
     void paintTheme(String role,int color){if(editState==null)return;editState.draft.colors.put(role,color);main.removeCallbacks(repaintEdit);main.postDelayed(repaintEdit,80);}
@@ -528,7 +530,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipPlayer 199x · v1.18.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.19.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

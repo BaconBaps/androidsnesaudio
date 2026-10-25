@@ -18,7 +18,7 @@ extern "C" {
 
 /* Returns the size of the base emulator state. */
 size_t usf_get_state_size(void);
-/* ChipPlayer execution limit and allocation validation. */
+/* ChipAmp9x execution limit and allocation validation. */
 void usf_set_cpu_budget(void *state, int64_t instructions);
 int usf_check_cpu_budget(usf_state_t *state);
 int usf_allocations_ok(void *state, int needs_rom);
