@@ -22,7 +22,7 @@ The loader validates header version, compressed data checksum, sparse-section
 structure, destination bounds, state header and RAM size. ROM/state patches are
 merged in primary-library, track, numbered-library order. Metadata from an
 auxiliary library does not overwrite the track's own metadata. UTF-8 and CP1252
-tags, length/fade, _enablecompare and _enablefifofull are handled.
+tags, optional length/fade (including decimal dot/comma notation), _enablecompare and _enablefifofull are handled.
 
 Bounds: each file up to 32 MiB; at most 64 dependency loads, depth 16 and 128 MiB
 of loaded dependency data; state up to 8 MiB RAM plus its header; ROM patches up

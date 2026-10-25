@@ -1,3 +1,4 @@
+#include "xsf_timing.h"
 #include "usf_decoder.h"
 extern "C" {
 #include "usf/usf.h"
@@ -43,17 +44,6 @@ std::string cp1252(const std::string& input){
     static const uint16_t extended[]={0x20ac,0x81,0x201a,0x192,0x201e,0x2026,0x2020,0x2021,0x2c6,0x2030,0x160,0x2039,0x152,0x8d,0x17d,0x8f,0x90,0x2018,0x2019,0x201c,0x201d,0x2022,0x2013,0x2014,0x2dc,0x2122,0x161,0x203a,0x153,0x9d,0x17e,0x178};
     std::string out;for(uint8_t c:input){uint32_t u=c<128||c>=160?c:extended[c-128];if(u<128)out+=char(u);else if(u<2048){out+=char(0xc0|(u>>6));out+=char(0x80|(u&63));}else{out+=char(0xe0|(u>>12));out+=char(0x80|((u>>6)&63));out+=char(0x80|(u&63));}}return out;
 }
-int timeMs(const std::string& value,int fallback){
-    if(value.empty())return fallback;
-    try{
-        double total=0;size_t at=0;
-        do{size_t end=value.find(':',at);std::string token=value.substr(at,end==std::string::npos?end:end-at);size_t used=0;double part=std::stod(token,&used);if(used!=token.size()||part<0||part>86400)throw std::runtime_error("Invalid USF timing tag");total=total*60+part;if(end==std::string::npos)break;at=end+1;}while(at<value.size());
-        if(!(total>=0&&total<=86400))throw std::runtime_error("Invalid USF timing tag");return int(total*1000+.5);
-    }catch(...){throw std::runtime_error("Invalid USF timing tag");}
-}
-
-// Merge validated sparse patches before handing any data to the legacy core.
-// Limits cover standard 4/8 MiB N64 states and cartridges up to 64 MiB.
 struct Program {
     std::vector<uint8_t> rom,state=std::vector<uint8_t>(0x80275c);
     std::map<std::string,std::string> tags;std::set<std::string> stack;
@@ -115,8 +105,8 @@ struct UsfDecoder::Impl {
         std::string real=canonical(path),dir=parent(real);program.root=dir;
         for(std::string at=dir;!at.empty()&&at!="/";at=parent(at))if(at.substr(at.find_last_of('/')+1)=="psf")program.root=at;
         program.load(real,0);program.validate();
-        duration=timeMs(program.tags["length"],180000);if(duration<=0)duration=180000;
-        fade=timeMs(program.tags["fade"],5000);if(fade>60000)throw std::runtime_error("USF fade exceeds one minute");
+        duration=XsfTiming::milliseconds(program.tags["length"],180000);if(duration<=0)duration=180000;
+        fade=XsfTiming::milliseconds(program.tags["fade"],5000,60000);
         fadeAt=int64_t(duration)*44100/1000;
     }
     ~Impl(){if(!emulator.empty())usf_shutdown(emulator.data());}

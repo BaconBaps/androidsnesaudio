@@ -37,6 +37,9 @@ public final class PsfNativeSmoke {
                 System.out.println("PASS "+file+" · metadata, sustained PCM, seeks, fade, loop, isolated export");
             } finally {Engine.close(h);}
         }
+        for(String file:new String[]{"comma.psf","spaces.psf","unknown.psf","range.psf"}){
+            long h=Engine.open(new File(dir,file).getPath());try{int expected=file.equals("comma.psf")||file.equals("spaces.psf")?3000:185000;if(Engine.length(h,0)!=expected)throw new AssertionError("PSF timing compatibility: "+file);Engine.start(h,0,expected);short[] pcm=new short[4096];Engine.render(h,pcm);audible(pcm);}finally{Engine.close(h);}System.out.println("PASS PSF optional timing compatibility "+file);
+        }
         File zip=File.createTempFile("psf-import-",".zip"),folder=Files.createTempDirectory("psf-import-").toFile();
         try {
             try(java.util.zip.ZipOutputStream out=new java.util.zip.ZipOutputStream(new FileOutputStream(zip))) {

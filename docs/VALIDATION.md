@@ -426,3 +426,26 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
 - 108 JUnit/Robolectric tests and Android lint pass. No decoder, permission or
   audio format changes are involved. Device keyboard/dialog interaction still
   needs user/device testing.
+
+## PSF decimal-comma timing compatibility (v1.20.1)
+
+- The supplied Resident Evil 3 collection contains 133 self-contained PSF files
+  with decimal-comma lengths, including `0:6,052078` and much longer fractional
+  representations. The old std::stod-based parser rejected them.
+- A shared locale-independent fixed-point xSF timing reader accepts seconds,
+  MM:SS and HH:MM:SS, decimal dot/comma, whitespace and fractional rounding.
+  Missing, malformed or out-of-range optional timing uses the existing safe
+  defaults instead of rejecting otherwise valid music. Fade remains capped at
+  one minute (invalid/excessive values default to five seconds). Body/version,
+  checksum, memory and dependency validation are unchanged.
+- All 133 supplied tracks opened through the app JNI; exact durations matched
+  an independent Python Decimal calculation. All reopened after app archive
+  extraction. 131 produced audible PCM during the first 557 ms; this initial
+  window does not establish that the other two are silent throughout.
+- Native timing tests cover the supplied formats and invalid/fallback cases.
+  Original generated PSF fixtures verify import/playback for comma, whitespace,
+  unknown and oversized timing values; USF uses the same parser. The full
+  native SPC/RSN, VGZ, PSF, MIDI and USF suite, 108 Android unit/UI tests and lint
+  pass. No supplied game audio or collection files are included in the APK or
+  repository. The uploaded 7z was unpacked only for local verification; app
+  import remains files/folders, ZIP and supported RAR/RSN archives.

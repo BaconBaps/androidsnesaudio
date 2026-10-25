@@ -38,6 +38,7 @@ public final class UsfNativeSmoke {
                 System.out.println("PASS "+file+" · metadata, sustained PCM, seeks, fade, loop, isolated export");
             } finally {Engine.close(h);}
         }
+        long unknownTime=Engine.open(new File(dir,"bad-time.usf").getPath());try{if(Engine.length(unknownTime,0)!=185000)throw new AssertionError("Optional USF timing fallback");}finally{Engine.close(unknownTime);}System.out.println("PASS USF optional timing fallback");
         File zip=File.createTempFile("usf-import-",".zip"),folder=Files.createTempDirectory("usf-import-").toFile();
         try {
             try(java.util.zip.ZipOutputStream out=new java.util.zip.ZipOutputStream(new FileOutputStream(zip))) {
@@ -49,7 +50,7 @@ public final class UsfNativeSmoke {
             long h=Engine.open(entries.get(0).file.getPath());try{Engine.start(h,0,3000);short[] pcm=new short[4096];Engine.render(h,pcm);audible(pcm);}finally{Engine.close(h);}
             System.out.println("PASS USF ZIP dependency import, case-folded paths and library filtering");
         } finally { zip.delete();ArchiveImporter.removeTree(folder); }
-        for(String file:new String[]{"missing.miniusf","cycle.miniusf","escape.miniusf","bad.usf","truncated.usf","empty.usf","bad-ram.usf","bad-crc.usf","bad-time.usf"}) {
+        for(String file:new String[]{"missing.miniusf","cycle.miniusf","escape.miniusf","bad.usf","truncated.usf","empty.usf","bad-ram.usf","bad-crc.usf"}) {
             try {long h=Engine.open(new File(dir,file).getPath());Engine.close(h);throw new AssertionError("Invalid USF accepted: "+file);} catch(IOException expected){System.out.println("PASS rejected "+file+": "+expected.getMessage());}
         }
         long invalidDma=Engine.open(new File(dir,"bad-dma.usf").getPath());

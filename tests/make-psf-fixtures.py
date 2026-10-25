@@ -23,3 +23,6 @@ patch=bytearray(2048);patch[:8]=b'PS-X EXE';struct.pack_into('<I',patch,0x18,0x8
 (p/'escape.minipsf').write_bytes(psf(patch,'_lib=../../outside.psflib\n'))
 (p/'unicode.psf').write_bytes(psf(exe,'utf8=1\ntitle=Forêt 🎵\nlength=0:02\nfade=0:01\n'))
 (p/'bad.psf').write_bytes(b'PSF\x01'+bytes(12))
+
+for name,timing in [('comma','length=0:02,500\nfade=0:00,500\n'),('spaces','length= 00 : 02.500 \nfade= .5 \n'),('unknown','length=unknown\nfade=not tagged\n'),('range','length=99999999999999999999\nfade=9999\n')]:
+ (p/(name+'.psf')).write_bytes(psf(exe,timing))

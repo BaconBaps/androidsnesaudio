@@ -8,6 +8,7 @@ TEST_DIR="$PWD/app/build/sample-check"
 CMAKE_BIN="${ANDROID_HOME}/cmake/3.22.1/bin/cmake"
 "$CMAKE_BIN" -S app/src/main/cpp -B "$TEST_DIR/native-player" -DCMAKE_BUILD_TYPE=Release
 "$CMAKE_BIN" --build "$TEST_DIR/native-player" -j2
+"$TEST_DIR/native-player/xsf_timing_test"
 mkdir -p "$TEST_DIR/classes"
 javac -d "$TEST_DIR/classes" app/src/main/java/dev/pixelspc/{Engine,RarReader,ArchiveImporter,PlaybackSeek,WavExporter}.java tests/{ArchiveSmoke,NativeSmoke,NativeSeekSmoke,NativeExportSmoke,PsfNativeSmoke,UsfNativeSmoke,MidiNativeSmoke}.java
 NATIVE_PATH="$TEST_DIR/native-player:$TEST_DIR/native-player/gme/gme"

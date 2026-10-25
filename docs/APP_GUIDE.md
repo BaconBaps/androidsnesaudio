@@ -190,7 +190,9 @@ use a complete ZIP set. Libraries are retained privately but hidden from the
 track list. Metadata groups these soundtracks under PlayStation.
 
 Original PlayStation **PSF version 1** is supported. PSF2 and PSP formats are not included. Nintendo 64 USF is supported separately. No BIOS is needed. PSF length/fade tags determine the
-normal ending; absent length defaults to three minutes plus fade. Loop keeps the
+normal ending; absent or unrecognised length defaults to three minutes plus fade.
+Decimal dots and decimal commas, including long fractional timings, are supported.
+Unrecognised or excessive fade tags use a five-second fade. Loop keeps the
 emulated program running, and export uses an independent decoder. Long seeks
 emulate the intervening audio, so catching up can take a moment.
 
