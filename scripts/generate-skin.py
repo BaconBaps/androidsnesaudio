@@ -68,3 +68,33 @@ s=Sprite(16,20);s.rect(0,0,16,20,(205,209,218,255));bevel(s,0,(15,16,22,255),(5,
 for x in [5,8,11]:s.rect(x,6,1,8,(87,92,110,255));s.rect(x+1,6,1,8,(242,243,248,255))
 s.save('skin_thumb.png')
 print('Generated 9 original sprite designs (6 nine-patch types) at',', '.join(DENSITIES))
+
+# Reactor: original, palette-neutral mechanical frames. Texture is tiled separately
+# so rivets and dither never become stretched pixels in a tall playlist.
+for name in ['chassis','panel','well','key','key_down']:
+    s=Sprite(40,40)
+    recessed=name in ('well','key_down')
+    bevel(s,0,B(230),B(245))
+    bevel(s,1,W(48) if not recessed else B(220),B(170) if not recessed else W(42))
+    bevel(s,2,W(20) if not recessed else B(150),B(105) if not recessed else W(20))
+    bevel(s,3,B(140),W(28))
+    if name=='chassis':
+        bevel(s,4,W(30),B(160))
+        for x,y in [(5,5),(30,5),(5,30),(30,30)]:
+            s.rect(x,y,5,5,B(230));s.rect(x,y,4,1,W(105));s.rect(x,y,1,4,W(52));s.rect(x+1,y+2,3,1,B(250))
+        # Fixed corner hatching, never stretched across the content area.
+        for x,y in [(12,5),(23,5),(12,32),(23,32)]:
+            s.rect(x,y,4,2,(177,91,40,210));s.rect(x+2,y,2,1,B(190))
+    if name in ('key','key_down'):
+        for x in [8,12,16,20,24,28]:s.rect(x,34,2,1,B(115))
+    s.save('reactor_'+name+'.9.png',True,10 if name=='chassis' else 5)
+s=Sprite(8,8)
+for y in range(8):
+    for x in range(8):
+        if (x+y)%2==0:s.p[y][x]=B(32)
+        elif y%4==0:s.p[y][x]=W(7)
+s.save('reactor_dither.png')
+s=Sprite(32,12)
+for y,c in [(0,B(220)),(1,W(36)),(3,B(200)),(4,B(230)),(5,W(38)),(8,B(220)),(9,W(30)),(11,B(220))]:s.rect(0,y,32,1,c)
+s.save('reactor_rail.9.png',True,1)
+print('Generated Reactor mechanical frames, dither tile and vent rail')

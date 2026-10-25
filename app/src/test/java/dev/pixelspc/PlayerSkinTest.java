@@ -35,6 +35,22 @@ public class PlayerSkinTest {
         assertFalse(up.sameAs(down)); assertEquals(up.getPixel(60,40),down.getPixel(60,40));
         button.setState(new int[]{}); assertTrue(up.sameAs(render(button,120,80)));
     }
+    @Test public void reactorFramesKeepCornersAndCustomThemesKeepTheMechanicalSkin() throws Exception {
+        android.content.Context c=RuntimeEnvironment.getApplication();PlayerTheme reactor=PlayerTheme.find("reactor");
+        int[] frames={R.drawable.reactor_chassis,R.drawable.reactor_panel,R.drawable.reactor_well,R.drawable.reactor_key,R.drawable.reactor_key_down,R.drawable.reactor_rail};
+        for(int id:frames)assertTrue(c.getDrawable(id) instanceof NinePatchDrawable);
+        PlayerSkin skin=new PlayerSkin(c,reactor);
+        Bitmap small=render(c.getDrawable(R.drawable.reactor_well),100,80),large=render(c.getDrawable(R.drawable.reactor_well),500,300);
+        for(int y=0;y<8;y++)for(int x=0;x<8;x++){
+            assertEquals(small.getPixel(x,y),large.getPixel(x,y));
+            assertEquals(small.getPixel(99-x,79-y),large.getPixel(499-x,299-y));
+        }
+        ThemeStore.Draft draft=ThemeStore.from(reactor,false);draft.colors.put("player.spectrumHigh",0xffaaffcc);
+        PlayerTheme restored=ThemeStore.read(new java.io.ByteArrayInputStream(ThemeStore.encode(draft).toString().getBytes("UTF-8"))).theme();
+        assertTrue(restored.reactor());assertTrue(restored.nowPlaying().reactor());assertTrue(restored.library().reactor());
+        assertEquals(0xffaaffcc,restored.nowPlaying().spectrumHigh);assertEquals(reactor.nowPlaying().spectrumLow,restored.nowPlaying().spectrumLow);
+        assertFalse(render(skin.button(reactor.accent),120,80).sameAs(render(new PlayerSkin(c).button(reactor.accent),120,80)));
+    }
     @Test public void lightThemeFrameShadowsStaySoft() {
         PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());
         for(String id:new String[]{"light","snes","famicom","game-boy"}) {
@@ -48,6 +64,7 @@ public class PlayerSkinTest {
     @Test public void textureKeepsThemeTextReadableAcrossEveryPalette() {
         PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());
         for(PlayerTheme theme:PlayerTheme.ALL) {
+            skin=new PlayerSkin(RuntimeEnvironment.getApplication(),theme);
             Bitmap chassis=render(skin.chassis(theme.background),80,80),selected=render(skin.selection(theme.surface),80,80);
             for(int y=24;y<56;y++) for(int x=24;x<56;x++) {
                 int bg=chassis.getPixel(x,y);

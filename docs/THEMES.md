@@ -1,13 +1,13 @@
 # Player themes
 
-Choose a palette from the image-preview grid opened by **⋮ → Choose color theme**. Your selection is saved;
+Choose a palette from the image-preview grid opened by **App menu → Settings → Color theme**. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
 
 Renders below come from the actual Android UI using Robolectric and a playback
 metadata fixture with synthetic multitone PCM, rather than a physical device.
-The pixel spectrum uses the selected palette’s accent and secondary colors. All
+The pixel spectrum uses the selected palette’s accent and secondary colors. Most
 palettes share the original nine-patch metal frames and image-based controls;
 dark palettes have stronger grain, and light ones keep quieter text surfaces.
 
@@ -75,3 +75,21 @@ Black hardware with Sega blue and red.
 Deep violet shell and mint highlights.
 
 <img src="screenshots/theme-gamecube.png" width="240" alt="GameCube player palette" />
+
+## Reactor
+
+Muted rust-brown iron, warm cream lettering, amber phosphor and red warning
+accents. An original generated metal texture is tiled at low opacity under a
+small ordered-dither sprite; mechanical nine-patches keep the rivets and corners
+fixed at any screen size. The screens and list interiors stay dark for readability.
+Bright spectrum segments and waveform traces receive a restrained pixel glow.
+The reference screenshot's captions, watermark and video controls are not included.
+
+<img src="screenshots/theme-reactor.png" width="260" alt="Reactor spectrum skin" />
+<img src="screenshots/reactor-waveform.png" width="260" alt="Reactor skin with stereo waveform glow" />
+<img src="screenshots/reactor-library.png" width="260" alt="Reactor library with collapsible platform groups" />
+
+Reactor is also a base for custom themes: saved/imported copies retain the
+mechanical frames and allow their palette and spectrum colours to be edited.
+The casing texture is `reactor_metal.png`; original frame, vent and dither sprites
+are reproducible with `python3 scripts/generate-skin.py` at five Android densities.

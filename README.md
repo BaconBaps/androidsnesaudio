@@ -1,6 +1,6 @@
 # ChipAmp9x
 
-A pixel-styled Android player for retro game soundtracks, with ten themes,
+A pixel-styled Android player for retro game soundtracks, with eleven themes,
 custom palettes, saved playlists, four audio visualizers, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
@@ -8,6 +8,10 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
 **[Download the Android APK](https://github.com/BaconBaps/androidsnesaudio/raw/refs/heads/main/downloads/ChipAmp9x-debug.apk)** · Android 8.0+ · 64-bit ARM
 
 ## The app
+
+**New: Reactor** — dithered rust-metal panels, recessed displays and glowing amber/red visualizers.
+
+<img src="docs/screenshots/theme-reactor.png" width="300" alt="Reactor skin with worn metal casing, riveted edging and an amber phosphor spectrum" />
 
 <table>
   <tr>
@@ -36,7 +40,7 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
     <th>Export audio</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of ten retro-inspired theme previews" /></td>
+    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of eleven retro-inspired theme previews" /></td>
     <td><img src="docs/screenshots/export-audio.png" width="300" alt="Save a track or trimmed clip as a WAV file with optional fades" /></td>
   </tr>
   <tr>
@@ -70,7 +74,7 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
   </tr>
 </table>
 
-[See all ten themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
+[See all eleven themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
 
 ## Home-screen widget
 

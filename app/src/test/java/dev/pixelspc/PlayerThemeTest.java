@@ -35,7 +35,7 @@ public class PlayerThemeTest {
             assertTrue(t.name+" active track",PlayerTheme.contrast(t.surface,t.accent)>=4.5);
             assertTrue(t.name+" play button",PlayerTheme.contrast(t.accent,t.onAccent)>=4.5);
         }
-        assertEquals(10,PlayerTheme.ALL.length);
+        assertEquals(11,PlayerTheme.ALL.length);
         for(String removed:new String[]{"retired-theme","playstation","dreamcast","n64"})
             assertSame(PlayerTheme.ALL[0],PlayerTheme.find(removed));
     }

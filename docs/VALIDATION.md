@@ -449,3 +449,20 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
   pass. No supplied game audio or collection files are included in the APK or
   repository. The uploaded 7z was unpacked only for local verification; app
   import remains files/folders, ZIP and supported RAR/RSN archives.
+
+## Reactor skin (v1.21.0)
+
+- 109 JUnit/Robolectric tests pass with zero failures, errors or skipped tests;
+  Android lint reports no issues. Debug APK builds for arm64-v8a and x86_64.
+- Native-graphics renders cover the actual Reactor player, live spectrum fixture,
+  stereo waveform fixture and platform-accordion library. These are Robolectric
+  captures, not physical-device screenshots.
+- All eleven palettes meet the existing text/selection/playback contrast checks;
+  texture contrast checks now use each palette's actual skin, including Reactor.
+- Reactor's six raster frame resources compile as Android nine-patches. Corner
+  pixels stay fixed as the frame grows. Pressed button frames differ from the
+  original skin. Saved/exported/imported custom Reactor themes retain their
+  mechanical base and spectrum defaults while accepting colour overrides.
+- Existing theme-switching tests preserve current track and playback position,
+  and now include Reactor. No decoder, importer or audio-thread changes.
+- APK signature matches the previous release; 16 KiB zip alignment passes.

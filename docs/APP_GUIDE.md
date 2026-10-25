@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-ten retro palettes, and a local library for the games you grew up with.
+eleven retro palettes, and a local library for the games you grew up with.
 
 <img src="screenshots/theme-desktop-98.png" width="300" alt="ChipAmp9x soundtrack library and player with live spectrum" />
 
@@ -482,3 +482,13 @@ keeps the music files and current playback queue. Removing an imported soundtrac
 from the library makes its tracks unavailable in saved playlists; remaining
 tracks keep their order, and an empty playlist can still be renamed or deleted.
 Names may be up to 80 characters; up to 100 playlists of 1000 tracks can be saved.
+
+## Reactor skin
+
+Choose **App menu → Settings → Color theme → Reactor**. This additional skin uses
+original dithered rust-metal artwork, fixed riveted nine-patch frames, vented
+button faces and recessed dark displays. Spectrum and waveform highlights have
+pixel glow in amber and warning red. Tap the visualizer to cycle its existing
+four modes. The texture and glow belong to Reactor and its custom-theme copies;
+other themes keep their existing appearance. Reactor can be edited, saved and
+exported using the custom-theme editor.

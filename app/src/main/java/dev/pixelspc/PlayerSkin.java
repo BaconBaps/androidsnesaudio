@@ -8,13 +8,27 @@ import android.view.Gravity;
 /** Original raster chrome: tiled grain and compiled nine-patches, never stretched textures. */
 final class PlayerSkin {
     private final Context context;
-    PlayerSkin(Context context) { this.context=context; }
+    private final boolean reactor;
+    private Bitmap metal;
+    PlayerSkin(Context context) { this(context,PlayerTheme.ALL[0]); }
+    PlayerSkin(Context context,PlayerTheme theme) { this.context=context;reactor=theme.reactor(); }
+    private int frame(int id){
+        if(!reactor)return id;
+        if(id==R.drawable.skin_chassis)return R.drawable.reactor_chassis;
+        if(id==R.drawable.skin_panel)return R.drawable.reactor_panel;
+        if(id==R.drawable.skin_well)return R.drawable.reactor_well;
+        if(id==R.drawable.skin_key)return R.drawable.reactor_key;
+        if(id==R.drawable.skin_key_down)return R.drawable.reactor_key_down;
+        if(id==R.drawable.skin_rail)return R.drawable.reactor_rail;
+        return id;
+    }
     private Drawable patch(int id) {
         Drawable d=context.getDrawable(id).mutate();
         if(d instanceof NinePatchDrawable) ((NinePatchDrawable)d).setFilterBitmap(false);
         return d;
     }
     private Drawable edge(int id,int color) {
+        id=frame(id);
         Drawable d=patch(id);
         if(PlayerTheme.luminance(color)>.35) {
             // Bake edge opacity into the pixels: Android button state containers
@@ -35,6 +49,15 @@ final class PlayerSkin {
         d.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT); d.setFilterBitmap(false); return d;
     }
     private Drawable face(int color,int edge,boolean grain) {
+        if(reactor){
+            java.util.ArrayList<Drawable> parts=new java.util.ArrayList<>();parts.add(new ColorDrawable(color));
+            if(grain){
+                if(metal==null){BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=8;metal=BitmapFactory.decodeResource(context.getResources(),R.drawable.reactor_metal,options);}
+                BitmapDrawable texture=new BitmapDrawable(context.getResources(),metal);texture.setTargetDensity(160);texture.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT);texture.setFilterBitmap(false);texture.setAlpha(85);parts.add(texture);
+            }
+            BitmapDrawable dots=tile(R.drawable.reactor_dither);dots.setAlpha(grain?180:100);parts.add(dots);parts.add(edge(edge,color));
+            LayerDrawable d=new LayerDrawable(parts.toArray(new Drawable[0]));d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK);return d;
+        }
         BitmapDrawable brushed=grain?tile(R.drawable.skin_brushed):null;
         // Light surfaces need gentler grain to retain their text contrast.
         if(brushed!=null && PlayerTheme.luminance(color)>.35) {
@@ -48,6 +71,7 @@ final class PlayerSkin {
     Drawable selection(int color) { return face(color,R.drawable.skin_panel,false); }
     Drawable well(int color) { return face(color,R.drawable.skin_well,false); }
     Drawable display(int color) {
+        if(reactor)return face(color,R.drawable.skin_well,false);
         BitmapDrawable lines=tile(R.drawable.skin_scanlines);
         if(PlayerTheme.luminance(color)>.35) lines.setAlpha(0);
         return new LayerDrawable(new Drawable[]{new ColorDrawable(color),lines,edge(R.drawable.skin_well,color)});

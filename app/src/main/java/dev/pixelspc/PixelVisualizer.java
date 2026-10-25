@@ -26,7 +26,7 @@ public class PixelVisualizer extends View {
     int mode(){return mode;}
     private void selectMode(int value){mode=value;getContext().getSharedPreferences("appearance",0).edit().putInt("visualizer",mode).apply();describe();invalidate();}
     private void describe(){setContentDescription(MODES[mode]+" visualizer. Tap for "+MODES[(mode+1)%MODES.length]+". Hold to return to spectrum.");}
-    public void setPlayerTheme(PlayerTheme t){theme=t;displayColor=t.spectrumBackground;screen=new PlayerSkin(getContext()).display(displayColor);invalidate();}
+    public void setPlayerTheme(PlayerTheme t){theme=t;displayColor=t.spectrumBackground;screen=new PlayerSkin(getContext(),t).display(displayColor);invalidate();}
     public void setFrame(float[] levels,boolean playing,boolean loaded){setFrame(levels,new float[AudioWaveform.SAMPLES],playing,loaded);}
     public void setFrame(float[] levels,float[] waveform,boolean playing,boolean loaded){
         if(levels.length!=AudioSpectrum.BANDS||waveform.length!=AudioWaveform.SAMPLES)throw new IllegalArgumentException("Invalid visualizer frame");
@@ -36,6 +36,13 @@ public class PixelVisualizer extends View {
     void setFrozenFrame(float[] levels){setFrozenFrame(levels,new float[AudioWaveform.SAMPLES]);}
     void setFrozenFrame(float[] levels,float[] waveform){frozen=true;playing=false;loaded=true;trace=waveform;gain();envelope=1;for(int i=0;i<heights.length;i++){heights[i]=levels[i];peaks[i]=levels[i];}invalidate();}
     private void box(Canvas c,int color,float x,float y,float w,float h){paint.setStyle(Paint.Style.FILL);paint.setColor(color);c.drawRect(x,y,x+w,y+h,paint);}
+    private void phosphor(Canvas c,int color,float x,float y,float w,float h){
+        if(theme.reactor()){
+            box(c,PlayerTheme.blend(displayColor,color,.10f),x-2,y-2,w+4,h+4);
+            box(c,PlayerTheme.blend(displayColor,color,.24f),x-1,y-1,w+2,h+2);
+        }
+        box(c,color,x,y,w,h);
+    }
     private void label(Canvas c,String s,int color,float x,float y,float size){paint.setStyle(Paint.Style.FILL);paint.setColor(color);paint.setTypeface(pixel);paint.setTextSize(size);c.drawText(s,x,y,paint);}
     private int bandColor(float value){return value<.5f?PlayerTheme.blend(theme.spectrumLow,theme.spectrumMid,value*2):PlayerTheme.blend(theme.spectrumMid,theme.spectrumHigh,(value-.5f)*2);}
     @Override protected void onDraw(Canvas canvas){
@@ -70,12 +77,20 @@ public class PixelVisualizer extends View {
             for(int j=0;j<16;j++) {
                 int lit=theme.spectrumGradient()?(j<8?PlayerTheme.blend(theme.spectrumLow,theme.spectrumMid,j/7f):PlayerTheme.blend(theme.spectrumMid,theme.spectrumHigh,(j-8)/7f)):(j>=12?theme.spectrumHigh:theme.spectrumLow);
                 int color=j<segments?lit:grid;
-                box(canvas,color,x,base-j*step,8,Math.max(1,step-1.5f));
+                if(j<segments)phosphor(canvas,color,x,base-j*step,8,Math.max(1,step-1.5f));
+                else box(canvas,color,x,base-j*step,8,Math.max(1,step-1.5f));
             }
-            if(peaks[i]>.02f) box(canvas,theme.spectrumPeak,x,base-Math.round(peaks[i]*16)*step,8,1.5f);
+            if(peaks[i]>.02f) phosphor(canvas,theme.spectrumPeak,x,base-Math.round(peaks[i]*16)*step,8,1.5f);
         }
     }
-    private void stroke(Canvas c,int color,float width){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(width);paint.setColor(color);c.drawPath(path,paint);paint.setStyle(Paint.Style.FILL);}
+    private void stroke(Canvas c,int color,float width){
+        paint.setStyle(Paint.Style.STROKE);
+        if(theme.reactor()&&PlayerTheme.luminance(color)>.25){
+            paint.setStrokeWidth(width+5);paint.setColor(PlayerTheme.blend(displayColor,color,.10f));c.drawPath(path,paint);
+            paint.setStrokeWidth(width+2);paint.setColor(PlayerTheme.blend(displayColor,color,.28f));c.drawPath(path,paint);
+        }
+        paint.setStrokeWidth(width);paint.setColor(color);c.drawPath(path,paint);paint.setStyle(Paint.Style.FILL);
+    }
     private void waveform(Canvas c,float top,float bottom,int grid){
         float height=bottom-top;
         for(int channel=0;channel<2;channel++){

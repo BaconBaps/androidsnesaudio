@@ -124,7 +124,16 @@ public class PlayerUiTest {
                 assertTrue(text(a.getWindow().getDecorView()).contains("DK Island Swing"));
                 assertFalse(text(a.getWindow().getDecorView()).contains("SOUNDTRACKS NEVER GET OLD"));
                 capture(a,"theme-"+palette.id+".png");
+                if(palette.reactor()){
+                    PixelVisualizer reactorViz=findVisualizer(a.getWindow().getDecorView());reactorViz.performClick();
+                    reactorViz.setFrame(service.levels,AudioWaveform.analyze(AudioSpectrumTest.tone(220,.7,false)),true,true);
+                    capture(a,"reactor-waveform.png");reactorViz.performLongClick();
+                    findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
+                    android.app.Dialog reactorLibrary=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+                    captureView(reactorLibrary.getWindow().getDecorView(),"reactor-library.png",822,1450);reactorLibrary.dismiss();
+                }
             }
+            a.selectTheme("desktop-98");
             findDescription(a.getWindow().getDecorView(),"Add DK Island Swing to favourites").performClick();
             findDescription(a.getWindow().getDecorView(),"App menu").performClick();
             findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Favourites").performClick();
