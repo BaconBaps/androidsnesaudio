@@ -16,7 +16,7 @@ public final class ThemePreview extends View {
     private static final int[] BARS={3,5,8,6,4,7,9,5,3,6,8,4};
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
-        super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.chassis(theme.background);well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
+        super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
         headingPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),"fonts/pixel.ttf"));
         headingPaint.setTextSize(7*getResources().getDisplayMetrics().scaledDensity);

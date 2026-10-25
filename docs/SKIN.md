@@ -115,3 +115,11 @@ Those details were becoming long copper bars and dark smears on wide controls.
 Corner rivets remain in fixed regions; bevels and tiled grain remain intact.
 Theme-grid names now use the player's section-heading pixel font at the same
 7 sp size, independent of the thumbnail scaling, with up to two lines for names.
+
+### v1.21.2 shared inset detailing
+
+Reactor's app background retains its tiled rust texture and dithering without
+an outer frame. The inset button faces and section-panel edging now apply to
+all palettes, including custom themes. Light palettes retain their softened
+frame shadows. Reactor keeps its own casing frames inside dialogs and the
+Now Playing panel.

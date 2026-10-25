@@ -478,3 +478,13 @@ drawn independently of thumbnail scaling and wrapped to two lines when needed.
 Updated native-graphics captures cover the player, library and theme grids.
 All 109 tests pass with no failures, errors or skips; lint reports no issues.
 The APK signature matches v1.21.0 and 16 KiB ZIP alignment passes.
+
+## Shared button/panel edging and borderless Reactor (v1.21.2)
+
+The main app background uses a separate borderless surface, preserving Reactor's
+metal texture without its outer casing frame. Raised/pressed button edges and
+section-panel edges now share Reactor's inset detail across palettes; the existing
+light-surface shadow softening remains active. Native-graphics captures refresh
+the theme gallery, theme grids, player and library.
+All 109 tests pass with no failures, errors or skips; Android lint reports no
+issues. APK signing certificate matches v1.21.1; 16 KiB ZIP alignment passes.

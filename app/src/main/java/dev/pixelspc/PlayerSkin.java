@@ -13,12 +13,12 @@ final class PlayerSkin {
     PlayerSkin(Context context) { this(context,PlayerTheme.ALL[0]); }
     PlayerSkin(Context context,PlayerTheme theme) { this.context=context;reactor=theme.reactor(); }
     private int frame(int id){
-        if(!reactor)return id;
-        if(id==R.drawable.skin_chassis)return R.drawable.reactor_chassis;
         if(id==R.drawable.skin_panel)return R.drawable.reactor_panel;
-        if(id==R.drawable.skin_well)return R.drawable.reactor_well;
         if(id==R.drawable.skin_key)return R.drawable.reactor_key;
         if(id==R.drawable.skin_key_down)return R.drawable.reactor_key_down;
+        if(!reactor)return id;
+        if(id==R.drawable.skin_chassis)return R.drawable.reactor_chassis;
+        if(id==R.drawable.skin_well)return R.drawable.reactor_well;
         if(id==R.drawable.skin_rail)return R.drawable.reactor_rail;
         return id;
     }
@@ -55,7 +55,7 @@ final class PlayerSkin {
                 if(metal==null){BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=8;metal=BitmapFactory.decodeResource(context.getResources(),R.drawable.reactor_metal,options);}
                 BitmapDrawable texture=new BitmapDrawable(context.getResources(),metal);texture.setTargetDensity(160);texture.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT);texture.setFilterBitmap(false);texture.setAlpha(85);parts.add(texture);
             }
-            BitmapDrawable dots=tile(R.drawable.reactor_dither);dots.setAlpha(grain?180:100);parts.add(dots);parts.add(edge(edge,color));
+            BitmapDrawable dots=tile(R.drawable.reactor_dither);dots.setAlpha(grain?180:100);parts.add(dots);if(edge!=0)parts.add(edge(edge,color));
             LayerDrawable d=new LayerDrawable(parts.toArray(new Drawable[0]));d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK);return d;
         }
         BitmapDrawable brushed=grain?tile(R.drawable.skin_brushed):null;
@@ -67,6 +67,7 @@ final class PlayerSkin {
         LayerDrawable d=new LayerDrawable(parts); d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK); return d;
     }
     Drawable chassis(int color) { return face(color,R.drawable.skin_chassis,true); }
+    Drawable background(int color) { return reactor?face(color,0,true):new ColorDrawable(color); }
     Drawable panel(int color) { return face(color,R.drawable.skin_panel,PlayerTheme.luminance(color)<.35); }
     Drawable selection(int color) { return face(color,R.drawable.skin_panel,false); }
     Drawable well(int color) { return face(color,R.drawable.skin_well,false); }

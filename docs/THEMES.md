@@ -7,8 +7,8 @@ logos are bundled.
 
 Renders below come from the actual Android UI using Robolectric and a playback
 metadata fixture with synthetic multitone PCM, rather than a physical device.
-The pixel spectrum uses the selected palette’s accent and secondary colors. Most
-palettes share the original nine-patch metal frames and image-based controls;
+The pixel spectrum uses the selected palette’s accent and secondary colors. All
+palettes share inset button and section-panel frames and image-based controls;
 dark palettes have stronger grain, and light ones keep quieter text surfaces.
 
 <img src="screenshots/theme-picker.png" width="360" alt="Theme picker with a two-column grid of player previews" />
@@ -81,7 +81,8 @@ Deep violet shell and mint highlights.
 Muted rust-brown iron, warm cream lettering, amber phosphor and red warning
 accents. An original generated metal texture is tiled at low opacity under a
 small ordered-dither sprite; mechanical nine-patches keep the rivets and corners
-fixed at any screen size. The screens and list interiors stay dark for readability.
+fixed at any screen size. The main app background is textured without an outer
+frame. The screens and list interiors stay dark for readability.
 Bright spectrum segments and waveform traces receive a restrained pixel glow.
 The reference screenshot's captions, watermark and video controls are not included.
 
