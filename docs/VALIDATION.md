@@ -17,7 +17,7 @@ Android/UI checks updated in the managed Linux cloud environment on 25 October
 
 ## Automated tests
 
-One hundred and one JUnit/Robolectric tests, zero failures and zero skipped:
+One hundred and eight JUnit/Robolectric tests, zero failures and zero skipped:
 
 - Empty library, disabled seek control, and Android document-picker launch.
 - Bidirectional title scrolling: edge pauses, smooth reversal, unchanged-title
@@ -409,3 +409,20 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
   MIDI and USF regression suite passes with the renamed demo and regenerated
   original SoundFont metadata. Device tap/animation behaviour remains for user
   testing. No microphone or additional permission is required.
+
+## Saved playlists (v1.20.0)
+
+- Ordered path/subsong references are saved atomically in private playlists.json,
+  separately from the imported library. Persistence tests cover repeated tracks,
+  subsongs, metadata resolution, rename/replace/delete, missing sources, name
+  validation, and rejected writes leaving existing data untouched.
+- A mixed-game UI test saves the queue through the menu, browses the Playlists
+  accordion, reloads after activity recreation, appends without interrupting
+  playback, renames and deletes without removing music. Repeated tracks show
+  only the active queue occurrence. UI tests also cover overwrite confirmation,
+  cancel, and the empty-library import/save controls.
+- Existing platform accordion expansion/selection remains unchanged; Playlists
+  is an additional section. Screenshot: screenshots/saved-playlists.png.
+- 108 JUnit/Robolectric tests and Android lint pass. No decoder, permission or
+  audio format changes are involved. Device keyboard/dialog interaction still
+  needs user/device testing.

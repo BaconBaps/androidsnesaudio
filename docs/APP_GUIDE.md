@@ -179,7 +179,7 @@ including opposite-phase signals. Pixel peaks fall after sounds stop; pausing
 settles the display. It never simulates activity when audio is silent and needs
 no microphone or system-audio-capture permission.
 
-There is no playlist editor, individual-song deletion, or configurable default duration yet.
+Saved playlists can be loaded into the tracklist, played, or appended to the queue. Individual-song deletion and configurable default duration are not available yet.
 
 ## PlayStation PSF sets
 
@@ -460,3 +460,23 @@ theme edit mode. They use decoded music, with no microphone permission.
 The launcher, header logo, widget, notification, export filenames and downloads
 now use **ChipAmp9x**. The package identifier and signing key remain compatible
 with existing installations, so this update retains your music and preferences.
+
+## Saved playlists
+
+Use **Save current playlist** in the player menu or library window to name and
+save the tracklist currently on screen. This can be a soundtrack, favourites,
+or your playback queue, including tracks from different games and repeated
+tracks. Order is preserved. To build a mix, use **Add to queue**, open
+**Playback queue**, reorder/remove entries by holding a row, then save it.
+
+The library has a separate collapsible **Playlists** section. Tap a saved list
+to browse/load it without changing playback, then tap a track to play from
+that point. Hold the playlist for **Play**, **Add to queue**, **Rename** or
+**Delete**. The last selected saved playlist is restored when reopening the app.
+Saving under an existing name asks before replacing its contents.
+
+Playlists store references, not copies of your audio. Deleting a saved playlist
+keeps the music files and current playback queue. Removing an imported soundtrack
+from the library makes its tracks unavailable in saved playlists; remaining
+tracks keep their order, and an empty playlist can still be renamed or deleted.
+Names may be up to 80 characters; up to 100 playlists of 1000 tracks can be saved.

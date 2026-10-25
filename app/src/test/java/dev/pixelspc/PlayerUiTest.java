@@ -21,7 +21,7 @@ public class PlayerUiTest {
     private PlaybackService service;
     private org.robolectric.android.controller.ServiceController<PlaybackService> serviceController;
     @Before public void clear() {
-        app=RuntimeEnvironment.getApplication(); new File(app.getFilesDir(),"library.json").delete();
+        app=RuntimeEnvironment.getApplication(); new File(app.getFilesDir(),"library.json").delete();new File(app.getFilesDir(),"playlists.json").delete();new File(app.getFilesDir(),"playlists.json.bak").delete();
         app.getSharedPreferences("appearance",0).edit().clear().commit();
         app.getSharedPreferences("library-browser",0).edit().clear().commit();
         app.getSharedPreferences("playback",0).edit().clear().commit();
@@ -260,7 +260,7 @@ public class PlayerUiTest {
             MainActivity a=c.get();a.selectTheme("desktop-98");findDescription(a.getWindow().getDecorView(),"App menu").performClick();
             android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();View decor=menu.getWindow().getDecorView();
             for(String label:new String[]{"Import music","Library","Playback queue","Favourites","Playback tools","Settings","Exit app"})assertNotNull(findDescription(decor,label));
-            assertNotNull(findText(decor,"MUSIC"));assertNotNull(findText(decor,"PREFERENCES"));captureView(decor,"app-menu.png",774,1200);
+            assertNotNull(findText(decor,"MUSIC"));assertNotNull(findText(decor,"PREFERENCES"));captureView(decor,"app-menu.png",774,1288);
             findDescription(decor,"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();
             assertFalse(findDescription(decor,"Export current track…").isEnabled());assertFalse(findDescription(decor,"Track SoundFont…").isEnabled());assertTrue(findDescription(decor,"Sleep timer").isEnabled());captureView(decor,"playback-menu.png",774,712);
             findDescription(decor,"Back to app menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
@@ -403,6 +403,45 @@ public class PlayerUiTest {
             assertTrue(((ViewGroup)deck).indexOfChild(spectrum)<((ViewGroup)deck).indexOfChild(findSeek(decor)));
         }
     }
+    private Library.Track[] playlistSources()throws Exception{
+        Library.Track[] tracks=new Library.Track[2];org.json.JSONArray games=new org.json.JSONArray();
+        for(int i=0;i<2;i++){Library.Track t=new Library.Track();t.path="/fixture/playlist-"+i+".spc";t.title="Track "+i;t.game="Game "+i;t.artist="Composer";t.system=i==0?"Super Nintendo":"Game Boy";t.length=180000;t.index=0;tracks[i]=t;games.put(new org.json.JSONObject().put("id","source-"+i).put("name",t.game).put("tracks",new org.json.JSONArray().put(t.json())));}
+        Files.write(new File(app.getFilesDir(),"library.json").toPath(),games.toString().getBytes("UTF-8"));return tracks;
+    }
+    private AlertDialog playlistSavePrompt(MainActivity a){findDescription(a.getWindow().getDecorView(),"App menu").performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Save current playlist").performClick();return (AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();}
+    @Test public void savedMixedPlaylistLoadsFromItsAccordionAndSupportsActionsWithoutInterruptingPlayback()throws Exception{
+        Library.Track[] sources=playlistSources();Library.Track aTrack=sources[0],bTrack=sources[1];service.current=bTrack;service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(bTrack,aTrack,bTrack));service.index=0;service.position=12345;service.playing=true;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"App menu").performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback queue").performClick();
+            AlertDialog prompt=playlistSavePrompt(a);EditText name=(EditText)findDescription(prompt.getWindow().getDecorView(),"Playlist name");name.setText("Night Mix");captureView(prompt.getWindow().getDecorView(),"save-playlist.png",720,600);prompt.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+            assertSame(bTrack,service.current);assertTrue(service.playing);assertEquals(12345,service.position);
+            java.util.List<Library.Game> saved=new Playlists(app).all(new Library(app).games);assertEquals(1,saved.size());assertEquals(3,saved.get(0).tracks.size());assertEquals(bTrack.path,saved.get(0).tracks.get(0).path);assertEquals(aTrack.path,saved.get(0).tracks.get(1).path);assertEquals(bTrack.path,saved.get(0).tracks.get(2).path);
+            service.queue.add(aTrack);service.listener.run();findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");assertEquals(3,list.getExpandableListAdapter().getGroupCount());assertTrue(list.isGroupExpanded(2));captureView(browser.getWindow().getDecorView(),"saved-playlists.png",774,1500);
+            list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0)),0);assertNotNull(findText(a.getWindow().getDecorView(),"Night Mix"));assertEquals(4,service.queue.size());assertSame(bTrack,service.current);
+            java.util.List<Library.Track> playingQueue=service.queue;service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(bTrack,aTrack,bTrack));service.index=2;service.listener.run();
+            LinearLayout rows=org.robolectric.util.ReflectionHelpers.getField(a,"trackList");assertNull(rows.getChildAt(0).getBackground());assertNotNull(rows.getChildAt(4).getBackground());service.queue=playingQueue;service.index=0;service.listener.run();
+            c.recreate();a=c.get();assertNotNull(findText(a.getWindow().getDecorView(),"Night Mix"));
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");int position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0));list.getOnItemLongClickListener().onItemLongClick(list,null,position,0);
+            android.app.Dialog actions=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findDescription(actions.getWindow().getDecorView(),"Play playlist Night Mix"));findDescription(actions.getWindow().getDecorView(),"Add Night Mix to queue").performClick();assertEquals(7,service.queue.size());assertSame(bTrack,service.current);assertTrue(service.playing);
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0));list.getOnItemLongClickListener().onItemLongClick(list,null,position,0);actions=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Rename playlist Night Mix").performClick();AlertDialog rename=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();((EditText)findDescription(rename.getWindow().getDecorView(),"Playlist name")).setText("Chill Mix");rename.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();assertEquals("Chill Mix",new Playlists(app).all(new Library(app).games).get(0).name);
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0));list.getOnItemLongClickListener().onItemLongClick(list,null,position,0);actions=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Delete Chill Mix from library").performClick();AlertDialog delete=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(delete.getWindow().getDecorView(),"Delete playlist?"));delete.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();assertTrue(new Playlists(app).all(new Library(app).games).isEmpty());assertEquals(2,new Library(app).games.size());assertEquals(7,service.queue.size());assertSame(bTrack,service.current);assertTrue(service.playing);
+        }
+    }
+    @Test public void replacingAPlaylistRequiresConfirmationAndCancelKeepsItsContents()throws Exception{
+        Library.Track[] sources=playlistSources();new Playlists(app).save(null,"Same",java.util.Collections.singletonList(sources[0]));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            for(boolean replace:new boolean[]{false,true}){
+                AlertDialog prompt=playlistSavePrompt(c.get());((EditText)findDescription(prompt.getWindow().getDecorView(),"Playlist name")).setText("Same");prompt.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();AlertDialog confirmation=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(confirmation.getWindow().getDecorView(),"Replace playlist?"));confirmation.getButton(replace?android.content.DialogInterface.BUTTON_POSITIVE:android.content.DialogInterface.BUTTON_NEGATIVE).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                assertEquals(sources[replace?1:0].path,new Playlists(app).all(new Library(app).games).get(0).tracks.get(0).path);
+            }
+        }
+    }
+    @Test public void emptyLibraryStillOffersPlaylistsAndImportWithoutSavingAnEmptyList()throws Exception{
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            findDescription(c.get().getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");assertEquals(1,list.getExpandableListAdapter().getGroupCount());assertEquals("Playlists",((LibraryPlatforms.Group)list.getExpandableListAdapter().getGroup(0)).name);assertFalse(findDescription(browser.getWindow().getDecorView(),"Save current playlist").isEnabled());
+            findText(browser.getWindow().getDecorView(),"IMPORT MUSIC").performClick();assertEquals(ImportActivity.class.getName(),Shadows.shadowOf(c.get()).getNextStartedActivityForResult().intent.getComponent().getClassName());
+        }
+    }
     @Test public void libraryAccordionsKeepTheirStateAndSelectTheCorrectSoundtrack() throws Exception {
         org.json.JSONArray games=new org.json.JSONArray();
         for(String[] info:new String[][]{{"Super Nintendo","Donkey Kong Country"},{"Game Boy","Tetris"},{"Sega Genesis","Sonic the Hedgehog"},{"SNES","Super Metroid"}}) {
@@ -414,7 +453,7 @@ public class PlayerUiTest {
             MainActivity a=c.get(); View opener=findDescription(a.getWindow().getDecorView(),"Open music library"); opener.performClick();
             android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
-            assertEquals(3,list.getExpandableListAdapter().getGroupCount());
+            assertEquals(4,list.getExpandableListAdapter().getGroupCount());
             assertTrue(browser.getWindow().getAttributes().height>=a.dp(650));
             assertTrue(list.isGroupExpanded(2)); assertFalse(list.isGroupExpanded(0));
             list.expandGroup(0); list.collapseGroup(2); captureView(browser.getWindow().getDecorView(),"library-platforms.png",774,1500);

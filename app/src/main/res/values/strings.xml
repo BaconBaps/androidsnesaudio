@@ -5,6 +5,10 @@
     <string name="no_track_selected">No track selected</string>
     <string name="choose_track">Choose a track to press play</string>
     <string name="library_entry">%1$s · %2$s</string>
+    <plurals name="playlist_count">
+        <item quantity="one">%d saved playlist</item>
+        <item quantity="other">%d saved playlists</item>
+    </plurals>
     <plurals name="soundtrack_count">
         <item quantity="one">%d soundtrack</item>
         <item quantity="other">%d soundtracks</item>

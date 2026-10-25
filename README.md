@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A pixel-styled Android player for retro game soundtracks, with ten themes,
-custom palettes, four audio visualizers, favourites, WAV export, a sleep timer,
+custom palettes, saved playlists, four audio visualizers, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
 
@@ -25,6 +25,11 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
   <tr>
     <td><img src="docs/screenshots/library-platforms.png" width="300" alt="Music library grouped into collapsible console sections" /></td>
     <td><img src="docs/screenshots/favourites.png" width="300" alt="Starred tracks collected in the favourites view" /></td>
+  </tr>
+  <tr><th>Saved playlists</th><th>Save your tracklist</th></tr>
+  <tr>
+    <td><img src="docs/screenshots/saved-playlists.png" width="300" alt="Named playlists in their own collapsible library section" /></td>
+    <td><img src="docs/screenshots/save-playlist.png" width="300" alt="Name and save the current tracklist without copying the audio files" /></td>
   </tr>
   <tr>
     <th>Choose your theme</th>
