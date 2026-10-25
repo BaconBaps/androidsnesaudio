@@ -82,11 +82,10 @@ for name in ['chassis','panel','well','key','key_down']:
         bevel(s,4,W(30),B(160))
         for x,y in [(5,5),(30,5),(5,30),(30,30)]:
             s.rect(x,y,5,5,B(230));s.rect(x,y,4,1,W(105));s.rect(x,y,1,4,W(52));s.rect(x+1,y+2,3,1,B(250))
-        # Fixed corner hatching, never stretched across the content area.
-        for x,y in [(12,5),(23,5),(12,32),(23,32)]:
-            s.rect(x,y,4,2,(177,91,40,210));s.rect(x+2,y,2,1,B(190))
-    if name in ('key','key_down'):
-        for x in [8,12,16,20,24,28]:s.rect(x,34,2,1,B(115))
+        # Keep stretch bands free of isolated detail: otherwise AAPT stretches
+        # hatching into long bars. Rivets live entirely in fixed corners.
+    if name=='key':bevel(s,2,W(36),B(140))
+    if name=='key_down':bevel(s,2,B(175),W(28))
     s.save('reactor_'+name+'.9.png',True,10 if name=='chassis' else 5)
 s=Sprite(8,8)
 for y in range(8):

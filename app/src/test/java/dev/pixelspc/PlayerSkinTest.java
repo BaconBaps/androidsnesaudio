@@ -39,6 +39,13 @@ public class PlayerSkinTest {
         android.content.Context c=RuntimeEnvironment.getApplication();PlayerTheme reactor=PlayerTheme.find("reactor");
         int[] frames={R.drawable.reactor_chassis,R.drawable.reactor_panel,R.drawable.reactor_well,R.drawable.reactor_key,R.drawable.reactor_key_down,R.drawable.reactor_rail};
         for(int id:frames)assertTrue(c.getDrawable(id) instanceof NinePatchDrawable);
+        // Stretch bands must stay uniform, rather than smearing decorative
+        // hatching or button dots into long bars at phone widths.
+        for(int id:new int[]{R.drawable.reactor_chassis,R.drawable.reactor_key,R.drawable.reactor_key_down}){
+            Bitmap wide=render(c.getDrawable(id),500,80);
+            int top=id==R.drawable.reactor_chassis?10:68;
+            for(int y=top;y<top+4;y++)for(int x=100;x<400;x++)assertEquals(wide.getPixel(100,y),wide.getPixel(x,y));
+        }
         PlayerSkin skin=new PlayerSkin(c,reactor);
         Bitmap small=render(c.getDrawable(R.drawable.reactor_well),100,80),large=render(c.getDrawable(R.drawable.reactor_well),500,300);
         for(int y=0;y<8;y++)for(int x=0;x<8;x++){

@@ -107,3 +107,11 @@ including JSON export/import. Spectrum and PCM traces receive layered pixel
 halos without bitmap blur, off-screen buffers or extra animation timers. Decay,
 pause, frozen theme editing and the existing four visualizer modes are retained.
 No text, watermark or video controls from the reference are reproduced.
+
+### v1.21.1 frame corrections
+
+Removed isolated hatching and button-face dots from Reactor's stretchable regions.
+Those details were becoming long copper bars and dark smears on wide controls.
+Corner rivets remain in fixed regions; bevels and tiled grain remain intact.
+Theme-grid names now use the player's section-heading pixel font at the same
+7 sp size, independent of the thumbnail scaling, with up to two lines for names.

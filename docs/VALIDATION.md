@@ -466,3 +466,15 @@ edge; timing/easing, unchanged-title and short-title checks remain in place.
 - Existing theme-switching tests preserve current track and playback position,
   and now include Reactor. No decoder, importer or audio-thread changes.
 - APK signature matches the previous release; 16 KiB zip alignment passes.
+
+## Reactor nine-patch and grid labels (v1.21.1)
+
+Removed decorative hatching and button dots from stretchable frame bands, fixing
+stretched copper bars on the outer casing/player frame and dark smears on buttons.
+The existing native-graphics frame regression now checks horizontal uniformity
+across wide Reactor chassis and button bands, alongside fixed-corner checks.
+Theme preview names use the same pixel typeface and 7 sp size as NOW PLAYING,
+drawn independently of thumbnail scaling and wrapped to two lines when needed.
+Updated native-graphics captures cover the player, library and theme grids.
+All 109 tests pass with no failures, errors or skips; lint reports no issues.
+The APK signature matches v1.21.0 and 16 KiB ZIP alignment passes.

@@ -8,6 +8,8 @@ import android.view.View;
 public final class ThemePreview extends View {
     private final PlayerTheme theme,playbackTheme,listTheme;
     private final Paint paint=new Paint();
+    private final android.text.TextPaint headingPaint=new android.text.TextPaint();
+    private android.text.StaticLayout heading;
     private final ChipLogo logo;
     private final RectF logoBox=new RectF(15,6,145,23);
     private final android.graphics.drawable.Drawable well,key,chassis;
@@ -16,6 +18,16 @@ public final class ThemePreview extends View {
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
         super(context); logo=new ChipLogo(context); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.chassis(theme.background);well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
+        headingPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),"fonts/pixel.ttf"));
+        headingPaint.setTextSize(7*getResources().getDisplayMetrics().scaledDensity);
+        headingPaint.setColor(theme.heading);
+    }
+    @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
+        super.onSizeChanged(w,h,oldw,oldh);
+        int inset=Math.round(9*getResources().getDisplayMetrics().density);
+        String label=theme.name.toUpperCase(java.util.Locale.ROOT);
+        heading=android.text.StaticLayout.Builder.obtain(label,0,label.length(),headingPaint,Math.max(1,w-2*inset))
+            .setIncludePad(false).setMaxLines(2).setEllipsize(android.text.TextUtils.TruncateAt.END).build();
     }
     private void box(Canvas c,int color,float x,float y,float w,float h) { paint.setColor(color); c.drawRect(x,y,x+w,y+h,paint); }
     private void text(Canvas c,String text,int color,float x,float y,float size,boolean bold) {
@@ -36,10 +48,10 @@ public final class ThemePreview extends View {
         box(canvas,playbackTheme.accent,17,95,64,2);
         box(canvas,playbackTheme.accent,17,103,91,1); key.setBounds(123,96,146,110); key.draw(canvas);
         text(canvas,"▶",playbackTheme.buttonText(playbackTheme.onAccent),131,105,7,true);
-        text(canvas,theme.name,theme.text,9,134,11,true);
         paint.setColor(isSelected()?theme.accent:theme.border); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(isSelected()?3:1);
         canvas.drawRect(1.5f,1.5f,158.5f,148.5f,paint); paint.setStyle(Paint.Style.FILL);
         if(isSelected()) { box(canvas,theme.accent,133,8,19,16); text(canvas,"✓",theme.onAccent,137,20,12,true); }
         canvas.restore();
+        if(heading!=null){canvas.save();canvas.translate(9*getResources().getDisplayMetrics().density,getHeight()*119/150f);heading.draw(canvas);canvas.restore();}
     }
 }

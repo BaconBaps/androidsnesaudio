@@ -486,7 +486,7 @@ Names may be up to 80 characters; up to 100 playlists of 1000 tracks can be save
 ## Reactor skin
 
 Choose **App menu → Settings → Color theme → Reactor**. This additional skin uses
-original dithered rust-metal artwork, fixed riveted nine-patch frames, vented
+original dithered rust-metal artwork, fixed riveted nine-patch frames, mechanical
 button faces and recessed dark displays. Spectrum and waveform highlights have
 pixel glow in amber and warning red. Tap the visualizer to cycle its existing
 four modes. The texture and glow belong to Reactor and its custom-theme copies;
