@@ -48,6 +48,9 @@ solo one, or reset everything. Mutes survive scrubbing and pausing; switching
 tracks restores all channels. PSF, USF and MIDI mixing is not available yet.
 WAV export uses the original full mix.
 
+Hold a track or library playlist for Export audio and Playback tools; MIDI tracks
+also offer Change SoundFont. Multi-track collections ask which track to use.
+
 <img src="docs/screenshots/channel-mixer.png" width="300" alt="Themed channel mixer with eight voices, mute, solo and reset controls" />
 
 ## The app

@@ -517,3 +517,19 @@ metadata, imports, form fields and dialogs. Jersey 15 is used for menu titles
 and menu section headings. Existing pixel controls, dot-matrix display titles
 and symbol fonts remain separate. Both new fonts are bundled for offline use
 under the SIL Open Font License, available in About → Licenses.
+
+## Track and playlist long-press actions (v1.22.1)
+
+Hold a track in a soundtrack, favourites or playlist to open **Export audio**
+and **Playback tools**. MIDI tracks also offer **Change SoundFont**. Playback
+queue rows retain their move/remove actions alongside these tools. Export and
+SoundFont actions target the selected track, even when another track is playing.
+The contextual Playback tools page identifies the selected track and can play
+it explicitly; the channel mixer is available only when that track is playing.
+The sleep timer remains a session-wide control.
+
+Hold a library soundtrack or saved playlist for the same export/playback actions,
+plus its existing Play, Add to queue, Rename and Delete options. Collections
+with multiple tracks ask which one to use. Change SoundFont is offered when the
+collection contains MIDI tracks, and its picker lists only those tracks. Export
+is still one track at a time; these actions do not create a combined playlist WAV.

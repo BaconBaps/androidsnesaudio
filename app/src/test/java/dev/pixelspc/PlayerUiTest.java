@@ -232,6 +232,20 @@ public class PlayerUiTest {
             findDescription(a.getWindow().getDecorView(),"App menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertFalse(findDescription(menu.getWindow().getDecorView(),"Channel mixer").isEnabled());
         }
     }
+    @Test public void longPressToolsAndCollectionExportTargetTheSelectedTrackWithoutInterruptingPlayback()throws Exception{
+        Library.Track[] sources=playlistSources();service.current=sources[0];service.queue=java.util.Collections.singletonList(sources[0]);service.position=54321;
+        new Playlists(app).save(null,"Selected mix",java.util.Arrays.asList(sources));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Play Track 1").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertEquals(2,actions.getListView().getCount());assertEquals("Export audio…",actions.getListView().getAdapter().getItem(0));assertEquals("Playback tools",actions.getListView().getAdapter().getItem(1));captureView(actions.getWindow().getDecorView(),"track-actions.png",822,650);
+            actions.getListView().performItemClick(null,1,1);android.app.Dialog tools=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull(findText(tools.getWindow().getDecorView(),"SELECTED TRACK"));assertNotNull(findText(tools.getWindow().getDecorView(),"Track 1"));assertNull(findDescription(tools.getWindow().getDecorView(),"Change SoundFont…"));assertFalse(findDescription(tools.getWindow().getDecorView(),"Channel mixer").isEnabled());
+            captureView(tools.getWindow().getDecorView(),"selected-track-tools.png",822,1100);findDescription(tools.getWindow().getDecorView(),"Export audio…").performClick();android.content.Intent exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
+            findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");list.expandGroup(2);int position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0));list.getOnItemLongClickListener().onItemLongClick(list,null,position,0);
+            actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Export audio from Selected mix").performClick();AlertDialog choices=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertEquals(2,choices.getListView().getCount());choices.getListView().performItemClick(null,1,1);
+            exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
+        }
+    }
     private PixelVisualizer findVisualizer(View view){if(view instanceof PixelVisualizer)return (PixelVisualizer)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){PixelVisualizer found=findVisualizer(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
     @Test public void themeEditorFreezesThePreviewAndCancelRestoresLiveState() throws Exception {
         Library.Track first=new Library.Track();first.path="/fixture/one.spc";first.title="Frozen song";first.game="Game";first.artist="Composer";first.system="Super Nintendo";first.length=180000;service.current=first;service.queue=java.util.Collections.singletonList(first);service.index=0;service.position=12000;service.playing=true;

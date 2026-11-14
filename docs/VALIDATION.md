@@ -510,3 +510,15 @@ skipped tests; Android lint reports no issues. The full native sample script
 passes for SPC/RSN, VGM/VGZ, PSF, MIDI and USF, including mixer and independent
 export checks. APK signature matches the previous build and 16 KiB ZIP alignment
 passes. Screenshots are native-graphics Robolectric renders, not phone captures.
+
+## Contextual track tools (v1.22.1)
+
+Long-press menus now expose export and playback tools across tracklists, queues
+and library collections, with MIDI-only SoundFont actions. A UI regression
+checks that tools/export target a selected non-playing track and that choosing
+a track from a saved playlist exports the chosen entry without changing the
+playing track or position. Existing MIDI bank-selection and queue-action checks
+remain in the suite. Library action contents scroll on smaller screens.
+All 114 tests pass with zero failures, errors or skips; Android lint reports no
+issues. APK signing certificate matches the previous release and 16 KiB ZIP
+alignment passes. No decoder or import-format changes are included in this release.
