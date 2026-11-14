@@ -76,7 +76,7 @@ public class ImportActivity extends Activity {
     }
     private void renderRows(){
         rows.removeAllViews();List<ImportDocuments.Item> visible=visible();
-        if(visible.isEmpty()){TextView empty=label("No files selected\n\nSPC · RSN · ZIP · PSF · USF · MIDI\nand other supported chiptunes",14,theme.muted);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(14),dp(28),dp(14),dp(28));rows.addView(empty,new LinearLayout.LayoutParams(-1,-2));}
+        if(visible.isEmpty()){TextView empty=label("No files selected\n\nSPC · RSN · ZIP · PSF · XA · VAG · USF · MIDI\nand other supported chiptunes",14,theme.muted);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(14),dp(28),dp(14),dp(28));rows.addView(empty,new LinearLayout.LayoutParams(-1,-2));}
         for(ImportDocuments.Item item:visible){
             CheckBox choice=new CheckBox(this);choice.setText(item.size>=0?getString(R.string.import_file_size,item.path,android.text.format.Formatter.formatShortFileSize(this,item.size)):item.path);choice.setTextColor(theme.text);choice.setTextSize(14);choice.setButtonTintList(android.content.res.ColorStateList.valueOf(theme.accent));choice.setPadding(dp(8),dp(8),dp(8),dp(8));choice.setChecked(model.selected.contains(item.key()));choice.setEnabled(!model.scanning&&!model.importing);choice.setContentDescription("Select "+item.path);rows.addView(choice,new LinearLayout.LayoutParams(-1,-2));
             choice.setOnCheckedChangeListener((v,checked)->{if(checked)model.selected.add(item.key());else model.selected.remove(item.key());updateActions();});

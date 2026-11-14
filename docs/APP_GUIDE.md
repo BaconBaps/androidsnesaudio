@@ -143,6 +143,8 @@ theme’s accent and secondary colors.
 | `.mid`, `.midi` | Standard MIDI type 0/1 with PPQ timing; built-in Pixel GM or imported `.sf2` banks |
 | `.usf`, `.miniusf` | Nintendo 64 soundtracks; import shared `.usflib` files together in a ZIP or folder |
 | `.psf`, `.minipsf` | Original PlayStation soundtracks; import shared `.psflib` files together in a ZIP |
+| `.xa` | PlayStation XA: 2352/2336-byte sectors or RIFF CDXA, 4/8-bit mono/stereo; interleaved streams are selectable tracks |
+| `.vag` | Standard mono Sony VAGp samples; proprietary stereo variants are not supported |
 | `.spc` | Super Nintendo tracks, including ID666 metadata |
 | `.rsn`, `.rar` | RAR-based SPC sets (including solid RAR4 archives) |
 | `.zip` | Sets containing supported tracks, including subfolders |
@@ -153,7 +155,7 @@ theme’s accent and secondary colors.
 
 ROMs (`.sfc`, `.smc`, etc.) are not audio files and are not supported. Encrypted
 archives and RAR5 sets are not supported by the unarr RAR reader. Import limits:
-128 MB input, 32 MB per extracted file, 256 MB total extraction, 1,000 songs.
+128 MiB input, 32 MiB per extracted file (128 MiB for XA/VAG), 256 MiB total extraction, 1,000 songs.
 Malformed or unsupported tracks roll back the entire import. Archive paths are
 flattened so entries cannot write outside the library.
 
@@ -533,3 +535,24 @@ plus its existing Play, Add to queue, Rename and Delete options. Collections
 with multiple tracks ask which one to use. Change SoundFont is offered when the
 collection contains MIDI tracks, and its picker lists only those tracks. Export
 is still one track at a time; these actions do not create a combined playlist WAV.
+
+## PlayStation XA and VAG (v1.23.0)
+
+Import `.xa` and `.vag` files alone, from a folder, or in a ZIP/RAR collection.
+Both appear under **PlayStation**. XA files containing interleaved file/channel
+streams become multiple selectable tracks; titles retain the source filename
+plus stream identifiers. Mono VAG samples use their source filename.
+
+Both formats support scrubbing, pause/resume, loop, favourites, saved playlists,
+visualizers and WAV export. Repeat uses VAG's embedded loop-start marker when
+present, otherwise it repeats the full track. XA repeats the selected stream.
+These are recorded audio streams, so the instrument channel mixer is unavailable.
+
+Supported XA containers retain their CD-sector subheaders: raw 2352-byte sectors,
+2336-byte sectors with the sync/header stripped, and RIFF CDXA. Both Mode 2 Form 1
+and Form 2 audio are accepted, using 4-bit or 8-bit mono/stereo at 37,800 or
+18,900 Hz. Headerless XA payloads cannot be imported because their rate, channel
+layout and stream identifiers are missing. VAG support is standard big-endian
+mono VAGp; stereo/interleaved and proprietary VAG variants are not included.
+Individual XA/VAG files may be up to 128 MiB; other import and collection limits
+remain in place. See [XA/VAG implementation notes](PSX_AUDIO_SUPPORT.md).

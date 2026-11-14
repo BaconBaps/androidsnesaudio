@@ -21,6 +21,8 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
 | `.ay` | ZX Spectrum / Amstrad CPC |
 | `.sap` | Atari 8-bit computers |
 | `.psf`, `.minipsf` | Original PlayStation |
+| `.xa` | PlayStation XA ADPCM in raw 2352/2336-byte sectors or RIFF CDXA; interleaved streams become separate tracks |
+| `.vag` | Standard mono Sony VAGp ADPCM samples, including embedded loop-start markers |
 | `.usf`, `.miniusf` | Nintendo 64 |
 | `.mid`, `.midi` | Standard MIDI type 0/1 with PPQ timing, using the built-in or an imported SoundFont |
 
@@ -45,7 +47,7 @@ and FLAC are not currently supported.
 Open **App menu → Playback tools → Channel mixer** while playing a supported
 GME track (SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY or SAP). Mute voices,
 solo one, or reset everything. Mutes survive scrubbing and pausing; switching
-tracks restores all channels. PSF, USF and MIDI mixing is not available yet.
+tracks restores all channels. PSF, USF, MIDI, XA and VAG mixing is not available.
 WAV export uses the original full mix.
 
 Hold a track or library playlist for Export audio and Playback tools; MIDI tracks

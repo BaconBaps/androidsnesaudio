@@ -28,8 +28,9 @@ target_include_directories(lazyusf2 PUBLIC ${VENDOR}/lazyusf2)
 # Keep ordinary optimisation, not fast-math, to retain integer/audio behaviour.
 target_compile_options(lazyusf2 PRIVATE -O2 -fno-strict-aliasing -fwrapv)
 target_link_libraries(lazyusf2 PUBLIC m)
-add_library(player SHARED player.cpp rar_reader.cpp psf_decoder.cpp midi_decoder.cpp usf_decoder.cpp
+add_library(player SHARED player.cpp rar_reader.cpp psf_decoder.cpp midi_decoder.cpp usf_decoder.cpp psx_audio.cpp
     ${VENDOR}/psf-core/psx.cc ${VENDOR}/psf-core/psx_hw.cc ${VENDOR}/psf-core/peops/spu.cc)
+set_source_files_properties(psx_audio.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_compile_features(player PRIVATE cxx_std_11)
 target_include_directories(player PRIVATE ${VENDOR}/psf-core ${VENDOR}/tinysoundfont)
 target_compile_options(player PRIVATE -fno-strict-aliasing -fwrapv)

@@ -53,6 +53,7 @@ public final class Library {
                     for(int i=0;i<count;i++) {
                         String[] info=Engine.info(h,i); Track t=new Track(); t.path=e.file.getAbsolutePath(); t.index=i;
                         t.title=(SoundFonts.midi(e.name)||info[0].isEmpty())?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
+                        if(ArchiveImporter.extension(e.name).equals("xa"))t.title=e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+info[0]:"");
                         t.game=info[1]; t.artist=info[2]; t.system=info[3]; t.length=Engine.length(h,i);
                         t.loopLength=e.file.getName().endsWith(".spc")?SpcTiming.loopLength(e.file):0;
                         game.tracks.add(t);

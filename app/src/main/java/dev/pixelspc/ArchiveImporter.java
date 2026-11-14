@@ -9,8 +9,9 @@ import java.nio.file.*;
 public final class ArchiveImporter {
     static final long FILE_LIMIT=32L*1024*1024, TOTAL_LIMIT=256L*1024*1024;
     public static final int TRACK_LIMIT=1000;
-    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf","usf","miniusf","mid","midi"));
+    static final Set<String> FORMATS=new HashSet<>(Arrays.asList("spc","nsf","nsfe","gbs","vgm","vgz","gym","hes","kss","ay","sap","psf","minipsf","usf","miniusf","mid","midi","xa","vag"));
     public static boolean supported(String name) { return FORMATS.contains(extension(name)); }
+    static long fileLimit(String name){String ext=extension(name);return ext.equals("xa")||ext.equals("vag")?128L*1024*1024:FILE_LIMIT;}
     static boolean dependency(String name) { return extension(name).equals("psflib") || extension(name).equals("usflib"); }
     static String extension(String name) { int p=name.lastIndexOf('.'); return p<0?"":name.substring(p+1).toLowerCase(Locale.ROOT); }
     public static final class Entry {
@@ -29,7 +30,7 @@ public final class ArchiveImporter {
                         if(++entries>3000) throw new IOException("Too many archive entries");
                         if(!e.isDirectory() && (supported(e.getName()) || dependency(e.getName()))) {
                             Entry item=storedEntry(destination,e.getName(),result.size(),psfPaths);
-                            try(OutputStream out=new FileOutputStream(item.file)) { copy(zip,out,budget); }
+                            try(OutputStream out=new FileOutputStream(item.file)) { copy(zip,out,budget,fileLimit(e.getName())); }
                             if(!dependency(e.getName())) result.add(item); if(result.size()>TRACK_LIMIT) throw new IOException("Too many tracks");
                         } else { copy(zip,new Discard(),budget); }
                         zip.closeEntry();
@@ -40,18 +41,18 @@ public final class ArchiveImporter {
                     int entries=0; String raw;
                     while((raw=rar.next())!=null) {
                         if(++entries>3000) throw new IOException("Too many archive entries");
-                        if(rar.size()>FILE_LIMIT || rar.size()<0) throw new IOException("Archive entry is too large");
+                        if(rar.size()>fileLimit(raw) || rar.size()<0) throw new IOException("Archive entry is too large");
                         boolean music=supported(raw),library=dependency(raw);
                         Entry item=music||library?storedEntry(destination,raw,result.size(),psfPaths):null;
-                        try(OutputStream out=item==null?new Discard():new FileOutputStream(item.file)) { copy(rar,out,budget); }
+                        try(OutputStream out=item==null?new Discard():new FileOutputStream(item.file)) { copy(rar,out,budget,fileLimit(raw)); }
                         if(music) { result.add(item); if(result.size()>TRACK_LIMIT) throw new IOException("Too many tracks"); }
                     }
                 }
             } else if(supported(name)) {
                 Entry item=storedEntry(destination,name,0,psfPaths);
-                try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,out,budget); }
+                try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,out,budget,fileLimit(name)); }
                 result.add(item);
-            } else throw new IOException("Choose an SPC, RSN, PSF, USF, MIDI, ZIP, or supported chiptune file");
+            } else throw new IOException("Choose an SPC, RSN, PSF, XA, VAG, USF, MIDI, ZIP, or supported chiptune file");
             if(result.isEmpty()) throw new IOException("No supported music files found in this set");
             result.sort(Comparator.comparing(e->e.name.toLowerCase(Locale.ROOT)));
             return result;
@@ -93,14 +94,18 @@ public final class ArchiveImporter {
     static class Budget { long total; }
     static class Discard extends OutputStream { public void write(int b) {} public void write(byte[] b,int o,int n) {} }
     static class LimitedOutput extends FilterOutputStream {
-        final Budget budget; long size;
-        LimitedOutput(OutputStream out,Budget b) { super(out); budget=b; }
-        void charge(int n) throws IOException { size+=n; budget.total+=n; if(size>FILE_LIMIT || budget.total>TOTAL_LIMIT) throw new IOException("Set exceeds safe extraction limits"); }
+        final Budget budget; final long limit;long size;
+        LimitedOutput(OutputStream out,Budget b) { this(out,b,FILE_LIMIT); }
+        LimitedOutput(OutputStream out,Budget b,long limit){super(out);budget=b;this.limit=limit;}
+        void charge(int n) throws IOException { size+=n; budget.total+=n; if(size>limit || budget.total>TOTAL_LIMIT) throw new IOException("Set exceeds safe extraction limits"); }
         public void write(int b) throws IOException { charge(1); out.write(b); }
         public void write(byte[] b,int o,int n) throws IOException { charge(n); out.write(b,o,n); }
     }
     static void copy(InputStream in,OutputStream out,Budget budget) throws IOException {
-        LimitedOutput limited=new LimitedOutput(out,budget); byte[] b=new byte[16384]; int n;
+        copy(in,out,budget,FILE_LIMIT);
+    }
+    static void copy(InputStream in,OutputStream out,Budget budget,long limit) throws IOException {
+        LimitedOutput limited=new LimitedOutput(out,budget,limit); byte[] b=new byte[16384]; int n;
         while((n=in.read(b))!=-1) {if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Import cancelled");limited.write(b,0,n); }
     }
 }

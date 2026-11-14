@@ -522,3 +522,23 @@ remain in the suite. Library action contents scroll on smaller screens.
 All 114 tests pass with zero failures, errors or skips; Android lint reports no
 issues. APK signing certificate matches the previous release and 16 KiB ZIP
 alignment passes. No decoder or import-format changes are included in this release.
+
+## PlayStation XA and VAG (v1.23.0)
+
+116 JUnit/Robolectric tests pass with no failures, errors or skips; Android lint
+reports no issues. Existing SPC/RSN, VGZ, PSF, MIDI, USF and mixer native checks
+pass alongside the new PSX stream checks. The additional importer tests verify
+case-insensitive extensions and the scoped 128 MiB per-file allowance while
+retaining the ordinary 32 MiB and total 256 MiB limits.
+
+The new native suite compares every PCM sample for 11 original reference streams
+covering XA 4/8-bit mono/stereo, both sector layouts, RIFF CDXA, Form 1/Form 2 and
+interleaved stream/EOF segmentation. Checks include duration, stream selection,
+random/backward seeks, explicit VAG loop-start/full-XA repeat positions,
+independent WAV export, malformed-file rejection and ZIP extraction/import.
+VAG and 4-bit stereo XA PCM are cross-checked against FFmpeg. ASan/UBSan passes
+1250 valid/mutated opens, renders, seeks and loops. Details and reproduction
+commands are in PSX_AUDIO_SUPPORT.md. No real game XA/VAG collections or physical
+Android device were used, so proprietary layout compatibility remains limited
+to the documented formats. APK signature matches the previous release; 16 KiB
+ZIP alignment passes.
