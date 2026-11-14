@@ -488,3 +488,25 @@ light-surface shadow softening remains active. Native-graphics captures refresh
 the theme gallery, theme grids, player and library.
 All 109 tests pass with no failures, errors or skips; Android lint reports no
 issues. APK signing certificate matches v1.21.1; 16 KiB ZIP alignment passes.
+
+## UI fonts and channel mixer (v1.22.0)
+
+Bundled Pixelify Sans and Jersey 15 are Android font resources with OFL notices.
+Native-graphics UI captures exercise themed mixer rows and settings headings.
+UI checks verify the selected font families, menu support gating, selected mute
+and solo states, and closing the mixer when the current track changes.
+
+Mixer state is published as an immutable snapshot. Only the audio worker calls
+the GME voice API; queued actions verify the exact current track before applying.
+Service tests cover mute/solo restoration, seek preservation, reset and stale
+actions across track changes. A generated original VGM PSG tone exercises real
+JNI channel names, individual mute and solo, all-muted playback for more than
+nine seconds, seeking while muted, audible reset and independent decoder state.
+Silence detection is suppressed while muting so an intentional silent mix does
+not trigger early track advancement. Normal loop/silence behaviour returns on reset.
+
+Release checks: 113 JUnit/Robolectric tests pass with zero failures, errors or
+skipped tests; Android lint reports no issues. The full native sample script
+passes for SPC/RSN, VGM/VGZ, PSF, MIDI and USF, including mixer and independent
+export checks. APK signature matches the previous build and 16 KiB ZIP alignment
+passes. Screenshots are native-graphics Robolectric renders, not phone captures.

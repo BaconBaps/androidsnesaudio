@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
     private final Handler main=new Handler(Looper.getMainLooper());
     private final ExecutorService importer=Executors.newSingleThreadExecutor();
     private String shownError="";
-    private Dialog libraryPicker;
+    private Dialog libraryPicker,channelMixerDialog;
     private ThemeEditor.State editState;
     private final List<ThemeEditor.Target> editTargets=new ArrayList<>();
     private final List<Dialog> editorDialogs=new ArrayList<>();
@@ -68,11 +68,11 @@ public class MainActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); out.putBoolean("showFavourites",showFavourites);out.putString("themeExport",pendingThemeExport);if(editState!=null)try{out.putString("themeEdit",editState.json().toString());}catch(Exception ignored){}out.putBoolean("showQueue",showQueue);out.putStringArrayList("pendingQueueIds",pendingQueueIds);if(selected!=null)out.putString("selectedGame",selected.id); }
     @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); if(editState==null)main.post(tick); } }
     @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
-    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
+    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismiss();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
     private final Runnable tick=new Runnable() { public void run() { if(editState!=null)return;updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
-    private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setFontFeatureSettings("kern"); return t; }
-    private TextView trackTitle(String label,int size,int color) { BouncingTextView view=new BouncingTextView(this); view.setText(label);view.setFrozen(editState!=null); view.setTextSize(size); view.setTextColor(color); return view; }
+    private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setTypeface(UiFonts.body(MainActivity.this)); t.setFontFeatureSettings("kern"); return t; }
+    private TextView trackTitle(String label,int size,int color) { BouncingTextView view=new BouncingTextView(this); view.setText(label);view.setTypeface(UiFonts.body(MainActivity.this));view.setFrozen(editState!=null); view.setTextSize(size); view.setTextColor(color); return view; }
     private TextView pixel(String s,int size,int color) { TextView t=text(s,size,color); t.setTypeface(pixel); t.setIncludeFontPadding(false); t.setGravity(Gravity.CENTER_VERTICAL); return t; }
     private LinearLayout column() { LinearLayout l=new LinearLayout(this); l.setOrientation(LinearLayout.VERTICAL); return l; }
     private LinearLayout row() { LinearLayout l=new LinearLayout(this); l.setGravity(Gravity.CENTER_VERTICAL); l.setBaselineAligned(false); return l; }
@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
             final int index=i; Library.Track track=visible.get(i); boolean active=i==playingAt;
             LinearLayout line=row(); if(active) line.setBackground(skin.selection(listTheme.surface)); line.setPadding(dp(8),dp(7),dp(8),dp(7));
             TextView number=pixel(active && (editState!=null?editState.playing:player.playing)?"▮▮":String.format(Locale.ROOT,"%02d",i+1),8,active?listTheme.accent:listTheme.muted); add(line,number,34,26);
-            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active || theme.id.equals("desktop-98")?listTheme.accent:listTheme.text); if(active) title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); add(names,title,-1,23); TextView sub=text(showQueue||Playlists.saved(selected)?(track.game.isEmpty()?track.system:track.game):showFavourites?track.game:track.artist.isEmpty()?track.system:track.artist,10,listTheme.muted); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active || theme.id.equals("desktop-98")?listTheme.accent:listTheme.text); if(active) title.setTypeface(UiFonts.body(MainActivity.this),Typeface.BOLD); add(names,title,-1,23); TextView sub=text(showQueue||Playlists.saved(selected)?(track.game.isEmpty()?track.system:track.game):showFavourites?track.game:track.artist.isEmpty()?track.system:track.artist,10,listTheme.muted); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
             if(track.loopLength>0) {
                 boolean looping=editState!=null&&active?editState.repeat:player!=null && player.isLooping(track);
                 TextView mode=button(looping?"LOOP":"STRAIGHT",looping?listTheme.onAccent:listTheme.accent,looping?listTheme.accent:listTheme.surface);
@@ -223,8 +223,8 @@ public class MainActivity extends Activity {
     private void saveCurrentPlaylist(boolean reopen){
         List<Library.Track> snapshot=new ArrayList<>(currentTracks());if(snapshot.isEmpty())return;
         LinearLayout body=column();body.setPadding(dp(20),dp(8),dp(20),dp(8));
-        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
-        EditText name=new EditText(themed);name.setSingleLine(true);name.setTextColor(textColor);name.setContentDescription("Playlist name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});if(!showQueue&&!showFavourites&&selected!=null)name.setText(selected.name);add(body,name,-1,56);
+        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
+        EditText name=new EditText(themed);name.setTypeface(UiFonts.body(MainActivity.this));name.setSingleLine(true);name.setTextColor(textColor);name.setContentDescription("Playlist name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});if(!showQueue&&!showFavourites&&selected!=null)name.setText(selected.name);add(body,name,-1,56);
         add(body,text(getResources().getQuantityString(R.plurals.track_count,snapshot.size(),snapshot.size())+" · current order",12,mutedColor),-1,30);
         AlertDialog prompt=dialog().setTitle("Save playlist").setView(body).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",null).show();
         prompt.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v->{
@@ -239,7 +239,7 @@ public class MainActivity extends Activity {
     private void playlistSaved(boolean reopen){getSharedPreferences("library-browser",MODE_PRIVATE).edit().putBoolean("expanded:Playlists",true).apply();Toast.makeText(this,"Playlist saved",Toast.LENGTH_SHORT).show();renderTracks();if(reopen)chooseGame(true);}
     private View gameRow(Library.Game game) {
         LinearLayout line=row(); line.setPadding(dp(8),dp(10),dp(8),dp(10));
-        LinearLayout names=column();  TextView title=text(game.name,16,listTheme.text); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(getString(R.string.library_entry,getResources().getQuantityString(R.plurals.track_count,game.tracks.size(),game.tracks.size()),systemLabel(game)),11,listTheme.muted),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); line.setContentDescription((Playlists.saved(game)?"Playlist ":"Soundtrack ")+game.name+". Hold for actions"); return line;
+        LinearLayout names=column();  TextView title=text(game.name,16,listTheme.text); title.setTypeface(UiFonts.body(MainActivity.this),Typeface.BOLD); title.setMaxLines(2); add(names,title,-1,-2); add(names,text(getString(R.string.library_entry,getResources().getQuantityString(R.plurals.track_count,game.tracks.size(),game.tracks.size()),systemLabel(game)),11,listTheme.muted),-1,-2); line.addView(names,new LinearLayout.LayoutParams(0,-2,1)); line.setContentDescription((Playlists.saved(game)?"Playlist ":"Soundtrack ")+game.name+". Hold for actions"); return line;
     }
     private void libraryActions(Library.Game game) {
         LinearLayout actions=column();actions.setPadding(dp(20),dp(8),dp(20),dp(8));
@@ -257,9 +257,9 @@ public class MainActivity extends Activity {
         delete.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();confirmDelete(game);});
     }
     private void renameLibrary(Library.Game game) {
-        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
+        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
         LinearLayout body=column();body.setPadding(dp(20),dp(8),dp(20),dp(8));
-        EditText name=new EditText(themed);name.setSingleLine(true);name.setTextColor(textColor);name.setText(game.name);name.setContentDescription(Playlists.saved(game)?"Playlist name":"Library name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});add(body,name,-1,56);
+        EditText name=new EditText(themed);name.setTypeface(UiFonts.body(MainActivity.this));name.setSingleLine(true);name.setTextColor(textColor);name.setText(game.name);name.setContentDescription(Playlists.saved(game)?"Playlist name":"Library name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});add(body,name,-1,56);
         AlertDialog rename=dialog().setTitle(Playlists.saved(game)?"Rename playlist":"Rename library").setView(body).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",null).show();
         rename.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v->{
             try {if(Playlists.saved(game)){new Playlists(this).rename(game.id,name.getText().toString());game.name=name.getText().toString().trim();if(selected!=null&&selected.id.equals(game.id))selected.name=game.name;}else library.rename(game,name.getText().toString());rename.dismiss();renderTracks();}
@@ -287,7 +287,7 @@ public class MainActivity extends Activity {
                 LibraryPlatforms.Group platform=groups.get(group);
                 LinearLayout heading=row(); heading.setBackground(skin.selection(listTheme.background)); heading.setPadding(dp(10),dp(10),dp(10),dp(10)); heading.setMinimumHeight(dp(58));
                 TextView arrow=text(expanded?"▾":"▸",20,listTheme.accent); arrow.setGravity(Gravity.CENTER); add(heading,arrow,28,30);
-                LinearLayout labels=column(); TextView name=text(platform.name,16,listTheme.text); name.setTypeface(Typeface.DEFAULT,Typeface.BOLD); name.setMaxLines(2); add(labels,name,-1,-2);
+                LinearLayout labels=column(); TextView name=text(platform.name,16,listTheme.text); name.setTypeface(UiFonts.body(MainActivity.this),Typeface.BOLD); name.setMaxLines(2); add(labels,name,-1,-2);
                 add(labels,text(getString(R.string.library_entry,platform==playlists?getResources().getQuantityString(R.plurals.playlist_count,platform.games.size(),platform.games.size()):getResources().getQuantityString(R.plurals.soundtrack_count,platform.games.size(),platform.games.size()),getResources().getQuantityString(R.plurals.track_count,platform.trackCount(),platform.trackCount())),11,listTheme.muted),-1,-2);
                 heading.addView(labels,new LinearLayout.LayoutParams(0,-2,1)); heading.setContentDescription(platform.name+(expanded?", expanded":", collapsed")); return heading;
             }
@@ -303,7 +303,7 @@ public class MainActivity extends Activity {
         for(int i=0;i<groups.size();i++) if(prefs.getBoolean("expanded:"+groups.get(i).name,groups.get(i).name.equals(selectedPlatform))) list.expandGroup(i);
         list.setOnGroupExpandListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,true).apply());
         list.setOnGroupCollapseListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,false).apply());
-        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
+        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
         Dialog picker=new Dialog(themed); picker.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout body=column(); body.setBackground(skin.chassis(backgroundColor)); body.setPadding(dp(12),dp(12),dp(12),dp(12));
         TextView title=pixel("Library",18,theme.heading); add(body,title,-1,44); add(body,text("Hold a soundtrack or playlist for actions",12,mutedColor),-1,24);gap(body,8);
@@ -323,7 +323,7 @@ public class MainActivity extends Activity {
     private void showMenu(View anchor) { showMenuPage("main"); }
     private void menuSection(LinearLayout body,String title) {
         gap(body,8);LinearLayout heading=row();heading.setPadding(dp(10),0,dp(10),0);
-        TextView label=pixel(title,7,theme.value("heading",accentColor));add(heading,label,-2,28);View rail=new View(this);rail.setBackground(skin.rail(theme.secondary));LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(5),1);params.leftMargin=dp(12);heading.addView(rail,params);add(body,heading,-1,28);
+        TextView label=text(title,18,theme.value("heading",accentColor));label.setTypeface(UiFonts.heading(this));add(heading,label,-2,28);View rail=new View(this);rail.setBackground(skin.rail(theme.secondary));LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(5),1);params.leftMargin=dp(12);heading.addView(rail,params);add(body,heading,-1,28);
     }
     private void menuEntry(LinearLayout body,Dialog menu,String title,boolean enabled,boolean submenu,Runnable action) {
         LinearLayout line=row();line.setPadding(dp(14),0,dp(12),0);line.setMinimumHeight(dp(48));
@@ -335,12 +335,12 @@ public class MainActivity extends Activity {
     }
     private void showMenuPage(String page) {
         if(appMenu!=null)appMenu.dismiss();
-        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
+        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
         Dialog menu=new Dialog(themed);menu.setCanceledOnTouchOutside(true);menu.requestWindowFeature(Window.FEATURE_NO_TITLE);appMenu=menu;
         LinearLayout body=column();body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setBackground(skin.chassis(backgroundColor));
         LinearLayout heading=row();
         if(!page.equals("main")){TextView back=button("‹ BACK",accentColor,backgroundColor);back.setBackground(null);back.setTextColor(accentColor);back.setContentDescription("Back to app menu");add(heading,back,88,42);back.setOnClickListener(v->{menu.dismiss();showMenuPage("main");});}
-        TextView title=pixel(page.equals("main")?"PLAYER MENU":page.equals("playback")?"PLAYBACK":"SETTINGS",11,theme.heading);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
+        TextView title=pixel(page.equals("main")?"PLAYER MENU":page.equals("playback")?"PLAYBACK":"SETTINGS",11,theme.heading);title.setTypeface(UiFonts.heading(this));title.setTextSize(24);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackground(skin.well(listTheme.background));scroll.setPadding(dp(5),dp(4),dp(5),dp(4));LinearLayout entries=column();scroll.addView(entries);body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         if(page.equals("main")) {
             menuSection(entries,"MUSIC");
@@ -354,6 +354,7 @@ public class MainActivity extends Activity {
             gap(entries,16);rule(entries);gap(entries,8);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
         } else if(page.equals("playback")) {
             menuSection(entries,"CURRENT TRACK");
+            menuEntry(entries,menu,"Channel mixer",player!=null&&player.current!=null&&player.mixer.track==player.current&&player.mixer.names.length>0,false,this::showChannelMixer);
             menuEntry(entries,menu,"Export current track…",player!=null&&player.current!=null,false,()->{if(player!=null&&player.current!=null)exportTrack(player.current);});
             menuEntry(entries,menu,"Track SoundFont…",player!=null&&player.current!=null&&SoundFonts.midi(player.current.path),false,()->{if(player!=null&&player.current!=null&&SoundFonts.midi(player.current.path))chooseTrackSoundFont(player.current);});
             menuSection(entries,"LISTENING");String sleep=player!=null&&player.sleepRemainingMs()>0?"Sleep timer · "+((player.sleepRemainingMs()+59999)/60000)+" min left":"Sleep timer";
@@ -365,7 +366,40 @@ public class MainActivity extends Activity {
         gap(body,10);TextView close=button("CLOSE",accentColor,backgroundColor);add(body,close,-1,44);close.setOnClickListener(v->menu.dismiss());
         menu.setContentView(body,new ViewGroup.LayoutParams(-1,-1));menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         if(!page.equals("main"))menu.setOnKeyListener((d,key,event)->{if(key!=KeyEvent.KEYCODE_BACK)return false;if(event.getAction()==KeyEvent.ACTION_UP){menu.dismiss();showMenuPage("main");}return true;});
-        menu.show();int height=dp(page.equals("main")?644:page.equals("playback")?356:404);menu.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(440)),Math.min(height,(int)(getResources().getDisplayMetrics().heightPixels*.86f)));
+        menu.show();int height=dp(page.equals("main")?644:page.equals("playback")?412:404);menu.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(440)),Math.min(height,(int)(getResources().getDisplayMetrics().heightPixels*.86f)));
+    }
+    private void showChannelMixer(){
+        if(player==null||player.current==null||player.mixer.track!=player.current||player.mixer.names.length==0)return;
+        final PlaybackService service=player;final Library.Track track=player.current;
+        if(channelMixerDialog!=null)channelMixerDialog.dismiss();
+        Dialog dialog=new Dialog(this);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);channelMixerDialog=dialog;
+        LinearLayout body=column();body.setPadding(dp(14),dp(12),dp(14),dp(12));body.setBackground(skin.chassis(backgroundColor));
+        TextView title=text("CHANNEL MIXER",24,theme.heading);title.setTypeface(UiFonts.heading(this));add(body,title,-1,36);
+        TextView song=text(track.title,16,textColor);song.setMaxLines(2);add(body,song,-1,-2);
+        TextView hint=text("Tap MUTE to toggle a voice; SOLO isolates one. Lit buttons are active. Resets on track change.",12,mutedColor);add(body,hint,-1,-2);gap(body,8);
+        ScrollView scroll=new ScrollView(this);scroll.setBackground(skin.well(listTheme.background));scroll.setPadding(dp(6),dp(6),dp(6),dp(6));LinearLayout rows=column();scroll.addView(rows);body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        gap(body,10);TextView reset=button("RESET ALL",accentColor,backgroundColor);reset.setContentDescription("Reset all channels");add(body,reset,-1,44);reset.setOnClickListener(v->service.mixChannel(track,0,2));
+        gap(body,6);TextView close=button("CLOSE",accentColor,backgroundColor);add(body,close,-1,44);close.setOnClickListener(v->dialog.dismiss());
+        dialog.setContentView(body);dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        final ChannelMixer[] previous={null};final Runnable[] refresh={null};
+        refresh[0]=()->{
+            if(!dialog.isShowing())return;
+            ChannelMixer state=service.mixer;
+            if(service.current!=track||state.track!=track){dialog.dismiss();return;}
+            if(state!=previous[0]){previous[0]=state;rows.removeAllViews();
+                for(int i=0;i<state.names.length;i++){
+                    final int channel=i;LinearLayout row=row();row.setPadding(dp(6),dp(4),dp(6),dp(4));
+                    TextView name=text((i+1)+" · "+state.names[i],14,state.audible(i)?textColor:mutedColor);name.setMaxLines(2);row.addView(name,new LinearLayout.LayoutParams(0,-2,1));
+                    TextView mute=button("MUTE",state.muted(i)?theme.onAccent:accentColor,state.muted(i)?accentColor:backgroundColor);
+                    mute.setContentDescription((state.muted(i)?"Unmute":"Mute")+" channel "+(i+1)+": "+state.names[i]);mute.setSelected(state.muted(i));add(row,mute,64,40);mute.setOnClickListener(v->service.mixChannel(track,channel,0));
+                    TextView solo=button("SOLO",state.solo==i?theme.onAccent:accentColor,state.solo==i?accentColor:backgroundColor);
+                    solo.setContentDescription((state.solo==i?"End solo for":"Solo")+" channel "+(i+1)+": "+state.names[i]);solo.setSelected(state.solo==i);add(row,solo,64,40);solo.setOnClickListener(v->service.mixChannel(track,channel,1));add(rows,row,-1,52);
+                }
+            }
+            main.postDelayed(refresh[0],150);
+        };
+        dialog.setOnDismissListener(d->{main.removeCallbacks(refresh[0]);if(channelMixerDialog==dialog)channelMixerDialog=null;});
+        dialog.show();dialog.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(460)),Math.min(dp(620),(int)(getResources().getDisplayMetrics().heightPixels*.86f)));refresh[0].run();
     }
     private void soundFontChanged() { soundFontChanged(null); }
     private void soundFontChanged(String affectedPath) {
@@ -385,7 +419,7 @@ public class MainActivity extends Activity {
         dialog().setTitle(bank.name).setItems(actions,(d,which)->{
             if(which==0) {soundFonts.setDefault(bank.id);soundFontChanged();manageSoundFonts();}
             else if(which==1) {
-                EditText input=new EditText(this);input.setText(bank.name);input.setSingleLine(true);
+                EditText input=new EditText(this);input.setTypeface(UiFonts.body(MainActivity.this));input.setText(bank.name);input.setSingleLine(true);
                 dialog().setTitle("Rename SoundFont").setView(input).setNegativeButton("CANCEL",null).setPositiveButton("SAVE",(x,w)->{
                     try {soundFonts.rename(bank,input.getText().toString());manageSoundFonts();}catch(Exception e){soundFontError(e);}
                 }).show();
@@ -547,14 +581,14 @@ public class MainActivity extends Activity {
     void repaintTheme(){main.removeCallbacks(repaintEdit);repaintEdit.run();}
     void cancelThemeEdit(){main.removeCallbacks(repaintEdit);for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();editState=null;applyPalette(ThemeStore.selected(this));buildUI();main.removeCallbacks(tick);main.post(tick);}
     void saveThemeEdit(){
-        if(editState==null)return;LinearLayout body=ThemeEditor.column(this);EditText name=new EditText(new ContextThemeWrapper(this,android.R.style.Theme_Material_Dialog_Alert));name.setTextColor(ThemeEditor.FG);name.setSingleLine(true);name.setText(editState.draft.name);name.setContentDescription("Theme name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});body.addView(name);
+        if(editState==null)return;LinearLayout body=ThemeEditor.column(this);EditText name=new EditText(new ContextThemeWrapper(this,R.style.AppDarkDialog));name.setTypeface(UiFonts.body(MainActivity.this));name.setTextColor(ThemeEditor.FG);name.setSingleLine(true);name.setText(editState.draft.name);name.setContentDescription("Theme name");name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});body.addView(name);
         TextView save=ThemeEditor.key(this,"SAVE THEME");body.addView(save,new LinearLayout.LayoutParams(-1,dp(48)));Dialog prompt=ThemeEditor.window(this,"NAME YOUR THEME",body);save.setOnClickListener(v->{try{ThemeStore.Draft draft=editState.draft;draft.name=name.getText().toString();new ThemeStore(this).save(draft);String id=draft.id;prompt.dismiss();editState=null;main.removeCallbacks(repaintEdit);selectTheme(id);main.removeCallbacks(tick);main.post(tick);}catch(Exception e){name.setError(e.getMessage());}});ThemeEditor.show(prompt);
     }
     void showSavedThemes(){ThemeLibrary.show(this);}
     void exportTheme(ThemeStore.Draft draft){pendingThemeExport=draft.id;startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("application/json").addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_TITLE,draft.name.replaceAll("[^a-zA-Z0-9 _-]","_")+".chiptheme.json"),6);}
     void importTheme(){startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),5);}
     private AlertDialog.Builder dialog() {
-        Context themed=new ContextThemeWrapper(this,theme.dark?android.R.style.Theme_Material_Dialog_Alert:android.R.style.Theme_Material_Light_Dialog_Alert);
+        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
         return new AlertDialog.Builder(themed) {
             @Override public AlertDialog show() {
                 AlertDialog result=super.show();
@@ -568,12 +602,12 @@ public class MainActivity extends Activity {
         };
     }
     private void tintDialog(View view) {
-        if(view instanceof TextView) ((TextView)view).setTextColor(textColor);
+        if(view instanceof TextView) {TextView text=(TextView)view;text.setTextColor(textColor);Typeface face=text.getTypeface();if(face==null||face.equals(Typeface.DEFAULT)||face.equals(Typeface.DEFAULT_BOLD))text.setTypeface(UiFonts.body(MainActivity.this),face!=null&&face.isBold()?Typeface.BOLD:Typeface.NORMAL);}
         if(view instanceof CheckedTextView) ((CheckedTextView)view).setCheckMarkTintList(android.content.res.ColorStateList.valueOf(accentColor));
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.21.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.22.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Pixelify Sans, Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

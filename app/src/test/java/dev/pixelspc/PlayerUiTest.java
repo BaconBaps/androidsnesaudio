@@ -214,6 +214,24 @@ public class PlayerUiTest {
             c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());assertNotNull(a.editDraft());a.cancelThemeEdit();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());viz.performLongClick();assertEquals(0,viz.mode());
         }
     }
+    @Test public void mixerAndFontsAppearInThemedPlaybackMenuAndCloseWhenTheTrackChanges()throws Exception{
+        Library.Track track=playlistSources()[0];service.current=track;service.queue=java.util.Collections.singletonList(track);service.position=12000;
+        service.mixer=new ChannelMixer(track,new String[]{"Voice 1","Voice 2","Voice 3","Voice 4","Voice 5","Voice 6","Voice 7","Voice 8"},1,2);
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();a.selectTheme("reactor");
+            findDescription(a.getWindow().getDecorView(),"App menu").performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertSame(UiFonts.body(a),((TextView)findText(menu.getWindow().getDecorView(),"Settings")).getTypeface());
+            findDescription(menu.getWindow().getDecorView(),"Settings").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertSame(UiFonts.heading(a),((TextView)findText(menu.getWindow().getDecorView(),"SETTINGS")).getTypeface());
+            captureView(menu.getWindow().getDecorView(),"settings-fonts.png",822,1100);menu.dismiss();
+            findDescription(a.getWindow().getDecorView(),"App menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertTrue(findDescription(menu.getWindow().getDecorView(),"Channel mixer").isEnabled());findDescription(menu.getWindow().getDecorView(),"Channel mixer").performClick();android.app.Dialog mixer=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertNotNull(findDescription(mixer.getWindow().getDecorView(),"Unmute channel 1: Voice 1"));assertNotNull(findDescription(mixer.getWindow().getDecorView(),"End solo for channel 3: Voice 3"));
+            captureView(mixer.getWindow().getDecorView(),"channel-mixer.png",822,1400);
+            service.current=playlistSources()[1];Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200));assertFalse(mixer.isShowing());
+            findDescription(a.getWindow().getDecorView(),"App menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertFalse(findDescription(menu.getWindow().getDecorView(),"Channel mixer").isEnabled());
+        }
+    }
     private PixelVisualizer findVisualizer(View view){if(view instanceof PixelVisualizer)return (PixelVisualizer)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){PixelVisualizer found=findVisualizer(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
     @Test public void themeEditorFreezesThePreviewAndCancelRestoresLiveState() throws Exception {
         Library.Track first=new Library.Track();first.path="/fixture/one.spc";first.title="Frozen song";first.game="Game";first.artist="Composer";first.system="Super Nintendo";first.length=180000;service.current=first;service.queue=java.util.Collections.singletonList(first);service.index=0;service.position=12000;service.playing=true;

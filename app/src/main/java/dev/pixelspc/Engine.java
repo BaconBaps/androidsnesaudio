@@ -13,5 +13,7 @@ public final class Engine {
     public static native void setLoop(long handle,boolean enabled,int length);
     public static native boolean render(long handle,short[] pcm) throws IOException;
     public static native void seek(long handle,int ms) throws IOException;
+    public static native String[] channels(long handle) throws IOException;
+    public static native void channelMask(long handle,int mask) throws IOException;
     public static native int tell(long handle);
 }

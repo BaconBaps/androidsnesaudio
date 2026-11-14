@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A pixel-styled Android player for retro game soundtracks, with eleven themes,
-custom palettes, saved playlists, four audio visualizers, favourites, WAV export, a sleep timer,
+custom palettes, saved playlists, a channel mixer, four audio visualizers, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
 
@@ -39,6 +39,16 @@ are supporting files rather than standalone tracks.
 
 PSF2 (`.psf2`, `.minipsf2`), console ROMs and general audio formats such as MP3
 and FLAC are not currently supported.
+
+## Channel mixer
+
+Open **App menu → Playback tools → Channel mixer** while playing a supported
+GME track (SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY or SAP). Mute voices,
+solo one, or reset everything. Mutes survive scrubbing and pausing; switching
+tracks restores all channels. PSF, USF and MIDI mixing is not available yet.
+WAV export uses the original full mix.
+
+<img src="docs/screenshots/channel-mixer.png" width="300" alt="Themed channel mixer with eight voices, mute, solo and reset controls" />
 
 ## The app
 

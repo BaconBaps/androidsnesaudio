@@ -19,14 +19,16 @@ import static org.junit.Assert.*;
 public class PlaybackResumeTest {
     @Implements(value=Engine.class,isInAndroidSdk=false)
     public static class Decoder {
-        static int position,fontChanges,opens;
+        static int position,fontChanges,opens,mask;
         static Runnable onSeek;
         static boolean endNext;
         @Implementation protected static void __staticInitializer__() {}
         @Implementation protected static long open(String path) { opens++;return 1; }
         @Implementation protected static void close(long handle) {}
         @Implementation protected static void soundFont(long handle,String path) {fontChanges++;}
-        @Implementation protected static void start(long h,int index,int length) { position=0; }
+        @Implementation protected static void start(long h,int index,int length) { position=0;mask=0; }
+        @Implementation protected static String[] channels(long h){return new String[]{"Bass","Lead"};}
+        @Implementation protected static void channelMask(long h,int value){mask=value;}
         @Implementation protected static void setLoop(long h,boolean enabled,int length) {}
         @Implementation protected static void seek(long h,int ms) {
             position=(int)((long)ms*44100/1000*1000/44100);
@@ -79,6 +81,19 @@ public class PlaybackResumeTest {
             Output.head=1024;Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idleFor(java.time.Duration.ofMillis(20));assertSame(first,service.current);
             Output.head=2048;Shadows.shadowOf(((Handler)field(service,"worker")).getLooper()).idleFor(java.time.Duration.ofMillis(10));
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();drain(service);assertSame(second,service.current);
+        }finally{c.destroy();}
+    }
+    @Test public void mixerRunsOnWorkerRetainsMutesAcrossSoloAndSeekAndRejectsStaleTrackActions() throws Exception {
+        ServiceController<PlaybackService> c=Robolectric.buildService(PlaybackService.class).create();PlaybackService service=c.get();
+        try{
+            Library.Track first=track("first.spc"),second=track("second.spc");service.play(Collections.singletonList(first),0);drain(service);assertEquals(2,service.mixer.names.length);
+            service.mixChannel(first,0,0);drain(service);assertEquals(1,Decoder.mask);
+            service.mixChannel(first,0,1);drain(service);assertEquals(~1,Decoder.mask);
+            service.mixChannel(first,0,1);drain(service);assertEquals(1,Decoder.mask);
+            service.seek(1000);drain(service);assertEquals(1,Decoder.mask);
+            service.mixChannel(first,0,2);drain(service);assertEquals(0,Decoder.mask);
+            service.play(Collections.singletonList(second),0);service.mixChannel(first,1,0);drain(service);
+            assertSame(second,service.mixer.track);assertEquals(0,Decoder.mask);assertEquals(0,service.mixer.muted);assertEquals(-1,service.mixer.solo);
         }finally{c.destroy();}
     }
     private static Object field(Object object,String name) throws Exception {

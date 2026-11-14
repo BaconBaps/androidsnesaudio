@@ -16,6 +16,7 @@ public class PlaybackService extends Service {
     private HandlerThread thread;
     private AudioTrack audio;
     private long handle;
+    volatile ChannelMixer mixer=ChannelMixer.empty();
     private Library.Track loaded;
     private final PlaybackSeek seeking=new PlaybackSeek();
     private int pcmOffset=4096;
@@ -116,10 +117,20 @@ public class PlaybackService extends Service {
             worker.removeCallbacks(pump); releaseAudio();
             try {
                 loaded=track; handle=Engine.open(track.path); if(SoundFonts.midi(track.path)) Engine.soundFont(handle,new SoundFonts(this).pathFor(track.path)); Engine.start(handle,track.index,track.length); Engine.setLoop(handle,repeat,track.length);
+                mixer=new ChannelMixer(track,Engine.channels(handle),0,-1);
                 int minimum=AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_16BIT);
                 audio=new AudioTrack.Builder().setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(new AudioFormat.Builder().setSampleRate(44100).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build()).setBufferSizeInBytes(Math.max(minimum,n64Audio(track.path)?65536:16384)).setTransferMode(AudioTrack.MODE_STREAM).build();
                 position=0; playing=true; prebufferShorts=n64Audio(track.path)?16384:0; if(prebufferShorts==0)audio.play(); worker.post(pump); changed();
             } catch(Exception e) { failed(e); }
+        });
+    }
+    void mixChannel(Library.Track track,int channel,int action){
+        worker.post(()->{
+            ChannelMixer state=mixer;
+            if(handle==0||loaded!=track||current!=track||state.track!=track)return;
+            if(action!=2&&(channel<0||channel>=state.names.length))return;
+            ChannelMixer next=action==2?state.reset():action==1?state.solo(channel):state.mute(channel,!state.muted(channel));
+            try{Engine.channelMask(handle,next.mask());mixer=next;changed();}catch(Exception e){failed(e);}
         });
     }
     public void reloadSoundFont() {
@@ -281,7 +292,7 @@ public class PlaybackService extends Service {
         } catch(Exception e) { failed(e); }
     }};
     private void failed(Exception e) { error="Cannot play this track: "+e.getMessage(); playing=false; releaseAudio(); changed(); }
-    private void releaseAudio() { writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
+    private void releaseAudio() { mixer=ChannelMixer.empty();writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
     private void changed() { main.post(()->{
         if(destroyed) return;
         if(current!=null) {

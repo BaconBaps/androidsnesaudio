@@ -492,3 +492,28 @@ pixel glow in amber and warning red. Tap the visualizer to cycle its existing
 four modes. The texture and glow belong to Reactor and its custom-theme copies;
 other themes keep their existing appearance. Reactor can be edited, saved and
 exported using the custom-theme editor.
+
+## Channel mixer and UI fonts (v1.22.0)
+
+Open **App menu → Playback tools → Channel mixer** for a loaded GME track.
+Supported decoder families are SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY
+and SAP. Actual voice count and names come from the decoder. The menu entry
+is disabled when the decoder exposes no voices, including MIDI, PSF and USF.
+
+- **MUTE** toggles a voice. A lit MUTE button means that voice is muted.
+- **SOLO** temporarily isolates one voice, even if it was muted. Tap it again
+  to restore your mute choices, or solo another voice to switch the isolation.
+- **RESET ALL** clears both mute and solo.
+
+Settings last for the current track, surviving pause and scrubbing. Changing
+tracks resets them; an open mixer closes when its track changes. Hardware
+voices can carry different instruments over time, so channel names describe
+voices rather than a fixed instrument list. There are no invented activity
+meters or per-voice volume sliders: this engine API exposes mute/solo only.
+Exports use a fresh decoder and retain the original full mix.
+
+Pixelify Sans replaces regular sans-serif app text, including library entries,
+metadata, imports, form fields and dialogs. Jersey 15 is used for menu titles
+and menu section headings. Existing pixel controls, dot-matrix display titles
+and symbol fonts remain separate. Both new fonts are bundled for offline use
+under the SIL Open Font License, available in About → Licenses.

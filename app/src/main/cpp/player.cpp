@@ -18,6 +18,7 @@ static void fail(JNIEnv* e,const char* text){
     e->DeleteLocalRef(message);e->DeleteLocalRef(cls);e->DeleteLocalRef(error);
 }
 struct Decoder {
+    bool looping=false;int channelMask=0;
     Music_Emu* gme=nullptr;std::unique_ptr<PsfDecoder> psf;std::unique_ptr<UsfDecoder> usf;std::unique_ptr<MidiDecoder> midi;
     ~Decoder(){if(gme)gme_delete(gme);}
 };
@@ -61,7 +62,7 @@ extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_start(JNIEnv*e,jclass
     try{auto&d=get(h);if(d.usf){if(index)throw std::runtime_error("Invalid USF track index");d.usf->start();}else if(d.midi){if(index)throw std::runtime_error("Invalid MIDI track index");d.midi->start();}else if(d.psf){if(index)throw std::runtime_error("Invalid PSF track index");d.psf->start();}else{checked(gme_start_track(d.gme,index));gme_set_fade(d.gme,length);}}catch(const std::exception&ex){fail(e,ex.what());}
 }
 extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_setLoop(JNIEnv*e,jclass,jlong h,jboolean enabled,jint length){
-    try{auto&d=get(h);if(d.usf)d.usf->loop(enabled);else if(d.midi)d.midi->loop(enabled);else if(d.psf)d.psf->loop(enabled);else{gme_ignore_silence(d.gme,enabled?1:0);int at=gme_tell(d.gme);gme_set_fade(d.gme,enabled?-1:std::max(at,length));}}catch(const std::exception&ex){fail(e,ex.what());}
+    try{auto&d=get(h);d.looping=enabled;if(d.usf)d.usf->loop(enabled);else if(d.midi)d.midi->loop(enabled);else if(d.psf)d.psf->loop(enabled);else{gme_ignore_silence(d.gme,(enabled||d.channelMask)?1:0);int at=gme_tell(d.gme);gme_set_fade(d.gme,enabled?-1:std::max(at,length));}}catch(const std::exception&ex){fail(e,ex.what());}
 }
 extern "C" JNIEXPORT jboolean JNICALL Java_dev_pixelspc_Engine_render(JNIEnv*e,jclass,jlong h,jshortArray pcm){
     try{auto&d=get(h);int count=e->GetArrayLength(pcm);if(count<=0||count>1048576||count%2)throw std::runtime_error("Invalid stereo output buffer");
@@ -82,4 +83,16 @@ extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_validateSoundFont(JNI
     const char* file=e->GetStringUTFChars(path,nullptr);if(!file)return;
     try{MidiDecoder::validateFont(file);}catch(const std::exception&ex){fail(e,ex.what());}
     e->ReleaseStringUTFChars(path,file);
+}
+
+extern "C" JNIEXPORT jobjectArray JNICALL Java_dev_pixelspc_Engine_channels(JNIEnv*e,jclass,jlong h){
+    try{auto&d=get(h);int count=d.gme?gme_voice_count(d.gme):0;if(count<0||count>32)count=0;
+        auto out=e->NewObjectArray(count,e->FindClass("java/lang/String"),nullptr);if(!out)return nullptr;
+        for(int i=0;i<count;i++){const char* name=gme_voice_name(d.gme,i);auto value=utf8(e,name?name:"Channel");if(e->ExceptionCheck())return nullptr;e->SetObjectArrayElement(out,i,value);e->DeleteLocalRef(value);}return out;
+    }catch(const std::exception&ex){fail(e,ex.what());return nullptr;}
+}
+extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_channelMask(JNIEnv*e,jclass,jlong h,jint mask){
+    try{auto&d=get(h);if(!d.gme)throw std::runtime_error("Channel mixer is unavailable for this decoder");
+        d.channelMask=mask;gme_mute_voices(d.gme,mask);gme_ignore_silence(d.gme,(mask||d.looping)?1:0);
+    }catch(const std::exception&ex){fail(e,ex.what());}
 }

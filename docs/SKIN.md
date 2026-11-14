@@ -123,3 +123,12 @@ an outer frame. The inset button faces and section-panel edging now apply to
 all palettes, including custom themes. Light palettes retain their softened
 frame shadows. Reactor keeps its own casing frames inside dialogs and the
 Now Playing panel.
+
+## UI font families (v1.22.0)
+
+Regular UI text now uses Pixelify Sans; menu titles and section headings use
+Jersey 15. The existing Press Start 2P controls and Doto display titles retain
+their own roles. Both new fonts are bundled resources, so playback and UI use
+no font download service. Official sources: Google Fonts' `ofl/pixelifysans`
+and `ofl/jersey15` directories. Their complete SIL OFL notices are bundled in
+`assets/licenses/PixelifySans-OFL.txt` and `assets/licenses/Jersey15-OFL.txt`.

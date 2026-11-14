@@ -43,7 +43,7 @@ public class ImportActivity extends Activity {
     }
     int dp(float value){return (int)(value*getResources().getDisplayMetrics().density+.5f);}
     private LinearLayout column(){LinearLayout v=new LinearLayout(this);v.setOrientation(LinearLayout.VERTICAL);return v;}
-    private TextView label(String text,int size,int color){TextView v=new TextView(this);v.setText(text);v.setTextSize(size);v.setTextColor(color);return v;}
+    private TextView label(String text,int size,int color){TextView v=new TextView(this);v.setText(text);v.setTextSize(size);v.setTextColor(color);v.setTypeface(UiFonts.body(this));return v;}
     private TextView button(String text){TextView v=label(text,8,theme.buttonText(theme.accent));v.setTypeface(pixel);v.setGravity(Gravity.CENTER);v.setPadding(dp(6),0,dp(6),0);v.setBackground(skin.button(theme.buttonFace(theme.surface)));v.setContentDescription(text);return v;}
     private void pair(LinearLayout row,View left,View right){LinearLayout.LayoutParams a=new LinearLayout.LayoutParams(0,dp(46),1);a.setMargins(0,0,dp(8),0);row.addView(left,a);row.addView(right,new LinearLayout.LayoutParams(0,dp(46),1));}
     @Override public void onCreate(Bundle state){
