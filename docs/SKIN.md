@@ -148,3 +148,15 @@ stretched corner hatching or per-frame bitmap blur is used. `MatrixControl`
 draws the existing playback button states as dots while preserving TextView
 text, content descriptions, click handlers and focus behaviour. The style
 follows the base ID through custom-theme save/import/export.
+
+### Hi-fi header refinement (v1.24.1)
+
+The chip symbol has been removed from the header. A smaller Doto title sits
+over the exact subtitle "Native format videogame music player". The title gets
+a short power-on reveal; the subtitle pauses, scrolls out, and returns with
+easing. Visible/focused windows schedule a small header redraw at 20 fps, with
+no timer running in a hidden/background window. Android disabled-animation
+settings and frozen theme editing use a complete static rendering. Preview
+cards also remain static, with text fitted to the available width.
+Phosphor's shuffle/repeat glyphs are now rasterized from explicit arrow paths
+on the dot grid instead of ambiguous overlapping distance masks.

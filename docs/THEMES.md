@@ -106,6 +106,6 @@ Pixelify Sans. Custom copies keep the same geometry.
 <img src="screenshots/theme-phosphor.png" width="300" alt="Phosphor player with recessed displays and chunky plastic controls" />
 <img src="screenshots/theme-phosphor-custom.png" width="300" alt="Saved blue custom Phosphor palette" />
 
-All themes now share a recessed Doto header with matching dotted chip and
-settings symbols, coloured from each theme's accent. Other themes retain their
+All themes now share a recessed two-line Doto header with a matching dotted
+settings symbol, coloured from each theme's accent. Other themes retain their
 existing control and panel geometry.

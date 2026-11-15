@@ -59,7 +59,7 @@ Imports show a live, single-line readout of the archive, file and operation in p
 ## The app
 
 **New: Phosphor** — rounded charcoal plastic, chunky dot-matrix buttons, mint lettering and amber lights.
-Every theme now has a recessed dot-matrix header with a matching music chip and settings cog.
+Every theme has a recessed two-line dot-matrix header with a matching settings cog and a gentle hi-fi-style subtitle scroll.
 
 <img src="docs/screenshots/theme-phosphor.png" width="300" alt="Phosphor skin with a mint dot-matrix header, rounded plastic panels and amber playback lights" />
 

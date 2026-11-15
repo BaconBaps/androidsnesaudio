@@ -577,8 +577,8 @@ a reliable overall completion percentage.
 ## Dot-matrix header and Phosphor theme (v1.24.0)
 
 Every theme now uses a dark recessed header with **ChipAmp9x** in the same
-rounded Doto font as the display titles. The music-chip symbol and settings
-cog are drawn as dots with matching palette colours. The cog still opens the
+rounded Doto font as the display titles, with a smaller subtitle underneath. The
+settings cog is drawn as dots with matching palette colours. The cog still opens the
 app menu; holding it still opens saved themes.
 
 Choose **App menu → Settings → Color theme → Phosphor** for rounded charcoal
@@ -589,3 +589,16 @@ be copied, edited, saved and exported like other themes; its custom copies
 retain the plastic geometry and dot controls. The import/export screens and
 player dialogs also use the skin. Existing audio controls and visualizer modes
 work as before.
+
+## Hi-fi header animation (v1.24.1)
+
+The header now uses a smaller **ChipAmp9x** title above **Native format videogame
+music player**, without the chip symbol. On opening the player, the title reveals
+like a powered-on dot-matrix display. The subtitle rests for 4.5 seconds, then
+scrolls out and returns smoothly, repeating like a CD-player display.
+
+Animation runs only while the header is visible and its window has focus. It
+freezes during theme editing and respects Android's disabled-animation setting.
+Theme previews and reduced-motion displays show both lines statically, fitting
+the subtitle within the available width. Phosphor's shuffle and repeat symbols
+now use clearly defined crossed arrows and a two-arrow repeat loop.

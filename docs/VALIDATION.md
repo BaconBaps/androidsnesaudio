@@ -579,3 +579,15 @@ fixed edge widths. Header text uses the same bundled Doto family as existing
 display titles. No decoder or playback-thread changes. APK certificate matches
 the previous release and 16 KiB ZIP alignment passes. These are Robolectric
 captures/checks; no physical-device rendering or performance claim is made.
+
+## Hi-fi header and Phosphor mode icons (v1.24.1)
+
+123 tests pass with zero failures, errors or skips; Android lint reports no issues.
+Header motion tests cover the initial hold, smooth exit, offscreen wrap, smooth
+return, cycle reset and invalid/zero-size inputs. The actual header uses this
+motion only for visible, focused windows with Android animation enabled and no
+frozen theme editing. Native-graphics app/gallery captures use complete static
+header text. The smaller title and exact subtitle replace the previous chip mark;
+Phosphor's mode glyphs now use explicit crossed-arrow and repeat-arrow paths.
+These captures are Robolectric renders, not a physical-device animation check.
+APK signing certificate matches the previous release; 16 KiB ZIP alignment passes.

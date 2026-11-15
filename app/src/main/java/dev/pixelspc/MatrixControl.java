@@ -8,12 +8,24 @@ final class MatrixControl extends TextView {
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);private final int lamp;
     MatrixControl(Context c){this(c,ThemeStore.selected(c).nowPlaying().secondary);}
     MatrixControl(Context c,int lamp){super(c);this.lamp=lamp;}
+    private static final boolean[][] SHUFFLE=pattern(new int[][]{
+        {3,5,6,5},{6,5,14,15},{14,15,18,15},{3,15,6,15},{6,15,14,5},{14,5,18,5},
+        {15,2,18,5},{18,5,15,8},{15,12,18,15},{18,15,15,18}});
+    private static final boolean[][] LOOP=pattern(new int[][]{
+        {4,10,4,7},{4,7,6,5},{6,5,17,5},{14,2,17,5},{17,5,14,8},
+        {16,10,16,13},{16,13,14,15},{14,15,3,15},{6,12,3,15},{3,15,6,18}});
+    private static boolean[][] pattern(int[][] lines){
+        boolean[][] dots=new boolean[21][21];
+        for(int[] line:lines){int x=line[0],y=line[1],dx=Math.abs(line[2]-x),dy=-Math.abs(line[3]-y),sx=x<line[2]?1:-1,sy=y<line[3]?1:-1,error=dx+dy;
+            while(true){dots[y][x]=true;if(x==line[2]&&y==line[3])break;int e=2*error;if(e>=dy){error+=dy;x+=sx;}if(e<=dx){error+=dx;y+=sy;}}
+        }return dots;
+    }
     private boolean lit(String s,int x,int y){
         if(s.startsWith("Ⅱ"))return y>=5&&y<=15&&((x>=6&&x<=8)||(x>=12&&x<=14));
         if(s.startsWith("|◀"))return (x==4&&y>=5&&y<=15)||(y>=5&&y<=15&&x<=15&&x>=15-(5-Math.abs(y-10))*1.5);
         if(s.startsWith("▶|"))return (x==16&&y>=5&&y<=15)||(y>=5&&y<=15&&x>=5&&x<=5+(5-Math.abs(y-10))*1.5);
-        if(s.startsWith("⇄"))return ((y==6||y==14)&&x>=4&&x<=16)||((x==y||x+y==20)&&x>=6&&x<=14)||(x>=14&&x<=17&&(Math.abs(y-6)==17-x||Math.abs(y-14)==17-x));
-        if(s.startsWith("↻")){double r=Math.hypot(x-10,y-10);return (r>5.3&&r<6.8&&!(x>12&&y<7))||(x>=13&&x<=17&&y==6)||(x==17&&y>=3&&y<=6);}
+        if(s.startsWith("⇄"))return SHUFFLE[y][x];
+        if(s.startsWith("↻"))return LOOP[y][x];
         return y>=5&&y<=15&&x>=6&&x<=6+(5-Math.abs(y-10))*2;
     }
     @Override protected void onDraw(Canvas c){
