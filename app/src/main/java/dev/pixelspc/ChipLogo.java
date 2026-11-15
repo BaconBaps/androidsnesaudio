@@ -5,44 +5,62 @@ import android.graphics.*;
 import android.os.SystemClock;
 import android.view.View;
 
-/** Two-line Doto hi-fi display. Preview cards stay static; the live header scrolls gently. */
+/** Programmatic pinball display: retro sans title, restrained glitches and a randomized wave. */
 final class ChipLogo extends View {
-    static final String SUBTITLE="Native format videogame music player";
+    private static int[] titleX,titleY;
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int color;
     private final RectF viewport=new RectF();
-    private long started;private boolean frozen;
+    private final HeaderAnimation animation=new HeaderAnimation(new java.util.Random().nextLong());
+    private boolean frozen;
     ChipLogo(Context c){this(c,ThemeStore.selected(c));}
-    ChipLogo(Context c,PlayerTheme theme){super(c);color=theme.headerInk();paint.setTypeface(new Typeface.Builder(c.getAssets(),"fonts/doto.ttf").setFontVariationSettings("'ROND' 100, 'wght' 800").build());setContentDescription(c.getString(R.string.app_name));setTooltipText(SUBTITLE);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);}
+    ChipLogo(Context c,PlayerTheme theme){super(c);color=theme.headerInk();loadTitle(c);setContentDescription(c.getString(R.string.app_name));setTooltipText("Open settings");setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);}
+    private static synchronized void loadTitle(Context c){
+        if(titleX!=null)return;
+        Bitmap mask=Bitmap.createBitmap(HeaderAnimation.COLS,HeaderAnimation.ROWS,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(mask);Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTypeface(UiFonts.body(c));p.setTextSize(17);p.setColor(Color.WHITE);
+        float width=p.measureText("ChipAmp9x");if(width>88)p.setTextSize(p.getTextSize()*88/width);
+        Rect ink=new Rect();p.getTextBounds("ChipAmp9x",0,9,ink);if(ink.height()>16){p.setTextSize(p.getTextSize()*16/ink.height());p.getTextBounds("ChipAmp9x",0,9,ink);}
+        canvas.drawText("ChipAmp9x",(HeaderAnimation.COLS-p.measureText("ChipAmp9x"))/2,(HeaderAnimation.ROWS-ink.height())/2f-ink.top,p);
+        int[] xs=new int[HeaderAnimation.COLS*HeaderAnimation.ROWS],ys=new int[xs.length];int count=0;
+        for(int y=0;y<HeaderAnimation.ROWS;y++)for(int x=0;x<HeaderAnimation.COLS;x++)if(Color.alpha(mask.getPixel(x,y))>95){xs[count]=x;ys[count++]=y;}
+        titleX=java.util.Arrays.copyOf(xs,count);titleY=java.util.Arrays.copyOf(ys,count);mask.recycle();
+    }
     void setFrozen(boolean value){frozen=value;invalidate();}
-    private static float ease(float value){return value*value*(3-2*value);}
-    static float subtitleOffset(long elapsed,float width,float viewport,float speed){
-        if(speed<=0||width<=0||viewport<=0)return 0;
-        double exit=width/speed*1000,enter=viewport/speed*1000,phase=Math.max(0,elapsed)%(4500+exit+enter);
-        if(phase<4500)return 0;
-        phase-=4500;
-        if(phase<exit)return -width*ease((float)(phase/exit));
-        return viewport*(1-ease((float)((phase-exit)/enter)));
+    void drawInto(Canvas c,RectF box){renderFrame(c,box,0,false);}
+    private void dot(Canvas c,float x,float y,float step,float ox,float oy,int alpha){
+        if(x<0||x>=HeaderAnimation.COLS||y<0||y>=HeaderAnimation.ROWS)return;
+        float px=ox+Math.round(x)*step,py=oy+Math.round(y)*step;
+        paint.setColor(color);paint.setAlpha(alpha/8);c.drawCircle(px,py,step*.72f,paint);paint.setAlpha(alpha);c.drawCircle(px,py,step*.34f,paint);
     }
-    void drawInto(Canvas c,RectF box){drawInto(c,box,0,false);}
-    private void drawInto(Canvas c,RectF box,long elapsed,boolean animate){
+    void renderFrame(Canvas c,RectF box,long elapsed,boolean moving){
         if(box.width()<=0||box.height()<=0)return;
-        float inset=box.height()*.10f,left=box.left+inset,available=Math.max(1,box.width()-2*inset);
+        float step=Math.min(box.width()/(HeaderAnimation.COLS+2),box.height()/(HeaderAnimation.ROWS+2)),ox=box.centerX()-(HeaderAnimation.COLS-1)*step/2,oy=box.centerY()-(HeaderAnimation.ROWS-1)*step/2;
+        HeaderAnimation.Cycle cycle=animation.cycle();int stage=moving?cycle.stage(elapsed):HeaderAnimation.TITLE,glitch=moving?cycle.glitch(elapsed):-1;
         c.save();c.clipRect(box);
-        paint.setTextSize(box.height()*.56f);float width=paint.measureText("ChipAmp9x");if(width>available)paint.setTextSize(paint.getTextSize()*available/width);
-        Paint.FontMetrics fm=paint.getFontMetrics();float titleY=box.top+box.height()*.34f-(fm.ascent+fm.descent)/2;
-        c.save();if(animate&&elapsed<900)c.clipRect(box.left,box.top,box.left+box.width()*ease(Math.min(1,elapsed/900f)),box.bottom);
-        paint.setColor(color);c.drawText("ChipAmp9x",left,titleY,paint);c.restore();
-        paint.setTextSize(box.height()*.205f);if(!animate&&paint.measureText(SUBTITLE)>available)paint.setTextSize(paint.getTextSize()*available/paint.measureText(SUBTITLE));fm=paint.getFontMetrics();float subtitleY=box.top+box.height()*.80f-(fm.ascent+fm.descent)/2;
-        float shift=animate?subtitleOffset(elapsed,paint.measureText(SUBTITLE),available,18*getResources().getDisplayMetrics().density):0;
-        c.save();c.clipRect(left,box.top+box.height()*.60f,left+available,box.bottom);paint.setColor(PlayerTheme.blend(color,0xff000000,.08f));c.drawText(SUBTITLE,left+shift,subtitleY,paint);c.restore();c.restore();
+        if(stage==HeaderAnimation.WAVE){for(int x=0;x<HeaderAnimation.COLS;x++)dot(c,x,cycle.waveY(x,elapsed/1000f),step,ox,oy,255);}
+        else for(int i=0;i<titleX.length;i++){
+            float x=titleX[i],y=titleY[i];
+            if(stage==HeaderAnimation.TITLE&&glitch>=0){
+                int band=3+(cycle.band+glitch*3)%10;
+                if(y>=band&&y<band+cycle.bandSize)x+=glitch%2==0?cycle.shift:-cycle.shift;
+                if(glitch==cycle.glitches.length-1&&((titleX[i]+glitch)%13==0))continue;
+            }else if(stage==HeaderAnimation.BREAK||stage==HeaderAnimation.REFORM){
+                boolean reform=stage==HeaderAnimation.REFORM;
+                float q=HeaderAnimation.ease(reform?(elapsed-cycle.title-cycle.scatter-cycle.wave)/(float)cycle.reform:(elapsed-cycle.title)/(float)cycle.scatter);
+                int order=cycle.reverse?titleX.length-1-i:i;float wx=order%HeaderAnimation.COLS;
+                float seconds=reform?(cycle.title+cycle.scatter+cycle.wave)/1000f:elapsed/1000f;
+                float wy=cycle.waveY(wx,seconds),drift=(float)Math.sin(i*2.7+cycle.drift)*(float)Math.sin(q*Math.PI)*3;
+                float blend=reform?1-q:q;x=x*(1-blend)+wx*blend+drift;y=y*(1-blend)+wy*blend;
+            }
+            dot(c,x,y,step,ox,oy,255);
+        }
+        c.restore();
     }
-    @Override protected void onAttachedToWindow(){super.onAttachedToWindow();started=SystemClock.uptimeMillis();}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused)invalidate();}
     @Override protected void onWindowVisibilityChanged(int visibility){super.onWindowVisibilityChanged(visibility);if(visibility==VISIBLE)invalidate();}
     @Override protected void onDraw(Canvas c){
         super.onDraw(c);viewport.set(getPaddingLeft(),getPaddingTop(),getWidth()-getPaddingRight(),getHeight()-getPaddingBottom());
-        boolean animate=!frozen&&hasWindowFocus()&&isShown()&&ValueAnimator.areAnimatorsEnabled();
-        drawInto(c,viewport,Math.max(0,SystemClock.uptimeMillis()-started),animate);if(animate)postInvalidateDelayed(50);
+        boolean moving=!frozen&&getWindowVisibility()==VISIBLE&&hasWindowFocus()&&isShown()&&ValueAnimator.areAnimatorsEnabled();long elapsed=moving?animation.elapsed(SystemClock.uptimeMillis()):0;
+        renderFrame(c,viewport,elapsed,moving);if(moving)postInvalidateDelayed(50);
     }
 }

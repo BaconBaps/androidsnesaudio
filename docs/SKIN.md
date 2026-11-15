@@ -160,3 +160,19 @@ settings and frozen theme editing use a complete static rendering. Preview
 cards also remain static, with text fitted to the available width.
 Phosphor's shuffle/repeat glyphs are now rasterized from explicit arrow paths
 on the dot grid instead of ambiguous overlapping distance masks.
+
+## Programmatic pinball display (v1.25.0)
+
+The header renders a cached Pixelify Sans title mask as round dots, then shifts
+scanline bands, scatters the dots into a wave and reforms the title. All lit
+header elements, including the fixed cog, use the same contrast-adjusted accent.
+`HeaderAnimation` chooses bounded timing and waveform parameters once per cycle
+from a private seed. It randomizes both waveform speed and frequency, amplitude,
+phase, direction and transition point order; no per-frame random jitter or frame
+bitmap allocations are required. The live view redraws at 20 fps only while
+visible/focused and while Android animation is enabled. Frozen editing and
+preview cards render the static title. No animated image is bundled in the APK.
+
+Title, frame and cog all open Settings directly. Back leads to the full app menu.
+The parent header provides one accessible action; child glyphs remain touchable
+without introducing duplicate accessibility/keyboard stops.

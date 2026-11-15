@@ -44,7 +44,7 @@ and FLAC are not currently supported.
 
 ## Channel mixer
 
-Open **App menu → Playback tools → Channel mixer** while playing a supported
+Open **Header → Back → Playback tools → Channel mixer** while playing a supported
 GME track (SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY or SAP). Mute voices,
 solo one, or reset everything. Mutes survive scrubbing and pausing; switching
 tracks restores all channels. PSF, USF, MIDI, XA and VAG mixing is not available.
@@ -59,7 +59,7 @@ Imports show a live, single-line readout of the archive, file and operation in p
 ## The app
 
 **New: Phosphor** — rounded charcoal plastic, chunky dot-matrix buttons, mint lettering and amber lights.
-Every theme has a recessed two-line dot-matrix header with a matching settings cog and a gentle hi-fi-style subtitle scroll.
+Every theme has a recessed pinball-style dot-matrix header: the retro title glitches into a wave and reforms, with varied timings and waveform speed/frequency. Tap anywhere on the header to open Settings.
 
 <img src="docs/screenshots/theme-phosphor.png" width="300" alt="Phosphor skin with a mint dot-matrix header, rounded plastic panels and amber playback lights" />
 

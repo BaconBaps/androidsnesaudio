@@ -591,3 +591,23 @@ header text. The smaller title and exact subtitle replace the previous chip mark
 Phosphor's mode glyphs now use explicit crossed-arrow and repeat-arrow paths.
 These captures are Robolectric renders, not a physical-device animation check.
 APK signing certificate matches the previous release; 16 KiB ZIP alignment passes.
+
+## Randomized pinball header (v1.25.0)
+
+127 tests pass with no failures, errors or skips; Android lint reports no issues.
+The pure animation model checks stage boundaries, smooth interpolation, seeded
+repeatability, changing cycle parameters, bounded/non-overlapping glitches and
+independently varying waveform speed/frequency/direction. Sampled wave points
+remain finite and within the display grid. A native-graphics test renders title,
+glitch, wave and reform phases, checks that they differ and that the wave has
+visible pixels in the selected foreground colour; its actual-renderer contact
+sheet is header-pinball-sequence.png.
+
+UI tests activate the header frame, title and cog independently and verify that
+each opens Settings, then verify that Back reaches the full app menu. Existing
+menu-action tests use that navigation. The raster title mask is cached, with
+choices made once per cycle and no GIF/video asset in the APK. Animation only
+runs in visible/focused windows with system animation enabled and no frozen
+editing; other renders show the static title. No audio-worker or decoder changes.
+APK certificate matches the previous release; 16 KiB ZIP alignment passes.
+These remain Robolectric checks, not physical-device animation benchmarks.

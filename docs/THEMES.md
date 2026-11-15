@@ -1,6 +1,6 @@
 # Player themes
 
-Choose a palette from the image-preview grid opened by **App menu → Settings → Color theme**. Your selection is saved;
+Choose a palette from the image-preview grid opened by **Header → Color theme**. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
@@ -106,6 +106,6 @@ Pixelify Sans. Custom copies keep the same geometry.
 <img src="screenshots/theme-phosphor.png" width="300" alt="Phosphor player with recessed displays and chunky plastic controls" />
 <img src="screenshots/theme-phosphor-custom.png" width="300" alt="Saved blue custom Phosphor palette" />
 
-All themes now share a recessed two-line Doto header with a matching dotted
+All themes share a recessed pinball-style header with a matching dotted
 settings symbol, coloured from each theme's accent. Other themes retain their
 existing control and panel geometry.

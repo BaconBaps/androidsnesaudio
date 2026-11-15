@@ -487,7 +487,7 @@ Names may be up to 80 characters; up to 100 playlists of 1000 tracks can be save
 
 ## Reactor skin
 
-Choose **App menu → Settings → Color theme → Reactor**. This additional skin uses
+Choose **Header → Color theme → Reactor**. This additional skin uses
 original dithered rust-metal artwork, fixed riveted nine-patch frames, mechanical
 button faces and recessed dark displays. Spectrum and waveform highlights have
 pixel glow in amber and warning red. Tap the visualizer to cycle its existing
@@ -497,7 +497,7 @@ exported using the custom-theme editor.
 
 ## Channel mixer and UI fonts (v1.22.0)
 
-Open **App menu → Playback tools → Channel mixer** for a loaded GME track.
+Open **Header → Back → Playback tools → Channel mixer** for a loaded GME track.
 Supported decoder families are SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY
 and SAP. Actual voice count and names come from the decoder. The menu entry
 is disabled when the decoder exposes no voices, including MIDI, PSF and USF.
@@ -576,12 +576,11 @@ a reliable overall completion percentage.
 
 ## Dot-matrix header and Phosphor theme (v1.24.0)
 
-Every theme now uses a dark recessed header with **ChipAmp9x** in the same
-rounded Doto font as the display titles, with a smaller subtitle underneath. The
-settings cog is drawn as dots with matching palette colours. The cog still opens the
-app menu; holding it still opens saved themes.
+Every theme uses a dark recessed, animated dot-matrix header. Its retro
+sans-serif title and decorative waveform use one palette colour, matching the
+fixed cog. Tapping the header opens Settings; holding it opens saved themes.
 
-Choose **App menu → Settings → Color theme → Phosphor** for rounded charcoal
+Choose **Header → Color theme → Phosphor** for rounded charcoal
 plastic panels, chunky playback buttons, dot-matrix control symbols and
 tracklist names, mint lettering, amber spectrum dots and a dotted seek rail.
 The rounded bezels keep a fixed edge width at different sizes. Phosphor can
@@ -590,15 +589,23 @@ retain the plastic geometry and dot controls. The import/export screens and
 player dialogs also use the skin. Existing audio controls and visualizer modes
 work as before.
 
-## Hi-fi header animation (v1.24.1)
+## Pinball header animation (v1.25.0)
 
-The header now uses a smaller **ChipAmp9x** title above **Native format videogame
-music player**, without the chip symbol. On opening the player, the title reveals
-like a powered-on dot-matrix display. The subtitle rests for 4.5 seconds, then
-scrolls out and returns smoothly, repeating like a CD-player display.
+The header now uses the approved single-colour decorative dot-matrix sequence:
+**retro sans title → brief glitches → waveform → title**. Glitch timing, row
+shifts, dot dropouts, transition patterns and segment lengths vary each cycle.
+Waveform speed, spatial frequency, amplitude, phase and direction also vary,
+with stable parameters inside each cycle so the animation stays coherent.
+The former scrolling subtitle is replaced by this graphical animation.
 
-Animation runs only while the header is visible and its window has focus. It
-freezes during theme editing and respects Android's disabled-animation setting.
-Theme previews and reduced-motion displays show both lines statically, fitting
-the subtitle within the available width. Phosphor's shuffle and repeat symbols
-now use clearly defined crossed arrows and a two-arrow repeat loop.
+Tap **any part of the header**, including the title, cog or frame, to open
+Settings directly. **Back** opens the full app menu for Music and Playback tools.
+Holding the header still opens saved themes. The whole header is one accessible
+settings action; decorative child views do not create duplicate focus stops.
+
+The animation runs only in a visible, focused window. Android disabled-animation
+settings, theme editing and theme preview cards use a complete static title.
+The header wave is decorative; the Now Playing visualizers still follow decoded
+music. No GIF or video playback is used for the animated header.
+
+<img src="screenshots/header-pinball-sequence.png" width="600" alt="Actual Android-rendered header frames: title, glitch, wave and reform" />
