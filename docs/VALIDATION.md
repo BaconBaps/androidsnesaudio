@@ -542,3 +542,20 @@ commands are in PSX_AUDIO_SUPPORT.md. No real game XA/VAG collections or physica
 Android device were used, so proprietary layout compatibility remains limited
 to the documented formats. APK signature matches the previous release; 16 KiB
 ZIP alignment passes.
+
+## Live import readout (v1.23.1)
+
+Status callbacks cover selection staging, document copying, archive extraction,
+metadata/subsong reading, saving and batch rollback. Byte-copy reporting is
+throttled and the UI coalesces updates to the existing single status line rather
+than re-rendering selection rows. Callback-free importer overloads remain intact
+for existing callers and native sample tools.
+
+Regression tests cover archive/entry counters and filenames, saving and rollback
+messages, byte-for-byte copy integrity, and a real import worker blocked at the
+decoder stage while the UI readout updates and survives activity recreation.
+The import-progress screenshot is a native-graphics Robolectric capture.
+Release checks: 119 tests pass with no failures, errors or skips; lint reports
+no issues. The full native sample script passes, including SPC/RSN extraction,
+VGZ seeking, PSF, MIDI, USF, the mixer and XA/VAG reference streams. APK signing
+certificate matches the previous release and 16 KiB ZIP alignment passes.

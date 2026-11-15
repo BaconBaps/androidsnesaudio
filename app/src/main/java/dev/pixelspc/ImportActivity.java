@@ -17,7 +17,8 @@ public class ImportActivity extends Activity {
     private ProgressBar progress;private boolean updating;
     private static final class Model {
         final Context context;final Handler main=new Handler(Looper.getMainLooper());
-        volatile ImportActivity owner;volatile boolean scanning,importing;Thread task;
+        volatile ImportActivity owner;volatile boolean scanning,importing;volatile String status="Preparing import…";
+        final java.util.concurrent.atomic.AtomicBoolean statusPending=new java.util.concurrent.atomic.AtomicBoolean();Thread task;
         List<ImportDocuments.Item> items=new ArrayList<>();Set<String> selected=new HashSet<>();String label="Selected music",error="";
         boolean folder,includeSubfolders=true,append;ArrayList<String> result;
         Model(Context context){this.context=context.getApplicationContext();}
@@ -33,9 +34,10 @@ public class ImportActivity extends Activity {
                 finally{scanning=false;update();}
             },"Browse music");task.start();
         }
+        void report(String value){status=value;if(statusPending.compareAndSet(false,true))main.postDelayed(()->{statusPending.set(false);ImportActivity activity=owner;if(activity!=null&&!activity.isDestroyed())activity.updateActions();},100);}
         void commit(boolean appendQueue,Set<String> selection){
-            importing=true;append=appendQueue;error="";update();task=new Thread(()->{
-                try{List<Library.Game> games=ImportBatch.run(context,items,selection,label);ArrayList<String> ids=new ArrayList<>();for(Library.Game game:games)ids.add(game.id);result=ids;}
+            importing=true;status="Preparing import…";append=appendQueue;error="";update();task=new Thread(()->{
+                try{List<Library.Game> games=ImportBatch.run(context,items,selection,label,this::report);ArrayList<String> ids=new ArrayList<>();for(Library.Game game:games)ids.add(game.id);result=ids;}
                 catch(Exception e){error="Could not add music: "+e.getMessage();}
                 finally{importing=false;update();}
             },"Add music");task.start();
@@ -63,7 +65,7 @@ public class ImportActivity extends Activity {
         FrameLayout frame=new FrameLayout(this);frame.setBackground(skin.well(theme.library().background));frame.setPadding(dp(6),dp(5),dp(6),dp(5));body.addView(frame,new LinearLayout.LayoutParams(-1,0,1));
         ScrollView scroll=new ScrollView(this);frame.addView(scroll,new FrameLayout.LayoutParams(-1,-1));rows=column();scroll.addView(rows);
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setIndeterminate(true);body.addView(progress,new LinearLayout.LayoutParams(-1,dp(8)));
-        count=label("",13,theme.text);count.setPadding(0,dp(8),0,dp(4));count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);body.addView(count);
+        count=label("",13,theme.text);count.setSingleLine(true);count.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);count.setPadding(0,dp(8),0,dp(4));count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);body.addView(count);
         error=label("",13,theme.muted);error.setPadding(0,0,0,dp(8));error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);body.addView(error);
         LinearLayout actions=new LinearLayout(this);add=button("ADD");queue=button("ADD AND QUEUE");pair(actions,add,queue);body.addView(actions);
         cancel=button("CANCEL");LinearLayout.LayoutParams cancelParams=new LinearLayout.LayoutParams(-1,dp(42));cancelParams.topMargin=dp(8);body.addView(cancel,cancelParams);
@@ -84,7 +86,7 @@ public class ImportActivity extends Activity {
     }
     private void updateActions(){
         List<ImportDocuments.Item> visible=visible();int selected=0;for(ImportDocuments.Item item:visible)if(model.selected.contains(item.key()))selected++;
-        boolean busy=model.scanning||model.importing;count.setText(model.scanning?"Reading folder…":model.importing?"Adding music…":selected+" files selected"+(model.items.stream().anyMatch(ImportDocuments.Item::dependency)?" · PSF/USF libraries included automatically":""));
+        boolean busy=model.scanning||model.importing;count.setText(model.scanning?"Reading folder…":model.importing?model.status:selected+" files selected"+(model.items.stream().anyMatch(ImportDocuments.Item::dependency)?" · PSF/USF libraries included automatically":""));
         error.setText(model.error);error.setVisibility(model.error.isEmpty()?View.GONE:View.VISIBLE);progress.setVisibility(busy?View.VISIBLE:View.GONE);
         add.setEnabled(!busy&&selected>0);queue.setEnabled(!busy&&selected>0);add.setAlpha(add.isEnabled()?1:.4f);queue.setAlpha(queue.isEnabled()?1:.4f);
         files.setEnabled(!busy);folder.setEnabled(!busy);cancel.setEnabled(!model.importing);subfolders.setEnabled(!busy);all.setEnabled(!busy&&!visible.isEmpty());

@@ -556,3 +556,20 @@ layout and stream identifiers are missing. VAG support is standard big-endian
 mono VAGp; stereo/interleaved and proprietary VAG variants are not included.
 Individual XA/VAG files may be up to 128 MiB; other import and collection limits
 remain in place. See [XA/VAG implementation notes](PSX_AUDIO_SUPPORT.md).
+
+## Live import readout (v1.23.1)
+
+The line previously labelled **Adding music…** now reports the current archive
+or selection group, operation and filename. Examples include copying an archive,
+unpacking an entry, reading track metadata/subsongs and saving the finished set.
+Copies/unpacking periodically show MiB processed. Multiple archives show a
+current/total counter; reading tracks shows the current file/total and any
+subsong count. Failed batches report rollback while removing incomplete imports.
+
+The status stays on one line in its original position; long names shorten in the
+middle. Updates are coalesced on the UI thread and do not rebuild the file list.
+Rotating the device retains the current status and the running import. The bar
+remains indeterminate because archive expansion and decoder work do not provide
+a reliable overall completion percentage.
+
+<img src="screenshots/import-progress.png" width="310" alt="Import screen with a live one-line archive and track readout" />

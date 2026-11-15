@@ -18,7 +18,9 @@ public final class ArchiveImporter {
         public final File file; public final String name;
         Entry(File f,String n) { file=f; name=n; }
     }
-    public static List<Entry> extract(File input,String name,File destination) throws Exception {
+    public static List<Entry> extract(File input,String name,File destination) throws Exception {return extract(input,name,destination,ImportProgress.NONE);}
+    public static List<Entry> extract(File input,String name,File destination,ImportProgress progress) throws Exception {
+        progress.update("Opening archive · "+name);
         if(!destination.isDirectory() && !destination.mkdirs()) throw new IOException("Cannot create library folder");
         List<Entry> result=new ArrayList<>(); Budget budget=new Budget(); Set<String> psfPaths=new HashSet<>();
         try {
@@ -29,10 +31,11 @@ public final class ArchiveImporter {
                     while((e=zip.getNextEntry())!=null) {
                         if(++entries>3000) throw new IOException("Too many archive entries");
                         if(!e.isDirectory() && (supported(e.getName()) || dependency(e.getName()))) {
+                            progress.update("Unpacking · "+e.getName());
                             Entry item=storedEntry(destination,e.getName(),result.size(),psfPaths);
-                            try(OutputStream out=new FileOutputStream(item.file)) { copy(zip,out,budget,fileLimit(e.getName())); }
+                            try(OutputStream out=new FileOutputStream(item.file)) { copy(zip,ImportProgress.reporting(out,progress,"Unpacking · "+e.getName()),budget,fileLimit(e.getName())); }
                             if(!dependency(e.getName())) result.add(item); if(result.size()>TRACK_LIMIT) throw new IOException("Too many tracks");
-                        } else { copy(zip,new Discard(),budget); }
+                        } else { progress.update("Skipping · "+e.getName());copy(zip,ImportProgress.reporting(new Discard(),progress,"Skipping · "+e.getName()),budget); }
                         zip.closeEntry();
                     }
                 }
@@ -42,15 +45,16 @@ public final class ArchiveImporter {
                     while((raw=rar.next())!=null) {
                         if(++entries>3000) throw new IOException("Too many archive entries");
                         if(rar.size()>fileLimit(raw) || rar.size()<0) throw new IOException("Archive entry is too large");
-                        boolean music=supported(raw),library=dependency(raw);
+                        boolean music=supported(raw),library=dependency(raw);progress.update((music||library?"Unpacking · ":"Skipping · ")+raw);
                         Entry item=music||library?storedEntry(destination,raw,result.size(),psfPaths):null;
-                        try(OutputStream out=item==null?new Discard():new FileOutputStream(item.file)) { copy(rar,out,budget,fileLimit(raw)); }
+                        try(OutputStream out=item==null?new Discard():new FileOutputStream(item.file)) { copy(rar,ImportProgress.reporting(out,progress,"Unpacking · "+raw),budget,fileLimit(raw)); }
                         if(music) { result.add(item); if(result.size()>TRACK_LIMIT) throw new IOException("Too many tracks"); }
                     }
                 }
             } else if(supported(name)) {
+                progress.update("Preparing track · "+name);
                 Entry item=storedEntry(destination,name,0,psfPaths);
-                try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,out,budget,fileLimit(name)); }
+                try(InputStream in=new FileInputStream(input); OutputStream out=new FileOutputStream(item.file)) { copy(in,ImportProgress.reporting(out,progress,"Preparing track · "+name),budget,fileLimit(name)); }
                 result.add(item);
             } else throw new IOException("Choose an SPC, RSN, PSF, XA, VAG, USF, MIDI, ZIP, or supported chiptune file");
             if(result.isEmpty()) throw new IOException("No supported music files found in this set");

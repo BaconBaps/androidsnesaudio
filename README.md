@@ -52,6 +52,7 @@ WAV export uses the original full mix.
 
 Hold a track or library playlist for Export audio and Playback tools; MIDI tracks
 also offer Change SoundFont. Multi-track collections ask which track to use.
+Imports show a live, single-line readout of the archive, file and operation in progress.
 
 <img src="docs/screenshots/channel-mixer.png" width="300" alt="Themed channel mixer with eight voices, mute, solo and reset controls" />
 

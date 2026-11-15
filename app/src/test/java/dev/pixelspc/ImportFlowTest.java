@@ -20,15 +20,16 @@ import static org.junit.Assert.*;
 public class ImportFlowTest {
     @Implements(value=Engine.class,isInAndroidSdk=false)
     public static class Decoder {
+        static volatile java.util.concurrent.CountDownLatch blocked,proceed;
         @Implementation protected static void __staticInitializer__(){}
-        @Implementation protected static long open(String path)throws IOException{if(Files.readAllBytes(Paths.get(path))[0]==127)throw new IOException("Invalid music");return 1;}
+        @Implementation protected static long open(String path)throws IOException{if(blocked!=null){blocked.countDown();try{if(!proceed.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("Test import timed out");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException(e);}}if(Files.readAllBytes(Paths.get(path))[0]==127)throw new IOException("Invalid music");return 1;}
         @Implementation protected static void close(long handle){}
         @Implementation protected static int count(long handle){return 1;}
         @Implementation protected static String[] info(long handle,int index){return new String[]{"Test track","Fixture","Artist","Super Nintendo",""};}
         @Implementation protected static int length(long handle,int index){return 180000;}
     }
     private Context context;
-    @Before public void setup()throws Exception{context=RuntimeEnvironment.getApplication();new File(context.getFilesDir(),"library.json").delete();ArchiveImporter.removeTree(new File(context.getFilesDir(),"sets"));}
+    @Before public void setup()throws Exception{Decoder.blocked=null;Decoder.proceed=null;context=RuntimeEnvironment.getApplication();new File(context.getFilesDir(),"library.json").delete();ArchiveImporter.removeTree(new File(context.getFilesDir(),"sets"));}
     private File source(String name,int value)throws Exception{File file=new File(context.getCacheDir(),name);Files.write(file.toPath(),new byte[]{(byte)value});return file;}
     private ImportDocuments.Item item(File file,String path){return new ImportDocuments.Item(Uri.fromFile(file),path,file.length());}
     private View find(View view,String text){if(view instanceof TextView&&text.contentEquals(((TextView)view).getText()))return view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){View found=find(((ViewGroup)view).getChildAt(i),text);if(found!=null)return found;}return null;}
@@ -56,6 +57,34 @@ public class ImportFlowTest {
     @Test public void addReturnsLibraryOnlyAction()throws Exception{
         try(org.robolectric.android.controller.ActivityController<ImportActivity> c=Robolectric.buildActivity(ImportActivity.class).setup()){
             c.get().onActivityResult(1,Activity.RESULT_OK,new Intent().setData(Uri.fromFile(source("Only.spc",1))));drain(c.get());find(c.get().getWindow().getDecorView(),"ADD").performClick();drain(c.get());assertFalse(Shadows.shadowOf(c.get()).getResultIntent().getBooleanExtra(ImportActivity.QUEUE,true));assertEquals(1,new Library(context).games.size());
+        }
+    }
+    @Test public void reportingCopiesBytesExactlyWithoutDuplicatingWrites()throws Exception{
+        byte[] data=new byte[65536];new java.util.Random(42).nextBytes(data);ByteArrayOutputStream out=new ByteArrayOutputStream();List<String> messages=new ArrayList<>();OutputStream reporting=ImportProgress.reporting(out,messages::add,"Copying · Game.zip");reporting.write(data);reporting.write(7);reporting.flush();byte[] expected=Arrays.copyOf(data,data.length+1);expected[data.length]=7;assertArrayEquals(expected,out.toByteArray());assertTrue(messages.get(0).startsWith("Copying · Game.zip · "));
+    }
+    @Test public void progressReportsArchivesEntriesSavingAndRollback()throws Exception{
+        File one=new File(context.getCacheDir(),"NES.zip"),two=new File(context.getCacheDir(),"GameBoy.zip");
+        for(File archive:Arrays.asList(one,two))try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(archive))){zip.putNextEntry(new ZipEntry(archive==one?"Mario.nsf":"Tetris.gbs"));zip.write(1);zip.closeEntry();}
+        List<ImportDocuments.Item> items=Arrays.asList(item(one,"NES.zip"),item(two,"GameBoy.zip"));Set<String> selected=new HashSet<>();for(ImportDocuments.Item i:items)selected.add(i.key());List<String> messages=new ArrayList<>();
+        assertEquals(2,ImportBatch.run(context,items,selected,"Games",messages::add).size());
+        assertTrue(messages.stream().anyMatch(m->m.contains("1/2 · Unpacking · NES.zip")&&m.contains("Unpacking")&&m.contains("Mario.nsf")));
+        assertTrue(messages.stream().anyMatch(m->m.contains("2/2 · Reading track 1/1 · GameBoy.zip")&&m.contains("Reading track 1/1")&&m.contains("Tetris.gbs")));
+        assertTrue(messages.stream().anyMatch(m->m.contains("Saving 1 track")));
+        File bad=new File(context.getCacheDir(),"Broken.zip");try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(bad))){zip.putNextEntry(new ZipEntry("bad.spc"));zip.write(127);zip.closeEntry();}
+        ImportDocuments.Item broken=item(bad,"Broken.zip");messages.clear();try{ImportBatch.run(context,Collections.singletonList(broken),Collections.singleton(broken.key()),"Broken",messages::add);fail();}catch(IOException expected){}
+        assertTrue(messages.contains("Undoing incomplete import…"));assertEquals(2,new Library(context).games.size());
+    }
+    @Test public void liveImportStatusUpdatesInOneLineAndSurvivesRotation()throws Exception{
+        File archive=new File(context.getCacheDir(),"Live.zip");try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(archive))){for(String name:new String[]{"A.spc","B.gbs"}){zip.putNextEntry(new ZipEntry(name));zip.write(1);zip.closeEntry();}}
+        try(org.robolectric.android.controller.ActivityController<ImportActivity> c=Robolectric.buildActivity(ImportActivity.class).setup()){
+            c.get().onActivityResult(1,Activity.RESULT_OK,new Intent().setData(Uri.fromFile(archive)));drain(c.get());Decoder.blocked=new java.util.concurrent.CountDownLatch(1);Decoder.proceed=new java.util.concurrent.CountDownLatch(1);
+            try{
+                find(c.get().getWindow().getDecorView(),"ADD").performClick();assertTrue(Decoder.blocked.await(5,java.util.concurrent.TimeUnit.SECONDS));Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(150));
+                TextView status=org.robolectric.util.ReflectionHelpers.getField(c.get(),"count");assertTrue(status.getText().toString().contains("Live.zip"));assertTrue(status.getText().toString().contains("Reading track 1/2"));assertEquals(1,status.getMaxLines());
+                String message=status.getText().toString();c.recreate();status=org.robolectric.util.ReflectionHelpers.getField(c.get(),"count");assertEquals(message,status.getText().toString());assertEquals(1,status.getMaxLines());
+                View decor=c.get().getWindow().getDecorView();decor.measure(View.MeasureSpec.makeMeasureSpec(822,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1782,View.MeasureSpec.EXACTLY));decor.layout(0,0,822,1782);android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(822,1782,android.graphics.Bitmap.Config.ARGB_8888);decor.draw(new android.graphics.Canvas(image));try(OutputStream out=new FileOutputStream("../docs/screenshots/import-progress.png")){image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out);}
+            }finally{Decoder.proceed.countDown();drain(c.get());Decoder.blocked=null;Decoder.proceed=null;}
+            assertEquals(Activity.RESULT_OK,Shadows.shadowOf(c.get()).getResultCode());assertEquals(2,new Library(context).games.get(0).tracks.size());
         }
     }
     @Test public void failedBatchRollsBackEarlierImportsAndKeepsSourceFiles()throws Exception{

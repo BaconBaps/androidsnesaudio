@@ -10,7 +10,7 @@ CMAKE_BIN="${ANDROID_HOME}/cmake/3.22.1/bin/cmake"
 "$CMAKE_BIN" --build "$TEST_DIR/native-player" -j2
 "$TEST_DIR/native-player/xsf_timing_test"
 mkdir -p "$TEST_DIR/classes"
-javac -d "$TEST_DIR/classes" app/src/main/java/dev/pixelspc/{Engine,RarReader,ArchiveImporter,PlaybackSeek,WavExporter}.java tests/{ArchiveSmoke,NativeSmoke,NativeSeekSmoke,NativeMixerSmoke,PsxAudioNativeSmoke,NativeExportSmoke,PsfNativeSmoke,UsfNativeSmoke,MidiNativeSmoke}.java
+javac -d "$TEST_DIR/classes" app/src/main/java/dev/pixelspc/{Engine,RarReader,ImportProgress,ArchiveImporter,PlaybackSeek,WavExporter}.java tests/{ArchiveSmoke,NativeSmoke,NativeSeekSmoke,NativeMixerSmoke,PsxAudioNativeSmoke,NativeExportSmoke,PsfNativeSmoke,UsfNativeSmoke,MidiNativeSmoke}.java
 NATIVE_PATH="$TEST_DIR/native-player:$TEST_DIR/native-player/gme/gme"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.ArchiveSmoke "$1" "$2"
 java -Djava.library.path="$NATIVE_PATH" -cp "$TEST_DIR/classes" dev.pixelspc.NativeSmoke "$1" "$2"

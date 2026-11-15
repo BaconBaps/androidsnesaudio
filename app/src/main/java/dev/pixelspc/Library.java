@@ -34,23 +34,28 @@ public final class Library {
         try(Cursor c=context.getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)) { if(c!=null && c.moveToFirst()) name=c.getString(0); }
         return importFile(uri,name);
     }
-    Game importFile(Uri uri,String name) throws Exception {
+    Game importFile(Uri uri,String name) throws Exception {return importFile(uri,name,ImportProgress.NONE);}
+    Game importFile(Uri uri,String name,ImportProgress progress) throws Exception {
+        progress.update("Reading file · "+name);
         File temp=File.createTempFile("import-",".tmp",context.getCacheDir());
         File dir=new File(context.getFilesDir(),"sets/"+UUID.randomUUID());
         boolean saved=false;
         try {
-            try(InputStream in=context.getContentResolver().openInputStream(uri); OutputStream out=new FileOutputStream(temp)) {
+            try(InputStream in=context.getContentResolver().openInputStream(uri); OutputStream out=ImportProgress.reporting(new FileOutputStream(temp),progress,"Reading file · "+name)) {
                 if(in==null) throw new IOException("Cannot read selected file");
                 byte[] b=new byte[16384]; int n; long total=0;
                 while((n=in.read(b))!=-1) { if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Import cancelled"); total+=n; if(total>128L*1024*1024) throw new IOException("Import is limited to 128 MB"); out.write(b,0,n); }
             }
-            List<ArchiveImporter.Entry> entries=ArchiveImporter.extract(temp,name,dir);
+            List<ArchiveImporter.Entry> entries=ArchiveImporter.extract(temp,name,dir,progress);
             Game game=new Game(); game.id=dir.getName(); game.name=name.replaceFirst("\\.[^.]+$","");
+            int fileIndex=0;
             for(ArchiveImporter.Entry e:entries) {
+                progress.update("Reading track "+(++fileIndex)+"/"+entries.size()+" · "+e.name);
                 long h=Engine.open(e.file.getAbsolutePath());
                 try {
                     int count=Engine.count(h); if(count<1 || count+game.tracks.size()>1000) throw new IOException("Set exceeds 1000 songs");
                     for(int i=0;i<count;i++) {
+                        progress.update("Reading track "+fileIndex+"/"+entries.size()+" · "+e.name+(count>1?" · stream "+(i+1)+"/"+count:""));
                         String[] info=Engine.info(h,i); Track t=new Track(); t.path=e.file.getAbsolutePath(); t.index=i;
                         t.title=(SoundFonts.midi(e.name)||info[0].isEmpty())?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
                         if(ArchiveImporter.extension(e.name).equals("xa"))t.title=e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+info[0]:"");
@@ -61,6 +66,7 @@ public final class Library {
                 } finally { Engine.close(h); }
             }
             if(!game.tracks.get(0).game.isEmpty()) game.name=game.tracks.get(0).game;
+            progress.update("Saving "+game.tracks.size()+(game.tracks.size()==1?" track · ":" tracks · ")+name);
             synchronized(this) { games.add(game); try { save(); } catch(Exception e) { games.remove(game); throw e; } }
             saved=true; return game;
         } finally {
