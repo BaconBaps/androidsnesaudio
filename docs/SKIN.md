@@ -132,3 +132,19 @@ their own roles. Both new fonts are bundled resources, so playback and UI use
 no font download service. Official sources: Google Fonts' `ofl/pixelifysans`
 and `ofl/jersey15` directories. Their complete SIL OFL notices are bundled in
 `assets/licenses/PixelifySans-OFL.txt` and `assets/licenses/Jersey15-OFL.txt`.
+
+## Phosphor and the dot-matrix header (v1.24.0)
+
+`ChipLogo` now renders the real rounded Doto font, paired with an original
+`DotGlyph` music chip. A matching dot gear remains a separate accessible 48 dp
+menu target inside the shared dark recessed header. Colours adapt to each
+palette with contrast checks. The old full-colour logo is retained in `docs/branding/chipamp9x-original-logo.png`
+for other branding uses; the header no longer stretches that image.
+
+Phosphor's `PlasticSurface` draws rounded, layered bezels and molded gradients
+with fixed-width edges. Its original generated `phosphor_plastic.png` texture
+is sampled down once and tiled with a shader, as is the unlit dot grid. No
+stretched corner hatching or per-frame bitmap blur is used. `MatrixControl`
+draws the existing playback button states as dots while preserving TextView
+text, content descriptions, click handlers and focus behaviour. The style
+follows the base ID through custom-theme save/import/export.

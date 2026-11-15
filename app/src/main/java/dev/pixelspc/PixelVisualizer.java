@@ -35,9 +35,9 @@ public class PixelVisualizer extends View {
     private void gain(){float peak=.25f;for(float value:trace)peak=Math.max(peak,Math.abs(value));traceGain=.85f/peak;}
     void setFrozenFrame(float[] levels){setFrozenFrame(levels,new float[AudioWaveform.SAMPLES]);}
     void setFrozenFrame(float[] levels,float[] waveform){frozen=true;playing=false;loaded=true;trace=waveform;gain();envelope=1;for(int i=0;i<heights.length;i++){heights[i]=levels[i];peaks[i]=levels[i];}invalidate();}
-    private void box(Canvas c,int color,float x,float y,float w,float h){paint.setStyle(Paint.Style.FILL);paint.setColor(color);c.drawRect(x,y,x+w,y+h,paint);}
+    private void box(Canvas c,int color,float x,float y,float w,float h){paint.setStyle(Paint.Style.FILL);paint.setColor(color);if(theme.phosphor()&&w<=8&&h<=6){if(w>3){for(int i=0;i<3;i++)c.drawCircle(x+1.2f+i*2.8f,y+h/2,Math.min(h/2,1.1f),paint);}else c.drawCircle(x+w/2,y+h/2,Math.min(w,h)/2,paint);}else c.drawRect(x,y,x+w,y+h,paint);}
     private void phosphor(Canvas c,int color,float x,float y,float w,float h){
-        if(theme.reactor()){
+        if(theme.reactor()||theme.phosphor()){
             box(c,PlayerTheme.blend(displayColor,color,.10f),x-2,y-2,w+4,h+4);
             box(c,PlayerTheme.blend(displayColor,color,.24f),x-1,y-1,w+2,h+2);
         }
@@ -85,7 +85,7 @@ public class PixelVisualizer extends View {
     }
     private void stroke(Canvas c,int color,float width){
         paint.setStyle(Paint.Style.STROKE);
-        if(theme.reactor()&&PlayerTheme.luminance(color)>.25){
+        if((theme.reactor()||theme.phosphor())&&PlayerTheme.luminance(color)>.25){
             paint.setStrokeWidth(width+5);paint.setColor(PlayerTheme.blend(displayColor,color,.10f));c.drawPath(path,paint);
             paint.setStrokeWidth(width+2);paint.setColor(PlayerTheme.blend(displayColor,color,.28f));c.drawPath(path,paint);
         }

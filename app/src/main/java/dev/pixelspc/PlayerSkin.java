@@ -8,10 +8,10 @@ import android.view.Gravity;
 /** Original raster chrome: tiled grain and compiled nine-patches, never stretched textures. */
 final class PlayerSkin {
     private final Context context;
-    private final boolean reactor;
+    private final boolean reactor,phosphor;
     private Bitmap metal;
     PlayerSkin(Context context) { this(context,PlayerTheme.ALL[0]); }
-    PlayerSkin(Context context,PlayerTheme theme) { this.context=context;reactor=theme.reactor(); }
+    PlayerSkin(Context context,PlayerTheme theme) { this.context=context;reactor=theme.reactor();phosphor=theme.phosphor(); }
     private int frame(int id){
         if(id==R.drawable.skin_panel)return R.drawable.reactor_panel;
         if(id==R.drawable.skin_key)return R.drawable.reactor_key;
@@ -49,6 +49,7 @@ final class PlayerSkin {
         d.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT); d.setFilterBitmap(false); return d;
     }
     private Drawable face(int color,int edge,boolean grain) {
+        if(phosphor)return new PlasticSurface(context,color,edge==R.drawable.skin_well||edge==R.drawable.skin_key_down?PlasticSurface.RECESSED:PlasticSurface.RAISED,false);
         if(reactor){
             java.util.ArrayList<Drawable> parts=new java.util.ArrayList<>();parts.add(new ColorDrawable(color));
             if(grain){
@@ -67,11 +68,13 @@ final class PlayerSkin {
         LayerDrawable d=new LayerDrawable(parts); d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK); return d;
     }
     Drawable chassis(int color) { return face(color,R.drawable.skin_chassis,true); }
-    Drawable background(int color) { return reactor?face(color,0,true):new ColorDrawable(color); }
+    Drawable header(int color){return new PlasticSurface(context,color,PlasticSurface.RECESSED,true);}
+    Drawable background(int color) { if(phosphor)return new PlasticSurface(context,color,PlasticSurface.PLAIN,false);return reactor?face(color,0,true):new ColorDrawable(color); }
     Drawable panel(int color) { return face(color,R.drawable.skin_panel,PlayerTheme.luminance(color)<.35); }
     Drawable selection(int color) { return face(color,R.drawable.skin_panel,false); }
     Drawable well(int color) { return face(color,R.drawable.skin_well,false); }
     Drawable display(int color) {
+        if(phosphor)return new PlasticSurface(context,color,PlasticSurface.RECESSED,true);
         if(reactor)return face(color,R.drawable.skin_well,false);
         BitmapDrawable lines=tile(R.drawable.skin_scanlines);
         if(PlayerTheme.luminance(color)>.35) lines.setAlpha(0);
@@ -84,16 +87,18 @@ final class PlayerSkin {
         d.addState(new int[]{},face(color,R.drawable.skin_key,false)); return d;
     }
     Drawable rail(int color) {
+        if(phosphor)return new PlasticSurface(context,color,PlasticSurface.RAISED,false);
         Drawable d=new LayerDrawable(new Drawable[]{new ColorDrawable(color),edge(R.drawable.skin_rail,color)}); return d;
     }
     Drawable thumb(int color) {
+        if(phosphor){GradientDrawable d=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{PlayerTheme.blend(color,0xffffffff,.15f),PlayerTheme.blend(color,0xff000000,.25f)});float density=context.getResources().getDisplayMetrics().density;d.setCornerRadius(4*density);d.setStroke(Math.max(1,Math.round(density)),0xff080b0c);d.setSize(Math.round(12*density),Math.round(20*density));return d;}
         Drawable d=context.getDrawable(R.drawable.skin_thumb).mutate();
         if(d instanceof BitmapDrawable) ((BitmapDrawable)d).setFilterBitmap(false);
         d.setColorFilter(color,PorterDuff.Mode.MULTIPLY); return d;
     }
     Drawable progress(PlayerTheme theme) {
-        Drawable track=well(PlayerTheme.blend(theme.background,0xff000000,.18f));
-        ClipDrawable fill=new ClipDrawable(rail(theme.accent),Gravity.START,ClipDrawable.HORIZONTAL);
+        Drawable track=phosphor?new DotRail(context,PlayerTheme.blend(theme.background,theme.text,.16f)):well(PlayerTheme.blend(theme.background,0xff000000,.18f));
+        ClipDrawable fill=new ClipDrawable(phosphor?new DotRail(context,theme.secondary):rail(theme.accent),Gravity.START,ClipDrawable.HORIZONTAL);
         LayerDrawable layers=new LayerDrawable(new Drawable[]{track,fill}) {
             // ProgressBar adopts a drawable's minimum height on Android 8 too.
             // Frame source dimensions must not turn the seek track into a tall box.
@@ -101,5 +106,13 @@ final class PlayerSkin {
             @Override public int getMinimumHeight() { return getIntrinsicHeight(); }
         };
         layers.setId(0,android.R.id.background); layers.setId(1,android.R.id.progress); return layers;
+    }
+    private static final class DotRail extends Drawable {
+        final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final float density;
+        DotRail(Context c,int color){density=c.getResources().getDisplayMetrics().density;paint.setColor(color);}
+        @Override public void draw(Canvas c){Rect b=getBounds();for(float x=b.left+2*density;x<b.right;x+=5*density)c.drawCircle(x,b.exactCenterY(),1.6f*density,paint);}
+        @Override public void setAlpha(int a){paint.setAlpha(a);invalidateSelf();}
+        @Override public void setColorFilter(ColorFilter f){paint.setColorFilter(f);invalidateSelf();}
+        @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
     }
 }

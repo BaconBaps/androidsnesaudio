@@ -35,6 +35,13 @@ public class PlayerSkinTest {
         assertFalse(up.sameAs(down)); assertEquals(up.getPixel(60,40),down.getPixel(60,40));
         button.setState(new int[]{}); assertTrue(up.sameAs(render(button,120,80)));
     }
+    @Test public void phosphorKeysKeepRoundedCornersAndShowPressedDepth(){
+        android.content.Context context=RuntimeEnvironment.getApplication();PlayerTheme theme=PlayerTheme.find("phosphor");
+        Drawable button=new PlayerSkin(context,theme).button(theme.background);Bitmap up=render(button,160,100);
+        assertEquals(0,Color.alpha(up.getPixel(0,0)));assertEquals(255,Color.alpha(up.getPixel(80,50)));
+        button.setState(new int[]{android.R.attr.state_pressed});Bitmap down=render(button,160,100);assertFalse(up.sameAs(down));
+        button.setState(new int[]{});assertTrue(up.sameAs(render(button,160,100)));
+    }
     @Test public void reactorFramesKeepCornersAndCustomThemesKeepTheMechanicalSkin() throws Exception {
         android.content.Context c=RuntimeEnvironment.getApplication();PlayerTheme reactor=PlayerTheme.find("reactor");
         int[] frames={R.drawable.reactor_chassis,R.drawable.reactor_panel,R.drawable.reactor_well,R.drawable.reactor_key,R.drawable.reactor_key_down,R.drawable.reactor_rail};

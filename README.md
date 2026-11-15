@@ -1,6 +1,6 @@
 # ChipAmp9x
 
-A pixel-styled Android player for retro game soundtracks, with eleven themes,
+A pixel-styled Android player for retro game soundtracks, with twelve themes,
 custom palettes, saved playlists, a channel mixer, four audio visualizers, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
@@ -58,9 +58,10 @@ Imports show a live, single-line readout of the archive, file and operation in p
 
 ## The app
 
-**New: Reactor** — dithered rust-metal panels, recessed displays and glowing amber/red visualizers.
+**New: Phosphor** — rounded charcoal plastic, chunky dot-matrix buttons, mint lettering and amber lights.
+Every theme now has a recessed dot-matrix header with a matching music chip and settings cog.
 
-<img src="docs/screenshots/theme-reactor.png" width="300" alt="Reactor skin with worn metal casing, riveted edging and an amber phosphor spectrum" />
+<img src="docs/screenshots/theme-phosphor.png" width="300" alt="Phosphor skin with a mint dot-matrix header, rounded plastic panels and amber playback lights" />
 
 <table>
   <tr>
@@ -89,7 +90,7 @@ Imports show a live, single-line readout of the archive, file and operation in p
     <th>Export audio</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of eleven retro-inspired theme previews" /></td>
+    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of twelve retro-inspired theme previews" /></td>
     <td><img src="docs/screenshots/export-audio.png" width="300" alt="Save a track or trimmed clip as a WAV file with optional fades" /></td>
   </tr>
   <tr>
@@ -123,7 +124,7 @@ Imports show a live, single-line readout of the archive, file and operation in p
   </tr>
 </table>
 
-[See all eleven themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
+[See all twelve themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
 
 ## Home-screen widget
 

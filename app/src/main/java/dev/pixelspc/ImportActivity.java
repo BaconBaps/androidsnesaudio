@@ -50,9 +50,9 @@ public class ImportActivity extends Activity {
     private void pair(LinearLayout row,View left,View right){LinearLayout.LayoutParams a=new LinearLayout.LayoutParams(0,dp(46),1);a.setMargins(0,0,dp(8),0);row.addView(left,a);row.addView(right,new LinearLayout.LayoutParams(0,dp(46),1));}
     @Override public void onCreate(Bundle state){
         super.onCreate(state);model=(Model)getLastNonConfigurationInstance();if(model==null)model=new Model(this);model.owner=this;
-        theme=ThemeStore.selected(this);skin=new PlayerSkin(this);pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
+        theme=ThemeStore.selected(this);skin=new PlayerSkin(this,theme);pixel=Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf");
         getWindow().setStatusBarColor(theme.background);getWindow().setNavigationBarColor(theme.background);getWindow().getDecorView().setSystemUiVisibility(theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-        LinearLayout body=column();body.setPadding(dp(16),dp(14),dp(16),dp(14));body.setBackgroundColor(theme.background);setContentView(body);
+        LinearLayout body=column();body.setPadding(dp(16),dp(14),dp(16),dp(14));body.setBackground(skin.background(theme.background));setContentView(body);
         body.setOnApplyWindowInsetsListener((v,insets)->{body.setPadding(dp(16),dp(14)+insets.getSystemWindowInsetTop(),dp(16),dp(14)+insets.getSystemWindowInsetBottom());return insets.consumeSystemWindowInsets();});
         TextView heading=label("IMPORT MUSIC",16,theme.accent);heading.setTypeface(pixel);heading.setGravity(Gravity.CENTER_VERTICAL);body.addView(heading,new LinearLayout.LayoutParams(-1,dp(48)));
         TextView hint=label("Choose files or a folder, then review your selection. Your originals stay on your device.",13,theme.muted);body.addView(hint,new LinearLayout.LayoutParams(-1,-2));

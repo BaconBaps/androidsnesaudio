@@ -559,3 +559,23 @@ Release checks: 119 tests pass with no failures, errors or skips; lint reports
 no issues. The full native sample script passes, including SPC/RSN extraction,
 VGZ seeking, PSF, MIDI, USF, the mixer and XA/VAG reference streams. APK signing
 certificate matches the previous release and 16 KiB ZIP alignment passes.
+
+## Phosphor and dot-matrix header (v1.24.0)
+
+121 JUnit/Robolectric tests pass with no failures, errors or skips; Android lint
+reports no issues. All twelve palettes pass the existing readability checks and
+new header foreground/background contrast checks. Header UI assertions cover
+the shared recessed surface and accessible 48 dp menu target. The Phosphor
+regression checks theme switching without changing playback, rounded dot-control
+selection and custom-theme JSON persistence through activity recreation. Raster
+checks verify transparent rounded corners, opaque key faces and distinct pressed
+states. Native-graphics captures refresh the app gallery and include Phosphor
+and a custom blue variant. Gallery dialog captures run last to avoid retained
+Robolectric window focus hiding elements in later captures.
+
+The layout and buttons remain live Android views, not a screenshot skin. The
+new plastic texture is sampled down once and tiled; rounded bevel geometry has
+fixed edge widths. Header text uses the same bundled Doto family as existing
+display titles. No decoder or playback-thread changes. APK certificate matches
+the previous release and 16 KiB ZIP alignment passes. These are Robolectric
+captures/checks; no physical-device rendering or performance claim is made.

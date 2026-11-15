@@ -33,12 +33,20 @@ public final class PlayerTheme {
     }
     boolean spectrumGradient(){return colors.containsKey(prefix+"spectrumLow")||colors.containsKey(prefix+"spectrumMid")||colors.containsKey(prefix+"spectrumHigh");}
     static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors){PlayerTheme t=find(base);Map<String,Integer> merged=new HashMap<>(t.colors);merged.putAll(colors);return new PlayerTheme(id,name,"Custom theme",t.dark,t.background,t.text,t.accent,t.secondary,merged,"",t.id);}
+    int headerInk(){int bg=nowPlaying().spectrumBackground,color=accent;for(int i=0;i<=20;i++){color=blend(accent,luminance(bg)<.35?0xffffffff:0xff000000,i/20f);if(contrast(bg,color)>=4.5)break;}return color;}
+    boolean phosphor(){return baseId.equals("phosphor");}
     boolean reactor(){return baseId.equals("reactor");}
     private static PlayerTheme reactorTheme(){
         Map<String,Integer> c=new HashMap<>();
         c.put("player.spectrumLow",0xffffd16c);c.put("player.spectrumMid",0xffffa04b);c.put("player.spectrumHigh",0xffff6252);c.put("player.spectrumPeak",0xffffedba);
         c.put("player.spectrumBackground",0xff100e0c);
         return new PlayerTheme("reactor","Reactor","Dithered iron · amber phosphor & warning red",true,0xff30201b,0xfff0dfbc,0xffffce83,0xffff7764,c,"","reactor");
+    }
+    private static PlayerTheme phosphorTheme(){
+        Map<String,Integer> c=new HashMap<>();c.put("player.button",0xff303a3c);c.put("player.buttonText",0xffa5e5be);c.put("player.accent",0xfff3e5b7);
+        c.put("player.spectrumBackground",0xff0b1011);c.put("player.readout",0xff0b1011);
+        c.put("player.spectrumLow",0xffffbd49);c.put("player.spectrumMid",0xffffd16f);c.put("player.spectrumHigh",0xffffdf8e);c.put("player.spectrumPeak",0xffffe8ad);
+        return new PlayerTheme("phosphor","Phosphor","Molded charcoal · mint dots & amber light",true,0xff252c2e,0xfff3e5b7,0xffa5e5be,0xffffc65d,c,"","phosphor");
     }
     public static final PlayerTheme[] ALL={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),
@@ -51,7 +59,7 @@ public final class PlayerTheme {
         new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
         new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),
         new PlayerTheme("desktop-98","Llama","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72),
-        reactorTheme()
+        reactorTheme(),phosphorTheme()
     };
     public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
     /** A darker, contrast-safe version of the selected palette for the playback deck. */

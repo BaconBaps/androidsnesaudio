@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-eleven retro palettes, and a local library for the games you grew up with.
+twelve retro palettes, and a local library for the games you grew up with.
 
 <img src="screenshots/theme-desktop-98.png" width="300" alt="ChipAmp9x soundtrack library and player with live spectrum" />
 
@@ -573,3 +573,19 @@ remains indeterminate because archive expansion and decoder work do not provide
 a reliable overall completion percentage.
 
 <img src="screenshots/import-progress.png" width="310" alt="Import screen with a live one-line archive and track readout" />
+
+## Dot-matrix header and Phosphor theme (v1.24.0)
+
+Every theme now uses a dark recessed header with **ChipAmp9x** in the same
+rounded Doto font as the display titles. The music-chip symbol and settings
+cog are drawn as dots with matching palette colours. The cog still opens the
+app menu; holding it still opens saved themes.
+
+Choose **App menu → Settings → Color theme → Phosphor** for rounded charcoal
+plastic panels, chunky playback buttons, dot-matrix control symbols and
+tracklist names, mint lettering, amber spectrum dots and a dotted seek rail.
+The rounded bezels keep a fixed edge width at different sizes. Phosphor can
+be copied, edited, saved and exported like other themes; its custom copies
+retain the plastic geometry and dot controls. The import/export screens and
+player dialogs also use the skin. Existing audio controls and visualizer modes
+work as before.

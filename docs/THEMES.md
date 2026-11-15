@@ -94,3 +94,18 @@ Reactor is also a base for custom themes: saved/imported copies retain the
 mechanical frames and allow their palette and spectrum colours to be edited.
 The casing texture is `reactor_metal.png`; original frame, vent and dither sprites
 are reproducible with `python3 scripts/generate-skin.py` at five Android densities.
+
+## Phosphor
+
+A rounded, molded-charcoal player with mint dot-matrix lettering and amber
+lights. The header, spectrum display and track readout sit in dark recessed
+panels. Playback uses chunky plastic keys with live dot glyphs, and the seek
+rail uses illuminated dots. The tracklist uses Doto while metadata retains
+Pixelify Sans. Custom copies keep the same geometry.
+
+<img src="screenshots/theme-phosphor.png" width="300" alt="Phosphor player with recessed displays and chunky plastic controls" />
+<img src="screenshots/theme-phosphor-custom.png" width="300" alt="Saved blue custom Phosphor palette" />
+
+All themes now share a recessed Doto header with matching dotted chip and
+settings symbols, coloured from each theme's accent. Other themes retain their
+existing control and panel geometry.

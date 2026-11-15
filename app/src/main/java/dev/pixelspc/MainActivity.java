@@ -80,7 +80,7 @@ public class MainActivity extends Activity {
     private void gap(LinearLayout l,int h) { add(l,new View(this),1,h); }
     private void rule(LinearLayout l) { View v=new View(this); v.setBackgroundColor(borderColor); add(l,v,-1,1); }
     private TextView button(String label,int color,int background) { return button(theme,label,color,background); }
-    private TextView button(PlayerTheme palette,String label,int color,int background) { TextView t=pixel(label,9,palette.buttonText(color)); t.setGravity(Gravity.CENTER); t.setBackground(skin.button(palette.buttonFace(background))); t.setPadding(dp(10),0,dp(10),0); t.setClickable(true); t.setFocusable(true); return t; }
+    private TextView button(PlayerTheme palette,String label,int color,int background) { TextView t;if(palette.phosphor()&&(label.equals("⇄")||label.equals("|◀")||label.equals("▶")||label.equals("▶|")||label.equals("↻"))){t=new MatrixControl(this,palette.secondary);t.setText(label);t.setTextColor(palette.buttonText(color));}else t=pixel(label,9,palette.buttonText(color)); t.setGravity(Gravity.CENTER); t.setBackground(skin.button(palette.buttonFace(background))); t.setPadding(dp(10),0,dp(10),0); t.setClickable(true); t.setFocusable(true); return t; }
     private void playbackControl(LinearLayout row,View control,float weight,int height) {
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(height),weight);
         params.setMargins(row.getChildCount()==0?0:dp(getResources().getConfiguration().screenWidthDp<360?6:8),0,0,0);row.addView(control,params);
@@ -100,12 +100,12 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(flags);
         root=column(); root.setBackground(skin.background(backgroundColor)); root.setPadding(dp(12),dp(12),dp(12),dp(10)); setContentView(root);
         root.setOnApplyWindowInsetsListener((v,insets)->{ root.setPadding(dp(12),dp(12)+insets.getSystemWindowInsetTop(),dp(12),dp(10)+insets.getSystemWindowInsetBottom()); return insets.consumeSystemWindowInsets(); });
-        LinearLayout header=row(); header.setPadding(dp(8),dp(4),dp(8),dp(4));
-        ChipLogo wordmark=new ChipLogo(this); wordmark.setPadding(0,0,dp(8),0);
-        header.addView(wordmark,new LinearLayout.LayoutParams(0,dp(42),1));
-        ImageButton menu=headerIcon(R.drawable.ic_menu,"App menu"); add(header,menu,40,40); menu.setOnClickListener(this::showMenu);menu.setOnLongClickListener(v->{showSavedThemes();return true;});
-        add(root,header,-1,50); gap(root,8);
-        libraryButton=button("LIBRARY ▾",accentColor,theme.libraryButtonBackground()); libraryButton.setBackground(skin.button(theme.libraryButtonBackground()));libraryButton.setContentDescription("Open music library");editTarget(libraryButton,"Library button","libraryButton","accent"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
+        LinearLayout header=row(); header.setPadding(dp(8),dp(6),dp(8),dp(6));header.setBackground(skin.header(playbackTheme.spectrumBackground));header.setContentDescription("Dot matrix app header");
+        ChipLogo wordmark=new ChipLogo(this,theme); wordmark.setPadding(0,0,dp(8),0);
+        header.addView(wordmark,new LinearLayout.LayoutParams(0,dp(52),1));
+        ImageButton menu=headerIcon(R.drawable.ic_menu,"App menu"); menu.setImageDrawable(new DotGlyph(true,theme.headerInk()));add(header,menu,48,48); menu.setOnClickListener(this::showMenu);menu.setOnLongClickListener(v->{showSavedThemes();return true;});
+        add(root,header,-1,64); gap(root,8);
+        libraryButton=button("LIBRARY ▾",accentColor,theme.libraryButtonBackground()); libraryButton.setBackground(skin.button(theme.libraryButtonBackground()));if(theme.phosphor()){libraryButton.setTypeface(dotMatrixBold);libraryButton.setTextSize(16);}libraryButton.setContentDescription("Open music library");editTarget(libraryButton,"Library button","libraryButton","accent"); add(root,libraryButton,-1,38); libraryButton.setOnClickListener(v->chooseGame()); gap(root,8);
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setClipToPadding(true); scroll.setVerticalScrollBarEnabled(false);
         LinearLayout content=root;
         gameTitle=trackTitle("Your music library",26,theme.heading); gameTitle.setTypeface(dotMatrix);editTarget(gameTitle,"Game heading","heading"); add(content,gameTitle,-1,-2); gap(content,5);
@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
             final int index=i; Library.Track track=visible.get(i); boolean active=i==playingAt;
             LinearLayout line=row(); if(active) line.setBackground(skin.selection(listTheme.surface)); line.setPadding(dp(8),dp(7),dp(8),dp(7));
             TextView number=pixel(active && (editState!=null?editState.playing:player.playing)?"▮▮":String.format(Locale.ROOT,"%02d",i+1),8,active?listTheme.accent:listTheme.muted); add(line,number,34,26);
-            LinearLayout names=column(); TextView title=trackTitle(track.title,14,active || theme.id.equals("desktop-98")?listTheme.accent:listTheme.text); if(active) title.setTypeface(UiFonts.body(MainActivity.this),Typeface.BOLD); add(names,title,-1,23); TextView sub=text(showQueue||Playlists.saved(selected)?(track.game.isEmpty()?track.system:track.game):showFavourites?track.game:track.artist.isEmpty()?track.system:track.artist,10,listTheme.muted); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
+            LinearLayout names=column(); TextView title=trackTitle(track.title,theme.phosphor()?17:14,active || theme.id.equals("desktop-98")?listTheme.accent:listTheme.text); if(theme.phosphor())title.setTypeface(active?dotMatrixBold:dotMatrix);else if(active) title.setTypeface(UiFonts.body(MainActivity.this),Typeface.BOLD); add(names,title,-1,23); TextView sub=text(showQueue||Playlists.saved(selected)?(track.game.isEmpty()?track.system:track.game):showFavourites?track.game:track.artist.isEmpty()?track.system:track.artist,10,listTheme.muted); sub.setSingleLine(true); add(names,sub,-1,17); line.addView(names,new LinearLayout.LayoutParams(0,-2,1));
             if(track.loopLength>0) {
                 boolean looping=editState!=null&&active?editState.repeat:player!=null && player.isLooping(track);
                 TextView mode=button(looping?"LOOP":"STRAIGHT",looping?listTheme.onAccent:listTheme.accent,looping?listTheme.accent:listTheme.surface);
@@ -195,7 +195,8 @@ public class MainActivity extends Activity {
         android.text.SpannableString label=new android.text.SpannableString(icon+"\n"+(enabled?"ON":"OFF"));
         label.setSpan(new android.text.style.RelativeSizeSpan(2f),0,icon.length(),0);
         button.setText(label); button.setTextColor(enabled?playbackTheme.accent:playbackTheme.muted);
-        button.setBackground(null);
+        button.setBackground(playbackTheme.phosphor()?skin.button(playbackTheme.buttonFace(playbackTheme.background)):null);
+        if(playbackTheme.phosphor())button.setTextColor(enabled?playbackTheme.secondary:playbackTheme.buttonText(playbackTheme.muted));
         button.setSelected(enabled); button.setContentDescription(name+" "+(enabled?"on":"off"));
     }
     private void updateVisualizer() {
@@ -633,7 +634,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.23.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Pixelify Sans, Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.24.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Pixelify Sans, Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

@@ -118,7 +118,10 @@ public class PlayerUiTest {
             assertFalse(service.repeat); assertFalse(service.isLooping(service.current));
             service.levels=new AudioSpectrum().analyze(AudioSpectrumTest.chord());
             service.playing=true;
-            for(PlayerTheme palette:PlayerTheme.ALL) {
+            java.util.List<PlayerTheme> gallery=new java.util.ArrayList<>(java.util.Arrays.asList(PlayerTheme.ALL));
+            // Capture dialogs last: Robolectric retains their window focus state.
+            java.util.Collections.swap(gallery,gallery.size()-1,gallery.size()-2);
+            for(PlayerTheme palette:gallery) {
                 a.selectTheme(palette.id);
                 assertEquals(73000,findSeek(a.getWindow().getDecorView()).getProgress());
                 assertTrue(text(a.getWindow().getDecorView()).contains("DK Island Swing"));
@@ -244,6 +247,16 @@ public class PlayerUiTest {
             findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");list.expandGroup(2);int position=list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(2,0));list.getOnItemLongClickListener().onItemLongClick(list,null,position,0);
             actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(actions.getWindow().getDecorView(),"Export audio from Selected mix").performClick();AlertDialog choices=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertEquals(2,choices.getListView().getCount());choices.getListView().performItemClick(null,1,1);
             exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
+        }
+    }
+    @Test public void phosphorCustomThemeKeepsRoundedControlsAndDotHeaderWithoutChangingPlayback()throws Exception{
+        Library.Track track=playlistSources()[0];service.current=track;service.queue=java.util.Collections.singletonList(track);service.position=12000;service.playing=true;
+        ThemeStore.Draft draft=ThemeStore.from(PlayerTheme.find("phosphor"),false);draft.name="Blue phosphor";draft.colors.put("accent",0xff9cbfff);new ThemeStore(app).save(draft);
+        assertTrue(ThemeStore.read(new java.io.ByteArrayInputStream(ThemeStore.encode(draft).toString().getBytes("UTF-8"))).theme().phosphor());
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            c.get().selectTheme(draft.id);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Dot matrix app header"));
+            c.recreate();assertTrue(ThemeStore.selected(app).phosphor());assertEquals(draft.id,ThemeStore.selected(app).id);assertTrue(findDescription(c.get().getWindow().getDecorView(),"Previous track") instanceof MatrixControl);assertSame(track,service.current);assertEquals(12000,service.position);assertTrue(service.playing);
+            c.get().selectTheme("light");assertFalse(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertSame(track,service.current);
         }
     }
     private PixelVisualizer findVisualizer(View view){if(view instanceof PixelVisualizer)return (PixelVisualizer)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){PixelVisualizer found=findVisualizer(((ViewGroup)view).getChildAt(i));if(found!=null)return found;}return null;}
@@ -418,15 +431,15 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get(); capture(a,"empty-library.png"); View decor=a.getWindow().getDecorView();
             View logo=findDescription(decor,"ChipAmp9x");
-            assertTrue(logo instanceof ChipLogo); assertEquals(a.dp(42),logo.getHeight()); assertTrue(logo.getWidth()>a.dp(150));
+            assertTrue(logo instanceof ChipLogo); assertEquals(a.dp(52),logo.getHeight()); assertTrue(logo.getWidth()>a.dp(150));
             assertEquals("ChipAmp9x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
             assertTrue(((ViewGroup)a.findViewById(android.R.id.content)).getChildAt(0).getBackground() instanceof android.graphics.drawable.ColorDrawable);
             int top=-1;
             for(String label:new String[]{"App menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
-                assertNull(((View)v.getParent()).getBackground());
+                assertTrue(((View)v.getParent()).getBackground() instanceof PlasticSurface);
                 assertNull(v.getBackground());assertNull(((ImageButton)v).getImageTintList());
-                assertEquals(a.dp(40),v.getWidth()); assertEquals(a.dp(40),v.getHeight());
+                assertEquals(a.dp(48),v.getWidth()); assertEquals(a.dp(48),v.getHeight());
                 if(top<0) top=v.getTop(); else assertEquals(top,v.getTop());
                 assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());
             }
