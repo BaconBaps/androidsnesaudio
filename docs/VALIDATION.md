@@ -661,3 +661,13 @@ entry, available when empty. A UI regression test checks opening it, removing a
 favourite and keeping playback unchanged. The full debug build, Robolectric suite
 and lint pass. Renders use Robolectric native graphics; physical-device testing
 has not been performed. APK signing continuity and 16 KiB alignment pass.
+
+## v1.28.0 — expanding dot-matrix header menu
+
+Full debug build, Robolectric suite and Android lint pass. Header menu regression
+checks cover exact anchor width, no backdrop dimming, height bounded above the
+deck, in-place submenu reuse, Back/Close dismissal and unchanged deck position.
+Settings title and entries use the same smaller dot-matrix size. Composite UI
+renders show the menu anchored over the real activity. Tests use native
+Robolectric graphics; no physical-device animation verification was available.
+APK signing continuity and 16 KiB alignment pass.

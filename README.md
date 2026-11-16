@@ -59,7 +59,7 @@ Imports show a live, single-line readout of the archive, file and operation in p
 ## The app
 
 **Classic and ChipAmp5** — choose crisp original frames or rounded plastic controls, with exactly the same ten colour palettes in either style. Each style remembers its selected palette.
-Every theme has a recessed pinball-style dot-matrix header: the title rests, occasionally glitches, scrolls down, then returns one letter at a time. Tap anywhere on the header to open the Player menu.
+Every theme has a recessed pinball-style dot-matrix header: the title rests, occasionally glitches, scrolls down, then returns one letter at a time. Tap anywhere on the header to expand its dot-matrix Player menu, with in-place Settings and Playback pages.
 
 <img src="docs/screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 style with the Pixel Dark palette and rounded plastic controls" />
 

@@ -214,9 +214,9 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             MainActivity a=c.get();a.selectTheme("chip5-dark");
             openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertSame(UiFonts.body(a),((TextView)findText(menu.getWindow().getDecorView(),"Settings")).getTypeface());
+            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"Settings")).getTypeface());
             findDescription(menu.getWindow().getDecorView(),"Settings").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertSame(UiFonts.heading(a),((TextView)findText(menu.getWindow().getDecorView(),"SETTINGS")).getTypeface());
+            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"SETTINGS")).getTypeface());
             captureView(menu.getWindow().getDecorView(),"settings-fonts.png",822,1100);menu.dismiss();
             openAppMenu(a);menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertTrue(findDescription(menu.getWindow().getDecorView(),"Channel mixer").isEnabled());findDescription(menu.getWindow().getDecorView(),"Channel mixer").performClick();android.app.Dialog mixer=org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -252,6 +252,29 @@ public class PlayerUiTest {
     }
     private void openAppMenu(MainActivity a){
         findDescription(a.getWindow().getDecorView(),"Open player menu").performClick();
+    }
+    @Test public void matrixMenuSharesHeaderBoundsAndSubmenusKeepTheSameDisplay()throws Exception{
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();capture(a,"header-menu-collapsed.png");
+            View header=findDescription(a.getWindow().getDecorView(),"Open player menu from header");
+            View deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");int deckTop=deck.getTop();
+            openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
+            android.view.WindowManager.LayoutParams params=menu.getWindow().getAttributes();
+            assertEquals(header.getWidth(),params.width);assertTrue(params.height>header.getHeight());
+            assertTrue(params.height<=deckTop-header.getTop());assertEquals(0,params.flags&android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            int expanded=params.height;captureHeaderMenu(a,menu,"header-menu-expanded.png");
+            findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
+            assertSame(menu,org.robolectric.shadows.ShadowDialog.getLatestDialog());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue(menu.getWindow().getAttributes().height<=expanded);assertEquals(deckTop,deck.getTop());
+            TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"SETTINGS"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertEquals(settingsTitle.getTextSize(),colourEntry.getTextSize(),.01f);
+            captureHeaderMenu(a,menu,"header-menu-settings.png");
+            findDescription(menu.getWindow().getDecorView(),"Back to app menu").performClick();
+            assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));
+            menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK));menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK));
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertFalse(menu.isShowing());
+        }
     }
     @Test public void everyHeaderRegionOpensPlayerMenuAndSettingsRemainsReachable()throws Exception{
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
@@ -560,6 +583,14 @@ public class PlayerUiTest {
     private View findText(View v,String label) { if(v instanceof TextView && label.contentEquals(((TextView)v).getText())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findText(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private View findDescription(View v,String label) { if(label.contentEquals(v.getContentDescription()==null?"":v.getContentDescription())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findDescription(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private GridLayout findGrid(View view) { if(view instanceof GridLayout) return (GridLayout)view; if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) { GridLayout grid=findGrid(((ViewGroup)view).getChildAt(i)); if(grid!=null) return grid; } return null; }
+    private void captureHeaderMenu(MainActivity a,android.app.Dialog menu,String name)throws Exception{
+        View activity=a.getWindow().getDecorView(),display=menu.getWindow().getDecorView();
+        android.view.WindowManager.LayoutParams params=menu.getWindow().getAttributes();
+        display.measure(View.MeasureSpec.makeMeasureSpec(params.width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(params.height,View.MeasureSpec.EXACTLY));display.layout(0,0,params.width,params.height);
+        Bitmap bitmap=Bitmap.createBitmap(activity.getWidth(),activity.getHeight(),Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bitmap);activity.draw(canvas);
+        View header=findDescription(activity,"Open player menu from header");int[] at=new int[2];header.getLocationInWindow(at);canvas.save();canvas.translate(at[0],at[1]);display.draw(canvas);canvas.restore();
+        File dir=new File(System.getProperty("user.dir"),"../docs/screenshots");dir.mkdirs();try(OutputStream out=new FileOutputStream(new File(dir,name))){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,out));}
+    }
     private void capture(MainActivity a,String name) throws Exception { captureView(a.getWindow().getDecorView(),name,822,1782); }
     private void captureView(View view,String name,int width,int height) throws Exception {
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY)); view.layout(0,0,width,height);

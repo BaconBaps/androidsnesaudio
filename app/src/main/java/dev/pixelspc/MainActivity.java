@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); out.putBoolean("showFavourites",showFavourites);out.putString("themeExport",pendingThemeExport);if(editState!=null)try{out.putString("themeEdit",editState.json().toString());}catch(Exception ignored){}out.putBoolean("showQueue",showQueue);out.putStringArrayList("pendingQueueIds",pendingQueueIds);if(selected!=null)out.putString("selectedGame",selected.id); }
     @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); if(editState==null)main.post(tick); } }
     @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
-    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismiss();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
+    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismissNow();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
     private final Runnable tick=new Runnable() { public void run() { if(editState!=null)return;updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
     private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setTypeface(UiFonts.body(MainActivity.this)); t.setFontFeatureSettings("kern"); return t; }
@@ -100,8 +100,8 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(flags);
         root=column(); root.setBackground(skin.background(backgroundColor)); root.setPadding(dp(12),dp(12),dp(12),dp(10)); setContentView(root);
         root.setOnApplyWindowInsetsListener((v,insets)->{ root.setPadding(dp(12),dp(12)+insets.getSystemWindowInsetTop(),dp(12),dp(10)+insets.getSystemWindowInsetBottom()); return insets.consumeSystemWindowInsets(); });
-        LinearLayout header=row(); header.setPadding(dp(8),dp(6),dp(8),dp(6));header.setBackground(skin.header(theme.headerBackground()));header.setContentDescription("Open player menu from header");
-        ChipLogo wordmark=new ChipLogo(this,theme);wordmark.setFrozen(editState!=null); wordmark.setPadding(0,0,dp(8),0);
+        LinearLayout header=row();menuAnchor=header; header.setPadding(dp(8),dp(6),dp(8),dp(6));header.setBackground(skin.header(theme.headerBackground()));header.setContentDescription("Open player menu from header");
+        ChipLogo wordmark=new ChipLogo(this,theme);headerLogo=wordmark;wordmark.setFrozen(editState!=null); wordmark.setPadding(0,0,dp(8),0);
         header.addView(wordmark,new LinearLayout.LayoutParams(0,dp(52),1));
         ImageButton menu=headerIcon(R.drawable.ic_menu,"Open player menu"); menu.setImageDrawable(new DotGlyph(true,theme.headerInk()));add(header,menu,48,48); menu.setOnLongClickListener(v->{showSavedThemes();return true;});
         View.OnClickListener playerMenu=v->showMenuPage("main");
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
         playlistFrame.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
         trackList=column();editTarget(playlistFrame,"Tracklist","library.background","library.text","library.accent","library.muted","library.surface"); scroll.addView(trackList,new ScrollView.LayoutParams(-1,-2));
         gap(root,8);
-        LinearLayout playerPanel=column(); playerPanel.setBackground(skin.chassis(playbackTheme.background)); playerPanel.setContentDescription("Now Playing panel");editTarget(playerPanel,"Player background","player.background","player.border"); playerPanel.setPadding(dp(8),dp(6),dp(8),dp(6)); add(root,playerPanel,-1,-2);
+        LinearLayout playerPanel=column();playbackDeck=playerPanel; playerPanel.setBackground(skin.chassis(playbackTheme.background)); playerPanel.setContentDescription("Now Playing panel");editTarget(playerPanel,"Player background","player.background","player.border"); playerPanel.setPadding(dp(8),dp(6),dp(8),dp(6)); add(root,playerPanel,-1,-2);
         LinearLayout playerHeading=row(); View rail=new View(this); rail.setBackground(skin.rail(playbackTheme.secondary)); playerHeading.addView(rail,new LinearLayout.LayoutParams(dp(32),dp(7))); TextView tag=pixel(" NOW PLAYING",7,playbackTheme.heading); add(playerHeading,tag,-2,-2); View playerRail=new View(this); playerRail.setBackground(skin.rail(playbackTheme.secondary)); LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(0,dp(6),1); railParams.setMargins(dp(8),0,dp(8),0); playerHeading.addView(playerRail,railParams); TextView quality=pixel("♪  44.1 kHz",6,playbackTheme.muted); add(playerHeading,quality,-2,-2); add(playerPanel,playerHeading,-1,22);editTarget(playerHeading,"Player heading","player.heading","player.secondary");
         visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(playbackTheme);editTarget(visualizer,"Spectrum colours","player.spectrumLow","player.spectrumMid","player.spectrumHigh","player.spectrumPeak","player.spectrumBackground","player.heading"); add(playerPanel,visualizer,-1,126); gap(playerPanel,6);
         LinearLayout readout=column(); readout.setBackground(skin.well(playbackTheme.value("readout",playbackTheme.background)));editTarget(readout,"Track readout","player.readout","player.accent","player.muted"); readout.setPadding(dp(8),dp(4),dp(8),dp(4)); add(playerPanel,readout,-1,-2);
@@ -336,30 +336,37 @@ public class MainActivity extends Activity {
         picker.show(); picker.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(720)),Math.round(getResources().getDisplayMetrics().heightPixels*.86f));
         if(focusPlaylists)list.post(()->list.setSelectedGroup(groups.size()-1));
     }
-    private Dialog appMenu;
+    private HeaderMenuDialog appMenu;
+    private boolean compactMatrixMenu;
+    private View menuAnchor,playbackDeck;
+    private ChipLogo headerLogo;
     private void showMenu(View anchor) { showMenuPage("main"); }
+    private TextView matrixText(String title,int size){TextView t=text(title,compactMatrixMenu?12:size,theme.headerInk());t.setTypeface(dotMatrixBold);t.setIncludeFontPadding(false);t.setGravity(Gravity.CENTER_VERTICAL);return t;}
     private void menuSection(LinearLayout body,String title) {
-        gap(body,8);LinearLayout heading=row();heading.setPadding(dp(10),0,dp(10),0);
-        TextView label=text(title,18,theme.value("heading",accentColor));label.setTypeface(UiFonts.heading(this));add(heading,label,-2,28);View rail=new View(this);rail.setBackground(skin.rail(theme.secondary));LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(5),1);params.leftMargin=dp(12);heading.addView(rail,params);add(body,heading,-1,28);
+        gap(body,8);TextView label=matrixText(title,12);label.setAlpha(.65f);label.setPadding(dp(10),0,0,0);add(body,label,-1,24);
     }
     private void menuEntry(LinearLayout body,Dialog menu,String title,boolean enabled,boolean submenu,Runnable action) {
-        LinearLayout line=row();line.setPadding(dp(14),0,dp(12),0);line.setMinimumHeight(dp(48));
-        android.graphics.drawable.StateListDrawable state=new android.graphics.drawable.StateListDrawable();state.addState(new int[]{android.R.attr.state_pressed},skin.selection(listTheme.surface));state.addState(new int[]{android.R.attr.state_focused},skin.selection(listTheme.surface));state.addState(new int[]{},new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));line.setBackground(state);
-        TextView label=text(title,16,enabled?listTheme.text:listTheme.muted);label.setSingleLine(true);line.addView(label,new LinearLayout.LayoutParams(0,-2,1));
-        if(submenu){TextView arrow=pixel("›",12,accentColor);add(line,arrow,24,40);}
-        line.setContentDescription(title);line.setEnabled(enabled);line.setAlpha(enabled?1:.5f);line.setFocusable(enabled);line.setClickable(enabled);add(body,line,-1,48);
-        if(enabled)line.setOnClickListener(v->{menu.dismiss();action.run();});
+        LinearLayout line=row();line.setPadding(dp(10),0,dp(8),0);line.setMinimumHeight(dp(48));
+        android.graphics.drawable.StateListDrawable state=new android.graphics.drawable.StateListDrawable();
+        int glow=PlayerTheme.blend(theme.headerBackground(),theme.headerInk(),.14f);
+        state.addState(new int[]{android.R.attr.state_pressed},new android.graphics.drawable.ColorDrawable(glow));state.addState(new int[]{android.R.attr.state_focused},new android.graphics.drawable.ColorDrawable(glow));state.addState(new int[]{},new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));line.setBackground(state);
+        TextView label=matrixText(title,17);label.setSingleLine(true);label.setEllipsize(android.text.TextUtils.TruncateAt.END);line.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+        if(submenu){TextView arrow=matrixText("›",22);add(line,arrow,24,40);}
+        line.setContentDescription(title);line.setEnabled(enabled);line.setAlpha(enabled?1:.35f);line.setFocusable(enabled);line.setClickable(enabled);add(body,line,-1,48);
+        if(enabled)line.setOnClickListener(v->{if(!submenu)((HeaderMenuDialog)menu).dismissNow();action.run();});
     }
     private void showMenuPage(String page) {showMenuPage(page,null);}
     private void showMenuPage(String page,Library.Track selectedTrack) {
-        if(appMenu!=null)appMenu.dismiss();
-        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
-        Dialog menu=new Dialog(themed);menu.setCanceledOnTouchOutside(true);menu.requestWindowFeature(Window.FEATURE_NO_TITLE);appMenu=menu;
-        LinearLayout body=column();body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setBackground(skin.chassis(backgroundColor));
+        compactMatrixMenu=page.equals("settings");
+        HeaderMenuDialog menu=appMenu;
+        if(menu==null||!menu.isShowing()){menu=new HeaderMenuDialog(this,menuAnchor);appMenu=menu;}
+        final HeaderMenuDialog display=menu;
+        headerLogo.setFrozen(true);menu.setOnDismissListener(d->{headerLogo.setFrozen(editState!=null);});
+        LinearLayout body=column();body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setBackground(skin.header(theme.headerBackground()));body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setContentDescription("Expanded header display");
         LinearLayout heading=row();
-        if(!page.equals("main")){TextView back=button("‹ BACK",accentColor,backgroundColor);back.setBackground(null);back.setTextColor(accentColor);back.setContentDescription("Back to app menu");add(heading,back,88,42);back.setOnClickListener(v->{menu.dismiss();showMenuPage("main");});}
-        TextView title=pixel(page.equals("main")?"PLAYER MENU":page.equals("playback")?"PLAYBACK":"SETTINGS",11,theme.heading);title.setTypeface(UiFonts.heading(this));title.setTextSize(24);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
-        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackground(skin.well(listTheme.background));scroll.setPadding(dp(5),dp(4),dp(5),dp(4));LinearLayout entries=column();scroll.addView(entries);body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        if(!page.equals("main")){TextView back=matrixText("‹ BACK",14);back.setContentDescription("Back to app menu");add(heading,back,88,42);back.setOnClickListener(v->showMenuPage("main"));}
+        TextView title=matrixText(page.equals("main")?"PLAYER MENU":page.equals("playback")?"PLAYBACK":"SETTINGS",19);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(android.graphics.Color.TRANSPARENT);scroll.setPadding(dp(5),dp(4),dp(5),dp(4));scroll.setVerticalScrollBarEnabled(false);scroll.setVerticalFadingEdgeEnabled(true);scroll.setFadingEdgeLength(dp(16));LinearLayout entries=column();scroll.addView(entries);body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         if(page.equals("main")) {
             menuSection(entries,"MUSIC");
             menuEntry(entries,menu,"Import music",true,false,this::pickFile);
@@ -369,11 +376,11 @@ public class MainActivity extends Activity {
             menuEntry(entries,menu,showFavourites?"Back to tracklist":"Favourites",true,false,()->{showFavourites=!showFavourites;showQueue=false;renderTracks();});
             menuSection(entries,"PLAYER");menuEntry(entries,menu,"Playback tools",true,true,()->showMenuPage("playback"));
             menuSection(entries,"PREFERENCES");menuEntry(entries,menu,"Settings",true,true,()->showMenuPage("settings"));
-            gap(entries,16);rule(entries);gap(entries,8);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
+            gap(entries,16);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
         } else if(page.equals("playback")) {
             final Library.Track target=selectedTrack!=null?selectedTrack:player==null?null:player.current;
             menuSection(entries,selectedTrack==null?"CURRENT TRACK":"SELECTED TRACK");
-            if(selectedTrack!=null){TextView selectedName=text(target.title,14,textColor);selectedName.setMaxLines(2);add(entries,selectedName,-1,-2);
+            if(selectedTrack!=null){TextView selectedName=matrixText(target.title,14);selectedName.setMaxLines(2);add(entries,selectedName,-1,-2);
                 menuEntry(entries,menu,"Play selected track",player!=null,false,()->{if(player==null)return;List<Library.Track> tracks=currentTracks();int at=-1;for(int i=0;i<tracks.size();i++)if(tracks.get(i).path.equals(target.path)&&tracks.get(i).index==target.index){at=i;break;}notifyPermission();if(at>=0)player.play(tracks,at);else player.play(Collections.singletonList(target),0);});}
             boolean currentTarget=player!=null&&target!=null&&player.current!=null&&target.path.equals(player.current.path)&&target.index==player.current.index;
             menuEntry(entries,menu,"Channel mixer",currentTarget&&player.mixer.track==player.current&&player.mixer.names.length>0,false,()->{if(player!=null&&target!=null&&player.current!=null&&target.path.equals(player.current.path)&&target.index==player.current.index)showChannelMixer();});
@@ -385,11 +392,16 @@ public class MainActivity extends Activity {
             menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Player style",true,false,this::chooseStyle);menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
             menuSection(entries,"APP");menuEntry(entries,menu,"About ChipAmp9x",true,false,this::about);
         }
-        gap(body,10);TextView close=button("CLOSE",accentColor,backgroundColor);add(body,close,-1,44);close.setOnClickListener(v->menu.dismiss());
-        menu.setContentView(body,new ViewGroup.LayoutParams(-1,-1));menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
-        if(!page.equals("main"))menu.setOnKeyListener((d,key,event)->{if(key!=KeyEvent.KEYCODE_BACK)return false;if(event.getAction()==KeyEvent.ACTION_UP){menu.dismiss();showMenuPage("main");}return true;});
-        menu.show();int height=dp(page.equals("main")?644:page.equals("playback")?(selectedTrack==null?412:510):452);menu.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(440)),Math.min(height,(int)(getResources().getDisplayMetrics().heightPixels*.86f)));
+        gap(body,4);TextView close=matrixText("CLOSE",15);close.setGravity(Gravity.CENTER);close.setContentDescription("Close player menu");add(body,close,-1,44);close.setOnClickListener(v->display.dismiss());
+        menu.setContentView(body,new ViewGroup.LayoutParams(-1,-1));
+        menu.setOnKeyListener((d,key,event)->{if(key!=KeyEvent.KEYCODE_BACK)return false;if(event.getAction()==KeyEvent.ACTION_UP){if(page.equals("main"))display.dismiss();else showMenuPage("main");}return true;});
+        if(!menu.isShowing())menu.show();
+        int available=playbackDeck.getTop()-menuAnchor.getTop()-dp(8);
+        if(available<dp(180))available=Math.round(getResources().getDisplayMetrics().heightPixels*.62f);
+        int desired=dp(page.equals("main")?644:page.equals("playback")?(selectedTrack==null?412:510):452);
+        menu.expand(Math.min(desired,available));
     }
+
     private void showChannelMixer(){
         if(player==null||player.current==null||player.mixer.track!=player.current||player.mixer.names.length==0)return;
         final PlaybackService service=player;final Library.Track track=player.current;
@@ -660,7 +672,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.27.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.28.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

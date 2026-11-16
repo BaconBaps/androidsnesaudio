@@ -199,3 +199,16 @@ Custom roles `headerInk` and `headerBackground` separately control header dots/c
 and recessed display. Built-ins and existing custom themes retain their fallback
 colours. Both player and grid previews resolve these roles; theme JSON validates
 and preserves them. The editor exposes a single Header display target.
+
+## Expanding matrix menu (v1.28.0)
+
+Player Menu, Settings and Playback pages share a focused, non-dimming window
+anchored to the exact header bounds. `HeaderMenuDialog` animates its height with
+easing, reuses the same window for submenus, respects disabled system animations
+and cancels motion on destruction. Its maximum height normally stops above the
+playback deck. The original title animation is frozen while the menu is open.
+
+Doto lettering uses the header ink on the header background. Settings uses the
+small 12 sp size consistently, with large tap areas; main/playback pages retain
+larger entry text. Scroll edges fade, and Close or main-page Back contracts the
+display. Detailed tools retain their existing separate dialogs.

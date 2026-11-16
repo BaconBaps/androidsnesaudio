@@ -600,3 +600,19 @@ Expand **Library → Playlists** to open **Favourites**. It shows your current
 favourite count, remains available when empty, and uses the same live favourites
 view as Player Menu. Opening it does not interrupt playback. Favourites is a
 built-in entry and cannot be renamed or deleted as a saved playlist.
+
+## Expanding dot-matrix menu (v1.28.0)
+
+Tap anywhere on the header to expand its recessed display into Player Menu.
+Menu text uses a finer dot-matrix font and the header’s custom ink/background
+colours in either style. The title animation pauses while the menu is open.
+Settings and Playback tools replace the contents within the same display, with
+smooth height changes. Long pages scroll inside the display; playback controls
+stay in place below it. Back returns from a submenu; Back on the main page,
+Close, or an outside tap collapses it. System-disabled animations are respected.
+Settings uses the smaller dot-matrix size consistently for its heading, entries,
+Back and Close, while keeping 48 dp entry tap areas. Detailed tools such as the
+mixer and colour editor open their existing screens.
+
+<img src="screenshots/header-menu-expanded.png" width="300" alt="Expanded dot-matrix header menu above the playback deck" />
+<img src="screenshots/header-menu-settings.png" width="300" alt="Settings inside the same recessed header display" />
