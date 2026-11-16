@@ -267,11 +267,14 @@ public class PlayerUiTest {
             findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
             assertSame(menu,org.robolectric.shadows.ShadowDialog.getLatestDialog());
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
-            assertTrue(menu.getWindow().getAttributes().height<=expanded);assertEquals(deckTop,deck.getTop());
+            assertEquals(expanded,menu.getWindow().getAttributes().height);assertEquals(deckTop,deck.getTop());
             TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"SETTINGS"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertTrue(settingsTitle.getTextSize()>colourEntry.getTextSize());assertEquals(17*a.getResources().getDisplayMetrics().scaledDensity,colourEntry.getTextSize(),.01f);
             captureHeaderMenu(a,menu,"header-menu-settings.png");
             findDescription(menu.getWindow().getDecorView(),"Back to app menu").performClick();
-            assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));
+            assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));assertEquals(expanded,menu.getWindow().getAttributes().height);
+            findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertEquals(expanded,menu.getWindow().getAttributes().height);
+            findDescription(menu.getWindow().getDecorView(),"Back to app menu").performClick();
             menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK));menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK));
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertFalse(menu.isShowing());
         }

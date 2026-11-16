@@ -683,3 +683,11 @@ without starting playback and unchanged foreground-service playback actions.
 Full debug build, Robolectric suite and lint pass. Widget screenshots are native
 Robolectric renders, not a physical launcher verification. Signing continuity
 and 16 KiB zip alignment pass.
+
+## v1.28.2 — fixed expanded menu display
+
+Every menu page uses the same full expanded height, bounded by available screen
+space. Submenu changes no longer animate or resize the display; opening/closing
+still animate. The existing UI regression now requires exact height equality
+across Player Menu, Settings, Playback and Back navigation. Full debug build,
+Robolectric tests and lint pass. APK signing continuity and 16 KiB alignment pass.

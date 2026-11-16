@@ -26,6 +26,7 @@ final class HeaderMenuDialog extends Dialog {
         params.x=location[0];params.y=Math.max(0,location[1]-visible.top);params.width=anchor.getWidth()>0?anchor.getWidth():getContext().getResources().getDisplayMetrics().widthPixels-24;
         w.setAttributes(params);
         int start=height>0?height:Math.max(1,anchor.getHeight());
+        if(start==target){setHeight(target);return;}
         animateHeight(start,target,false);
     }
     private void animateHeight(int start,int end,boolean close){

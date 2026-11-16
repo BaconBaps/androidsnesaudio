@@ -606,8 +606,8 @@ built-in entry and cannot be renamed or deleted as a saved playlist.
 Tap anywhere on the header to expand its recessed display into Player Menu.
 Menu text uses a finer dot-matrix font and the header’s custom ink/background
 colours in either style. The title animation pauses while the menu is open.
-Settings and Playback tools replace the contents within the same display, with
-smooth height changes. Long pages scroll inside the display; playback controls
+Settings and Playback tools replace the contents at the same fixed expanded
+display height. Long pages scroll inside the display; playback controls
 stay in place below it. Back returns from a submenu; Back on the main page,
 Close, or an outside tap collapses it. System-disabled animations are respected.
 Settings uses the same dot-matrix size hierarchy as the other menu pages,
@@ -629,3 +629,7 @@ native widget actions.
 
 <img src="screenshots/widget-dark.png" width="360" alt="Classic Pixel Dark home screen widget" />
 <img src="screenshots/widget-chip5-dark.png" width="360" alt="ChipAmp5 Pixel Dark home screen widget" />
+
+The expanded header now keeps the same full height on Player Menu, Settings and
+Playback pages. Only opening and closing animate its height; shorter pages leave
+the remaining display space empty, like a fixed hardware display.
