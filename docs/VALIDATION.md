@@ -651,3 +651,13 @@ and smaller glyphs while retaining ON/OFF state labels. Classic is unchanged.
 Debug build, Robolectric suite and lint pass; renders use native Robolectric
 graphics, not a physical device. APK signature continuity and 16 KiB alignment
 are verified.
+
+## v1.27.2 — mode lamps and Favourites in Playlists
+
+ChipAmp5 shuffle/loop glyphs are centred and use a recessed corner indicator
+instead of state labels; Classic retains ON/OFF text. Accessibility descriptions
+retain the state. Library Playlists includes the live, non-deletable Favourites
+entry, available when empty. A UI regression test checks opening it, removing a
+favourite and keeping playback unchanged. The full debug build, Robolectric suite
+and lint pass. Renders use Robolectric native graphics; physical-device testing
+has not been performed. APK signing continuity and 16 KiB alignment pass.

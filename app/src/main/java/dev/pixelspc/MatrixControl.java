@@ -29,12 +29,18 @@ final class MatrixControl extends TextView {
         return y>=5&&y<=15&&x>=6&&x<=6+(5-Math.abs(y-10))*2;
     }
     @Override protected void onDraw(Canvas c){
-        String text=getText().toString();boolean mode=text.contains("\n");float density=getResources().getDisplayMetrics().density;
-        float size=Math.min(getWidth()-12*density,(getHeight()-(mode?18:10)*density));float step=Math.max(0,size*(mode?.78f:1)/21),cx=getWidth()/2f,cy=(getHeight()-(mode?15*density:0))/2;
+        String text=getText().toString();boolean mode=text.startsWith("⇄")||text.startsWith("↻");float density=getResources().getDisplayMetrics().density;
+        float size=Math.min(getWidth()-12*density,(getHeight()-10*density));float step=Math.max(0,size*(mode?.65f:1)/21),cx=getWidth()/2f,cy=getHeight()/2f;
         int color=(text.equals("▶")||text.equals("Ⅱ"))?lamp:getCurrentTextColor();
         for(int y=0;y<=20;y++)for(int x=0;x<=20;x++)if(lit(text,x,y)){
             paint.setColor(color);paint.setAlpha(35);c.drawCircle(cx+(x-10)*step,cy+(y-10)*step,step*.75f,paint);paint.setAlpha(255);c.drawCircle(cx+(x-10)*step,cy+(y-10)*step,step*.36f,paint);
         }
-        if(mode){paint.setTypeface(UiFonts.body(getContext()));paint.setTextSize(9*getResources().getDisplayMetrics().scaledDensity);paint.setColor(getCurrentTextColor());paint.setAlpha(255);String state=text.substring(text.indexOf('\n')+1);c.drawText(state,cx-paint.measureText(state)/2,getHeight()-5*density,paint);}
+        if(mode){
+            float x=getWidth()-10*density,y=10*density,r=3*density;
+            if(isSelected()){paint.setColor(lamp);paint.setAlpha(40);c.drawCircle(x,y,r*1.9f,paint);}
+            paint.setAlpha(255);paint.setColor(0xff050809);c.drawCircle(x,y,r+1.2f*density,paint);
+            paint.setColor(PlayerTheme.blend(lamp,0xff000000,isSelected()?.08f:.84f));c.drawCircle(x,y,r,paint);
+            paint.setColor(PlayerTheme.blend(lamp,0xffffffff,.65f));paint.setAlpha(isSelected()?220:40);c.drawCircle(x-.7f*density,y-.8f*density,.85f*density,paint);paint.setAlpha(255);
+        }
     }
 }

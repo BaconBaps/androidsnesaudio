@@ -588,3 +588,15 @@ Tap the header title, cog or display surround to open **Player Menu**. Settings
 remains inside that menu. ChipAmp5 shuffle and loop controls are narrower, match
 Previous/Next button height and use smaller glyphs above their ON/OFF labels.
 Classic controls retain their existing sizes.
+
+## ChipAmp5 indicator lights and library Favourites (v1.27.2)
+
+ChipAmp5 shuffle and loop buttons use a recessed corner lamp instead of ON/OFF
+text. Their dot-matrix icons are vertically centred; the lamp glows in the theme
+secondary colour while enabled. Screen-reader descriptions still announce the
+state. Classic controls keep their existing labels.
+
+Expand **Library → Playlists** to open **Favourites**. It shows your current
+favourite count, remains available when empty, and uses the same live favourites
+view as Player Menu. Opening it does not interrupt playback. Favourites is a
+built-in entry and cannot be renamed or deleted as a saved playlist.

@@ -201,7 +201,7 @@ public class MainActivity extends Activity {
     private void styleMode(TextView button,boolean enabled,String icon,String name) {
         android.text.SpannableString label=new android.text.SpannableString(icon+"\n"+(enabled?"ON":"OFF"));
         label.setSpan(new android.text.style.RelativeSizeSpan(2f),0,icon.length(),0);
-        button.setText(label); button.setTextColor(enabled?playbackTheme.accent:playbackTheme.muted);
+        button.setText(playbackTheme.chipAmp5()?icon:label); button.setTextColor(enabled?playbackTheme.accent:playbackTheme.muted);
         button.setBackground(playbackTheme.chipAmp5()?skin.button(playbackTheme.buttonFace(playbackTheme.background)):null);
         if(playbackTheme.chipAmp5())button.setTextColor(enabled?playbackTheme.secondary:playbackTheme.buttonText(playbackTheme.muted));
         button.setSelected(enabled); button.setContentDescription(name+" "+(enabled?"on":"off"));
@@ -285,7 +285,8 @@ public class MainActivity extends Activity {
     private void chooseGame(){chooseGame(false);}
     private void chooseGame(boolean focusPlaylists) {
         List<LibraryPlatforms.Group> groups=LibraryPlatforms.group(library.games);
-        LibraryPlatforms.Group playlists=new LibraryPlatforms.Group("Playlists");playlists.games.addAll(savedPlaylists());groups.add(playlists);
+        LibraryPlatforms.Group playlists=new LibraryPlatforms.Group("Playlists");playlists.games.addAll(savedPlaylists());
+        Library.Game favouriteEntry=new Library.Game();favouriteEntry.id="favourites";favouriteEntry.name="Favourites";favouriteEntry.tracks=favourites.tracks(library.games);playlists.games.add(favouriteEntry);groups.add(playlists);
         ExpandableListView list=new ExpandableListView(this); list.setContentDescription("Soundtracks grouped by platform");
         list.setBackground(skin.well(listTheme.background)); list.setPadding(dp(6),dp(6),dp(6),dp(6)); list.setGroupIndicator(null);
         list.setDivider(new android.graphics.drawable.ColorDrawable(borderColor)); list.setDividerHeight(dp(1));
@@ -306,15 +307,16 @@ public class MainActivity extends Activity {
                 add(labels,text(getString(R.string.library_entry,platform==playlists?getResources().getQuantityString(R.plurals.playlist_count,platform.games.size(),platform.games.size()):getResources().getQuantityString(R.plurals.soundtrack_count,platform.games.size(),platform.games.size()),getResources().getQuantityString(R.plurals.track_count,platform.trackCount(),platform.trackCount())),11,listTheme.muted),-1,-2);
                 heading.addView(labels,new LinearLayout.LayoutParams(0,-2,1)); heading.setContentDescription(platform.name+(expanded?", expanded":", collapsed")); return heading;
             }
-            public View getChildView(int group,int child,boolean last,View recycled,ViewGroup parent) { return gameRow(groups.get(group).games.get(child)); }
+            public View getChildView(int group,int child,boolean last,View recycled,ViewGroup parent) { Library.Game game=groups.get(group).games.get(child);if(game!=favouriteEntry)return gameRow(game);
+                LinearLayout row=row();row.setPadding(dp(12),dp(12),dp(12),dp(12));row.setMinimumHeight(dp(64));LinearLayout labels=column();add(labels,text("☆  Favourites",16,listTheme.text),-1,-2);add(labels,text(getResources().getQuantityString(R.plurals.favourite_count,game.tracks.size(),game.tracks.size()),11,listTheme.muted),-1,-2);row.addView(labels);row.setContentDescription("Open Favourites");return row; }
         });
         list.setOnItemLongClickListener((parent,view,position,id)->{
             long packed=list.getExpandableListPosition(position);
             if(ExpandableListView.getPackedPositionType(packed)!=ExpandableListView.PACKED_POSITION_TYPE_CHILD)return false;
-            libraryActions(groups.get(ExpandableListView.getPackedPositionGroup(packed)).games.get(ExpandableListView.getPackedPositionChild(packed)));return true;
+            Library.Game game=groups.get(ExpandableListView.getPackedPositionGroup(packed)).games.get(ExpandableListView.getPackedPositionChild(packed));if(game!=favouriteEntry)libraryActions(game);return true;
         });
         android.content.SharedPreferences prefs=getSharedPreferences("library-browser",MODE_PRIVATE);
-        String selectedPlatform=Playlists.saved(selected)?"Playlists":selected==null?"":LibraryPlatforms.platform(selected);
+        String selectedPlatform=showFavourites?"Playlists":Playlists.saved(selected)?"Playlists":selected==null?"":LibraryPlatforms.platform(selected);
         for(int i=0;i<groups.size();i++) if(prefs.getBoolean("expanded:"+groups.get(i).name,groups.get(i).name.equals(selectedPlatform))) list.expandGroup(i);
         list.setOnGroupExpandListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,true).apply());
         list.setOnGroupCollapseListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,false).apply());
@@ -330,7 +332,7 @@ public class MainActivity extends Activity {
         picker.setContentView(body,new ViewGroup.LayoutParams(-1,-1)); picker.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         close.setOnClickListener(v->picker.dismiss()); importMusic.setOnClickListener(v->{ picker.dismiss(); pickFile(); });
         libraryPicker=picker;
-        list.setOnChildClickListener((parent,view,group,child,id)->{ selectLibraryGame(groups.get(group).games.get(child));picker.dismiss(); renderTracks(); return true; });
+        list.setOnChildClickListener((parent,view,group,child,id)->{ Library.Game game=groups.get(group).games.get(child);if(game==favouriteEntry){showFavourites=true;showQueue=false;}else selectLibraryGame(game);picker.dismiss(); renderTracks(); return true; });
         picker.show(); picker.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(720)),Math.round(getResources().getDisplayMetrics().heightPixels*.86f));
         if(focusPlaylists)list.post(()->list.setSelectedGroup(groups.size()-1));
     }
@@ -658,7 +660,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.27.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.27.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

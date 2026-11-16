@@ -493,6 +493,23 @@ public class PlayerUiTest {
             }
         }
     }
+    @Test public void libraryPlaylistsOffersLiveFavouritesWithoutChangingPlayback()throws Exception {
+        Library.Track[] tracks=playlistSources();new TrackFavorites(app).toggle(tracks[0]);
+        service.current=tracks[1];service.playing=true;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Open music library").performClick();
+            android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
+            int group=list.getExpandableListAdapter().getGroupCount()-1;list.expandGroup(group);
+            assertEquals(1,list.getExpandableListAdapter().getChildrenCount(group));
+            list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(group,0)),0);
+            assertNotNull(findText(a.getWindow().getDecorView(),"Favourite tracks"));
+            assertNotNull(findDescription(a.getWindow().getDecorView(),"Remove "+tracks[0].title+" from favourites"));
+            assertSame(tracks[1],service.current);assertTrue(service.playing);
+            findDescription(a.getWindow().getDecorView(),"Remove "+tracks[0].title+" from favourites").performClick();
+            assertNotNull(findText(a.getWindow().getDecorView(),"No favourites yet. Tap a track’s ☆ to add it here."));
+        }
+    }
     @Test public void emptyLibraryStillOffersPlaylistsAndImportWithoutSavingAnEmptyList()throws Exception{
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             findDescription(c.get().getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");assertEquals(1,list.getExpandableListAdapter().getGroupCount());assertEquals("Playlists",((LibraryPlatforms.Group)list.getExpandableListAdapter().getGroup(0)).name);assertFalse(findDescription(browser.getWindow().getDecorView(),"Save current playlist").isEnabled());
