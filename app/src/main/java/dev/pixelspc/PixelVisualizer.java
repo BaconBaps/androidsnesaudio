@@ -17,7 +17,7 @@ public class PixelVisualizer extends View {
     private float traceGain=1,envelope;
     private boolean playing,loaded,frozen;
     public PixelVisualizer(Context c) {
-        super(c);pixel=UiFonts.body(c);
+        super(c);pixel=Typeface.createFromAsset(c.getAssets(),"fonts/pixel.ttf");
         mode=Math.max(0,Math.min(MODES.length-1,c.getSharedPreferences("appearance",0).getInt("visualizer",0)));
         setFocusable(true);setOnClickListener(v->{if(!frozen)selectMode((mode+1)%MODES.length);});
         setOnLongClickListener(v->{if(frozen)return false;selectMode(0);return true;});
@@ -43,7 +43,7 @@ public class PixelVisualizer extends View {
         }
         box(c,color,x,y,w,h);
     }
-    private void label(Canvas c,String s,int color,float x,float y,float size){paint.setStyle(Paint.Style.FILL);paint.setColor(color);paint.setTypeface(pixel);paint.setTextSize(size*1.25f);c.drawText(s,x,y,paint);}
+    private void label(Canvas c,String s,int color,float x,float y,float size){paint.setStyle(Paint.Style.FILL);paint.setColor(color);paint.setTypeface(pixel);paint.setTextSize(size);c.drawText(s,x,y,paint);}
     private int bandColor(float value){return value<.5f?PlayerTheme.blend(theme.spectrumLow,theme.spectrumMid,value*2):PlayerTheme.blend(theme.spectrumMid,theme.spectrumHigh,(value-.5f)*2);}
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);screen.setBounds(0,0,getWidth(),getHeight());screen.draw(canvas);

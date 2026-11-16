@@ -28,7 +28,7 @@ public class ExportActivity extends Activity {
         LinearLayout body=new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(dp(20),dp(20),dp(20),dp(20)); body.setBackground(skin.background(theme.background));
         body.setOnApplyWindowInsetsListener((v,insets)->{ body.setPadding(dp(20),dp(20)+insets.getSystemWindowInsetTop(),dp(20),dp(20)+insets.getSystemWindowInsetBottom()); return insets.consumeSystemWindowInsets(); });
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.addView(body); setContentView(scroll);
-        TextView heading=label(body,"EXPORT AUDIO",18,theme.accent); heading.setTypeface(UiFonts.body(this));
+        TextView heading=label(body,"EXPORT AUDIO",18,theme.accent); heading.setTypeface(Typeface.createFromAsset(getAssets(),"fonts/pixel.ttf"));
         label(body,getIntent().getStringExtra("title"),22,theme.text);
         label(body,"Save a WAV file for a ringtone, notification, alarm, or sharing. Phone settings stay unchanged.",14,theme.muted);
         label(body,"Start · minutes:seconds (up to 60:00)",14,theme.text);

@@ -19,8 +19,8 @@ public final class ThemePreview extends View {
     ThemePreview(Context context,PlayerTheme theme,boolean selected,String caption) {
         super(context);this.caption=caption; logo=new ChipLogo(context,theme);gear=new DotGlyph(true,theme.headerInk()); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);header=skin.header(playbackTheme.spectrumBackground);library=skin.button(theme.libraryButtonBackground());well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
-        headingPaint.setTypeface(UiFonts.body(context));
-        headingPaint.setTextSize(8.75f*getResources().getDisplayMetrics().scaledDensity);
+        headingPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),"fonts/pixel.ttf"));
+        headingPaint.setTextSize(7*getResources().getDisplayMetrics().scaledDensity);
         headingPaint.setColor(theme.heading);
     }
     @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){

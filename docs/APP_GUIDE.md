@@ -504,7 +504,7 @@ voices rather than a fixed instrument list. There are no invented activity
 meters or per-voice volume sliders: this engine API exposes mute/solo only.
 Exports use a fresh decoder and retain the original full mix.
 
-Tiny5 replaces regular sans-serif app text, including library entries,
+Pixelify Sans replaces regular sans-serif app text, including library entries,
 metadata, imports, form fields and dialogs. Jersey 15 is used for menu titles
 and menu section headings. Existing pixel controls, dot-matrix display titles
 and symbol fonts remain separate. Both new fonts are bundled for offline use
@@ -574,5 +574,5 @@ Reactor is no longer offered.
 
 The header title rests with occasional brief glitches, scrolls down off the
 display, then returns one letter at a time from the right. Tap anywhere on the
-header to open Settings. Tiny5 is used for regular UI and small pixel labels;
+header to open Settings. Pixelify Sans is used for regular UI and Press Start 2P for small pixel labels;
 Doto track titles and Jersey 15 settings headings remain.

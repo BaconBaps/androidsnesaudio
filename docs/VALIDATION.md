@@ -623,3 +623,11 @@ Header tests cover quiet holds, bounded glitches, downward exit and sequential
 letter returns. Screenshots use Robolectric native graphics, not a physical
 Android device. APK signature matches the preceding release and 16 KiB zip
 alignment passes.
+
+## v1.26.1 — restore typography
+
+Reverted the v1.26.0 Tiny5 substitutions and size multipliers. Pixelify Sans body
+text, Press Start 2P pixel labels/visualizer, Doto titles and Jersey 15 menu
+headings retain their preceding assignments. The two styles, identical palettes
+and quieter header choreography are retained. Debug build, Robolectric tests
+and lint are checked; APK signing continuity and 16 KiB alignment are verified.

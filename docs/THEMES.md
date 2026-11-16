@@ -86,6 +86,6 @@ Each style remembers its colour selection and has its own saved custom themes.
 <img src="screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 with the identical Pixel Dark palette" />
 <img src="screenshots/theme-chip5-light.png" width="300" alt="ChipAmp5 with the identical Pixel Light palette" />
 
-Tiny5 is used for regular UI and small pixel labels. Doto track titles and Jersey 15
+Pixelify Sans is used for regular UI; Press Start 2P is used for small pixel labels. Doto track titles and Jersey 15
 menu headings remain. The header rests most of the time, occasionally glitches,
 scrolls down and returns letter by letter. Tap the header to open Settings.

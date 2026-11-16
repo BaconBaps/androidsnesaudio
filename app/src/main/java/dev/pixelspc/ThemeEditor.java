@@ -19,7 +19,7 @@ final class ThemeEditor {
     }
     static final class Target {final View view;final String title;final String[] roles;Target(View view,String title,String...roles){this.view=view;this.title=title;this.roles=roles;}}
     static int dp(Context c,float n){return (int)(c.getResources().getDisplayMetrics().density*n+.5f);}
-    static TextView text(Context c,String value,int size,int color,boolean pixel){TextView v=new TextView(c);v.setText(value);v.setTextSize(size);v.setTextColor(color);v.setTypeface(UiFonts.body(c));if(pixel){v.setTypeface(UiFonts.body(c));v.setTextSize(size*1.25f);v.setSingleLine(true);v.setEllipsize(android.text.TextUtils.TruncateAt.END);}v.setGravity(Gravity.CENTER_VERTICAL);return v;}
+    static TextView text(Context c,String value,int size,int color,boolean pixel){TextView v=new TextView(c);v.setText(value);v.setTextSize(size);v.setTextColor(color);v.setTypeface(UiFonts.body(c));if(pixel){v.setTypeface(Typeface.createFromAsset(c.getAssets(),"fonts/pixel.ttf"));v.setSingleLine(true);v.setEllipsize(android.text.TextUtils.TruncateAt.END);}v.setGravity(Gravity.CENTER_VERTICAL);return v;}
     static TextView key(Context c,String title){TextView v=text(c,title,8,FG,true);v.setSingleLine(false);v.setHorizontallyScrolling(false);v.setEllipsize(null);v.setMaxLines(2);v.setGravity(Gravity.CENTER);v.setBackground(new PlayerSkin(c).button(BG));v.setPadding(dp(c,6),0,dp(c,6),0);v.setContentDescription(title);v.setFocusable(true);v.setClickable(true);return v;}
     static LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}
     static Dialog window(Context c,String title,View content){
