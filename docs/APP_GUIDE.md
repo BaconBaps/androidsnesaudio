@@ -574,5 +574,10 @@ Reactor is no longer offered.
 
 The header title rests with occasional brief glitches, scrolls down off the
 display, then returns one letter at a time from the right. Tap anywhere on the
-header to open Settings. Pixelify Sans is used for regular UI and Press Start 2P for small pixel labels;
+header to open Settings. Chakra Petch is used for regular UI and Press Start 2P for small pixel labels;
 Doto track titles and Jersey 15 settings headings remain.
+
+The custom theme editor includes **Header display**: tap the header in the frozen
+preview (or choose it in Parts) to adjust **Dots / cog** and **Screen** separately.
+These colours save/export with the theme without changing the visualizer or main
+accent. Existing themes retain their previous header appearance until edited.

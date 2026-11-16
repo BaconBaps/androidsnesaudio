@@ -8,7 +8,7 @@ import org.json.*;
 /** Named palettes contain only opaque colours and a known built-in base. */
 final class ThemeStore {
     static final int LIMIT=40,FILE_LIMIT=65536;
-    static final Set<String> ROLES=new HashSet<>(Arrays.asList("background","text","muted","accent","secondary","border","surface","onAccent","heading","button","buttonText","libraryButton","readout","spectrumBackground","spectrumLow","spectrumMid","spectrumHigh","spectrumPeak"));
+    static final Set<String> ROLES=new HashSet<>(Arrays.asList("background","text","muted","accent","secondary","border","surface","onAccent","heading","button","buttonText","libraryButton","headerInk","headerBackground","readout","spectrumBackground","spectrumLow","spectrumMid","spectrumHigh","spectrumPeak"));
     static final class Draft {
         String id,name,base,style;final Map<String,Integer> colors=new HashMap<>();
         Draft(String id,String name,String base){this.id=id;this.name=name;this.base=base;this.style=PlayerTheme.find(base).styleId;}

@@ -281,6 +281,7 @@ public class PlayerUiTest {
             MainActivity a=c.get();a.beginThemeEdit(ThemeStore.from(PlayerTheme.find("dark"),false));
             c.recreate();a=c.get();View decor=a.getWindow().getDecorView();decor.measure(View.MeasureSpec.makeMeasureSpec(822,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1782,View.MeasureSpec.EXACTLY));decor.layout(0,0,822,1782);
             java.util.List<ThemeEditor.Target> targets=org.robolectric.util.ReflectionHelpers.getField(a,"editTargets");
+            assertEquals(1,targets.stream().filter(t->t.title.equals("Header display")).count());
             assertEquals(1,targets.stream().filter(t->t.title.equals("Tracklist entry")).count());
             ThemeEditor.Target entry=targets.stream().filter(t->t.title.equals("Tracklist entry")).findFirst().get();
             View overlay=findDescription(decor,"Frozen theme preview. Use Parts or tap an element to edit colours.");FrameLayout frame=(FrameLayout)overlay.getParent();

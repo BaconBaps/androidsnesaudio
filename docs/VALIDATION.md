@@ -631,3 +631,13 @@ text, Press Start 2P pixel labels/visualizer, Doto titles and Jersey 15 menu
 headings retain their preceding assignments. The two styles, identical palettes
 and quieter header choreography are retained. Debug build, Robolectric tests
 and lint are checked; APK signing continuity and 16 KiB alignment are verified.
+
+## v1.27.0 — Chakra Petch and independent header colours
+
+Regular UI text uses Chakra Petch, with bold weight bundled; pixel labels, Doto
+track titles, Jersey 15 headings and header lettering remain unchanged. Header
+dots/cog and screen have independent editable colour roles with unchanged
+fallbacks. Theme JSON round-trip and editor registration tests cover the new
+roles. Debug build, Robolectric suite and lint pass. Screenshots are generated
+with Robolectric native graphics; no physical-device verification was performed.
+APK signing continuity and 16 KiB zip alignment pass.

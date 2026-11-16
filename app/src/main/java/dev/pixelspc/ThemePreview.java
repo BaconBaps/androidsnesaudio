@@ -17,7 +17,7 @@ public final class ThemePreview extends View {
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
     public ThemePreview(Context context,PlayerTheme theme,boolean selected) {this(context,theme,selected,theme.name);}
     ThemePreview(Context context,PlayerTheme theme,boolean selected,String caption) {
-        super(context);this.caption=caption; logo=new ChipLogo(context,theme);gear=new DotGlyph(true,theme.headerInk()); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);header=skin.header(playbackTheme.spectrumBackground);library=skin.button(theme.libraryButtonBackground());well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
+        super(context);this.caption=caption; logo=new ChipLogo(context,theme);gear=new DotGlyph(true,theme.headerInk()); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);header=skin.header(theme.headerBackground());library=skin.button(theme.libraryButtonBackground());well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
         headingPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),"fonts/pixel.ttf"));
         headingPaint.setTextSize(7*getResources().getDisplayMetrics().scaledDensity);

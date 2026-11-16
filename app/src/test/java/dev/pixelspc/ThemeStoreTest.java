@@ -12,6 +12,17 @@ import static org.junit.Assert.*;
 public class ThemeStoreTest {
     private Context context;private ThemeStore store;
     @Before public void setup(){context=RuntimeEnvironment.getApplication();context.getSharedPreferences("custom-themes",0).edit().clear().commit();context.getSharedPreferences("appearance",0).edit().clear().commit();store=new ThemeStore(context);}
+    @Test public void headerColoursRoundTripWithoutChangingSpectrumOrAccent()throws Exception {
+        ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("dark"),false);
+        d.colors.put("headerInk",0xfff0a050);d.colors.put("headerBackground",0xff030609);
+        PlayerTheme before=PlayerTheme.find("dark"),after=ThemeStore.decode(ThemeStore.encode(d)).theme();
+        assertEquals(0xfff0a050,after.headerInk());assertEquals(0xff030609,after.headerBackground());
+        assertEquals("Dots / cog",ThemeEditor.label("headerInk"));assertEquals("Screen",ThemeEditor.label("headerBackground"));
+        assertEquals(0xfff0a050,ThemeEditor.color(d,"headerInk"));assertEquals(0xff030609,ThemeEditor.color(d,"headerBackground"));
+        assertEquals(before.headerInk(),ThemeEditor.color(ThemeStore.from(before,false),"headerInk"));
+        assertEquals(before.headerBackground(),ThemeEditor.color(ThemeStore.from(before,false),"headerBackground"));
+        assertEquals(before.accent,after.accent);assertEquals(before.nowPlaying().spectrumBackground,after.nowPlaying().spectrumBackground);
+    }
     @Test public void stylesRememberIndependentPalettesAndFilterCustomThemes()throws Exception {
         context.getSharedPreferences("appearance",0).edit().putString("style","classic").putString("theme.classic","snes").putString("theme.chipamp5","chip5-game-boy").commit();
         assertEquals("snes",ThemeStore.selected(context).id);

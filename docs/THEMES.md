@@ -86,6 +86,11 @@ Each style remembers its colour selection and has its own saved custom themes.
 <img src="screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 with the identical Pixel Dark palette" />
 <img src="screenshots/theme-chip5-light.png" width="300" alt="ChipAmp5 with the identical Pixel Light palette" />
 
-Pixelify Sans is used for regular UI; Press Start 2P is used for small pixel labels. Doto track titles and Jersey 15
+Chakra Petch is used for regular UI; Press Start 2P is used for small pixel labels. Doto track titles and Jersey 15
 menu headings remain. The header rests most of the time, occasionally glitches,
 scrolls down and returns letter by letter. Tap the header to open Settings.
+
+The custom theme editor includes **Header display**: tap the header in the frozen
+preview (or choose it in Parts) to adjust **Dots / cog** and **Screen** separately.
+These colours save/export with the theme without changing the visualizer or main
+accent. Existing themes retain their previous header appearance until edited.

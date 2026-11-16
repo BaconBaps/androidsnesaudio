@@ -188,3 +188,14 @@ small-label font; Doto titles and Jersey 15 menu headings remain.
 The header now holds the title, briefly glitches at random, scrolls downward and
 slides letters in one at a time. Idle refresh is reduced and hidden/disabled
 animation guards remain. There is no header waveform phase.
+
+## Header colours and Chakra Petch (v1.27.0)
+
+Regular UI text now uses bundled Chakra Petch (regular and bold, SIL OFL).
+Press Start 2P labels, Doto titles, Jersey 15 settings headings and the Pixelify
+Sans header raster keep their existing typefaces and sizes.
+
+Custom roles `headerInk` and `headerBackground` separately control header dots/cog
+and recessed display. Built-ins and existing custom themes retain their fallback
+colours. Both player and grid previews resolve these roles; theme JSON validates
+and preserves them. The editor exposes a single Header display target.
