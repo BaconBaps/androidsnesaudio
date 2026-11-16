@@ -671,3 +671,15 @@ Settings title and entries use the same smaller dot-matrix size. Composite UI
 renders show the menu anchored over the real activity. Tests use native
 Robolectric graphics; no physical-device animation verification was available.
 APK signing continuity and 16 KiB alignment pass.
+
+## v1.28.1 — restore Settings sizes and style-aware widgets
+
+Settings returns to the same type-size hierarchy as the other matrix menu pages.
+The launcher widget uses current PlayerSkin frame/readout/button geometry and
+palette, including rounded ChipAmp5 controls and custom Track readout colour.
+Skin images are cached and resize-aware; text, chronometer and click actions
+remain native RemoteViews. Tests check both style renders, empty-state updates
+without starting playback and unchanged foreground-service playback actions.
+Full debug build, Robolectric suite and lint pass. Widget screenshots are native
+Robolectric renders, not a physical launcher verification. Signing continuity
+and 16 KiB zip alignment pass.

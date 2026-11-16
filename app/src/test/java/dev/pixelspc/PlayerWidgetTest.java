@@ -63,6 +63,19 @@ public class PlayerWidgetTest {
             assertEquals("Tap to choose a track",((TextView)view.findViewById(R.id.widget_title)).getText().toString());
         } finally { c.destroy(); }
     }
+    @Test public void widgetUsesCurrentStyleAndUpdatesWhenAppearanceChangesWithoutPlayback()throws Exception {
+        AppWidgetManager manager=AppWidgetManager.getInstance(app);int id=Shadows.shadowOf(manager).createWidget(PlayerWidget.class,R.layout.player_widget);
+        for(String theme:new String[]{"dark","chip5-dark"}){
+            app.getSharedPreferences("appearance",0).edit().putString("style",theme.startsWith("chip5")?"chipamp5":"classic").putString("theme",theme).commit();PlayerWidget.updateAll(app);
+            View widget=Shadows.shadowOf(manager).getViewFor(id);widget.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(440,View.MeasureSpec.EXACTLY));widget.layout(0,0,720,440);
+            ImageView frame=widget.findViewById(R.id.widget_chrome);android.graphics.drawable.BitmapDrawable drawable=(android.graphics.drawable.BitmapDrawable)frame.getDrawable();Bitmap bitmap=drawable.getBitmap();
+            assertEquals(theme.startsWith("chip5")?0:255,Color.alpha(bitmap.getPixel(0,0)));
+            assertEquals(PlayerTheme.find(theme).nowPlaying().accent,((TextView)widget.findViewById(R.id.widget_title)).getCurrentTextColor());
+            assertNotNull(((ImageView)widget.findViewById(R.id.widget_readout)).getDrawable());
+            assertNotNull(((ImageView)widget.findViewById(R.id.widget_play)).getDrawable());screenshot(widget,"widget-"+theme+".png");
+        }
+        assertNull(Shadows.shadowOf(app).getNextStartedService());
+    }
     private void screenshot(View view,String name) throws Exception {
         view.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(440,View.MeasureSpec.EXACTLY)); view.layout(0,0,720,440);
         Bitmap bitmap=Bitmap.createBitmap(720,440,Bitmap.Config.ARGB_8888); view.draw(new Canvas(bitmap));

@@ -208,7 +208,11 @@ easing, reuses the same window for submenus, respects disabled system animations
 and cancels motion on destruction. Its maximum height normally stops above the
 playback deck. The original title animation is frozen while the menu is open.
 
-Doto lettering uses the header ink on the header background. Settings uses the
-small 12 sp size consistently, with large tap areas; main/playback pages retain
-larger entry text. Scroll edges fade, and Close or main-page Back contracts the
+Doto lettering uses the header ink on the header background. Settings now uses the same size hierarchy as the other menu pages, with
+large tap areas. Scroll edges fade, and Close or main-page Back contracts the
 display. Detailed tools retain their existing separate dialogs.
+
+The launcher widget renders the same PlayerSkin surfaces and ChipAmp5 matrix
+controls into RemoteViews-compatible bitmaps. Skin images are cached with an
+8 MiB limit keyed by theme, style, density, font scale, size and control state.
+Title/artist/clock remain native launcher views; click actions are unchanged.

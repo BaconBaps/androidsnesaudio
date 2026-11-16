@@ -268,7 +268,7 @@ public class PlayerUiTest {
             assertSame(menu,org.robolectric.shadows.ShadowDialog.getLatestDialog());
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
             assertTrue(menu.getWindow().getAttributes().height<=expanded);assertEquals(deckTop,deck.getTop());
-            TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"SETTINGS"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertEquals(settingsTitle.getTextSize(),colourEntry.getTextSize(),.01f);
+            TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"SETTINGS"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertTrue(settingsTitle.getTextSize()>colourEntry.getTextSize());assertEquals(17*a.getResources().getDisplayMetrics().scaledDensity,colourEntry.getTextSize(),.01f);
             captureHeaderMenu(a,menu,"header-menu-settings.png");
             findDescription(menu.getWindow().getDecorView(),"Back to app menu").performClick();
             assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));

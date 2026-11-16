@@ -610,9 +610,22 @@ Settings and Playback tools replace the contents within the same display, with
 smooth height changes. Long pages scroll inside the display; playback controls
 stay in place below it. Back returns from a submenu; Back on the main page,
 Close, or an outside tap collapses it. System-disabled animations are respected.
-Settings uses the smaller dot-matrix size consistently for its heading, entries,
-Back and Close, while keeping 48 dp entry tap areas. Detailed tools such as the
+Settings uses the same dot-matrix size hierarchy as the other menu pages,
+while keeping 48 dp entry tap areas. Detailed tools such as the
 mixer and colour editor open their existing screens.
 
 <img src="screenshots/header-menu-expanded.png" width="300" alt="Expanded dot-matrix header menu above the playback deck" />
 <img src="screenshots/header-menu-settings.png" width="300" alt="Settings inside the same recessed header display" />
+
+## Style-aware home screen widget (v1.28.1)
+
+The launcher widget follows the selected Classic or ChipAmp5 style and palette,
+including custom player/readout colours. Classic keeps square framed panels;
+ChipAmp5 has rounded plastic bezels and dot-matrix playback buttons. Both use
+Doto titles and Chakra Petch metadata. Existing widgets refresh when you change
+style or theme, including while playback is stopped. Resizing refreshes the
+background graphics; playback controls and the launcher-managed clock remain
+native widget actions.
+
+<img src="screenshots/widget-dark.png" width="360" alt="Classic Pixel Dark home screen widget" />
+<img src="screenshots/widget-chip5-dark.png" width="360" alt="ChipAmp5 Pixel Dark home screen widget" />
