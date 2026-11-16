@@ -17,7 +17,7 @@ public class PixelVisualizer extends View {
     private float traceGain=1,envelope;
     private boolean playing,loaded,frozen;
     public PixelVisualizer(Context c) {
-        super(c);pixel=Typeface.createFromAsset(c.getAssets(),"fonts/pixel.ttf");
+        super(c);pixel=UiFonts.body(c);
         mode=Math.max(0,Math.min(MODES.length-1,c.getSharedPreferences("appearance",0).getInt("visualizer",0)));
         setFocusable(true);setOnClickListener(v->{if(!frozen)selectMode((mode+1)%MODES.length);});
         setOnLongClickListener(v->{if(frozen)return false;selectMode(0);return true;});
@@ -35,15 +35,15 @@ public class PixelVisualizer extends View {
     private void gain(){float peak=.25f;for(float value:trace)peak=Math.max(peak,Math.abs(value));traceGain=.85f/peak;}
     void setFrozenFrame(float[] levels){setFrozenFrame(levels,new float[AudioWaveform.SAMPLES]);}
     void setFrozenFrame(float[] levels,float[] waveform){frozen=true;playing=false;loaded=true;trace=waveform;gain();envelope=1;for(int i=0;i<heights.length;i++){heights[i]=levels[i];peaks[i]=levels[i];}invalidate();}
-    private void box(Canvas c,int color,float x,float y,float w,float h){paint.setStyle(Paint.Style.FILL);paint.setColor(color);if(theme.phosphor()&&w<=8&&h<=6){if(w>3){for(int i=0;i<3;i++)c.drawCircle(x+1.2f+i*2.8f,y+h/2,Math.min(h/2,1.1f),paint);}else c.drawCircle(x+w/2,y+h/2,Math.min(w,h)/2,paint);}else c.drawRect(x,y,x+w,y+h,paint);}
+    private void box(Canvas c,int color,float x,float y,float w,float h){paint.setStyle(Paint.Style.FILL);paint.setColor(color);if(theme.chipAmp5()&&w<=8&&h<=6){if(w>3){for(int i=0;i<3;i++)c.drawCircle(x+1.2f+i*2.8f,y+h/2,Math.min(h/2,1.1f),paint);}else c.drawCircle(x+w/2,y+h/2,Math.min(w,h)/2,paint);}else c.drawRect(x,y,x+w,y+h,paint);}
     private void phosphor(Canvas c,int color,float x,float y,float w,float h){
-        if(theme.reactor()||theme.phosphor()){
+        if(theme.chipAmp5()){
             box(c,PlayerTheme.blend(displayColor,color,.10f),x-2,y-2,w+4,h+4);
             box(c,PlayerTheme.blend(displayColor,color,.24f),x-1,y-1,w+2,h+2);
         }
         box(c,color,x,y,w,h);
     }
-    private void label(Canvas c,String s,int color,float x,float y,float size){paint.setStyle(Paint.Style.FILL);paint.setColor(color);paint.setTypeface(pixel);paint.setTextSize(size);c.drawText(s,x,y,paint);}
+    private void label(Canvas c,String s,int color,float x,float y,float size){paint.setStyle(Paint.Style.FILL);paint.setColor(color);paint.setTypeface(pixel);paint.setTextSize(size*1.25f);c.drawText(s,x,y,paint);}
     private int bandColor(float value){return value<.5f?PlayerTheme.blend(theme.spectrumLow,theme.spectrumMid,value*2):PlayerTheme.blend(theme.spectrumMid,theme.spectrumHigh,(value-.5f)*2);}
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);screen.setBounds(0,0,getWidth(),getHeight());screen.draw(canvas);
@@ -85,7 +85,7 @@ public class PixelVisualizer extends View {
     }
     private void stroke(Canvas c,int color,float width){
         paint.setStyle(Paint.Style.STROKE);
-        if((theme.reactor()||theme.phosphor())&&PlayerTheme.luminance(color)>.25){
+        if((theme.chipAmp5())&&PlayerTheme.luminance(color)>.25){
             paint.setStrokeWidth(width+5);paint.setColor(PlayerTheme.blend(displayColor,color,.10f));c.drawPath(path,paint);
             paint.setStrokeWidth(width+2);paint.setColor(PlayerTheme.blend(displayColor,color,.28f));c.drawPath(path,paint);
         }

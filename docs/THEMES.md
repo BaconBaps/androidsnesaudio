@@ -76,36 +76,16 @@ Deep violet shell and mint highlights.
 
 <img src="screenshots/theme-gamecube.png" width="240" alt="GameCube player palette" />
 
-## Reactor
+## ChipAmp5 style
 
-Muted rust-brown iron, warm cream lettering, amber phosphor and red warning
-accents. An original generated metal texture is tiled at low opacity under a
-small ordered-dither sprite; mechanical nine-patches keep the rivets and corners
-fixed at any screen size. The main app background is textured without an outer
-frame. The screens and list interiors stay dark for readability.
-Bright spectrum segments and waveform traces receive a restrained pixel glow.
-The reference screenshot's captions, watermark and video controls are not included.
+Open **Header → Player style** to switch between Classic and ChipAmp5. Both offer
+exactly the same ten palettes shown above. ChipAmp5 changes the geometry to
+rounded plastic bezels and chunky controls; Classic keeps square header corners.
+Each style remembers its colour selection and has its own saved custom themes.
 
-<img src="screenshots/theme-reactor.png" width="260" alt="Reactor spectrum skin" />
-<img src="screenshots/reactor-waveform.png" width="260" alt="Reactor skin with stereo waveform glow" />
-<img src="screenshots/reactor-library.png" width="260" alt="Reactor library with collapsible platform groups" />
+<img src="screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 with the identical Pixel Dark palette" />
+<img src="screenshots/theme-chip5-light.png" width="300" alt="ChipAmp5 with the identical Pixel Light palette" />
 
-Reactor is also a base for custom themes: saved/imported copies retain the
-mechanical frames and allow their palette and spectrum colours to be edited.
-The casing texture is `reactor_metal.png`; original frame, vent and dither sprites
-are reproducible with `python3 scripts/generate-skin.py` at five Android densities.
-
-## Phosphor
-
-A rounded, molded-charcoal player with mint dot-matrix lettering and amber
-lights. The header, spectrum display and track readout sit in dark recessed
-panels. Playback uses chunky plastic keys with live dot glyphs, and the seek
-rail uses illuminated dots. The tracklist uses Doto while metadata retains
-Pixelify Sans. Custom copies keep the same geometry.
-
-<img src="screenshots/theme-phosphor.png" width="300" alt="Phosphor player with recessed displays and chunky plastic controls" />
-<img src="screenshots/theme-phosphor-custom.png" width="300" alt="Saved blue custom Phosphor palette" />
-
-All themes share a recessed pinball-style header with a matching dotted
-settings symbol, coloured from each theme's accent. Other themes retain their
-existing control and panel geometry.
+Tiny5 is used for regular UI and small pixel labels. Doto track titles and Jersey 15
+menu headings remain. The header rests most of the time, occasionally glitches,
+scrolls down and returns letter by letter. Tap the header to open Settings.

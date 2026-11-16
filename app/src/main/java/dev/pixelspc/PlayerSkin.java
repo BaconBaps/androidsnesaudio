@@ -8,27 +8,15 @@ import android.view.Gravity;
 /** Original raster chrome: tiled grain and compiled nine-patches, never stretched textures. */
 final class PlayerSkin {
     private final Context context;
-    private final boolean reactor,phosphor;
-    private Bitmap metal;
+    private final boolean chipAmp5;
     PlayerSkin(Context context) { this(context,PlayerTheme.ALL[0]); }
-    PlayerSkin(Context context,PlayerTheme theme) { this.context=context;reactor=theme.reactor();phosphor=theme.phosphor(); }
-    private int frame(int id){
-        if(id==R.drawable.skin_panel)return R.drawable.reactor_panel;
-        if(id==R.drawable.skin_key)return R.drawable.reactor_key;
-        if(id==R.drawable.skin_key_down)return R.drawable.reactor_key_down;
-        if(!reactor)return id;
-        if(id==R.drawable.skin_chassis)return R.drawable.reactor_chassis;
-        if(id==R.drawable.skin_well)return R.drawable.reactor_well;
-        if(id==R.drawable.skin_rail)return R.drawable.reactor_rail;
-        return id;
-    }
+    PlayerSkin(Context context,PlayerTheme theme) { this.context=context;chipAmp5=theme.chipAmp5(); }
     private Drawable patch(int id) {
         Drawable d=context.getDrawable(id).mutate();
         if(d instanceof NinePatchDrawable) ((NinePatchDrawable)d).setFilterBitmap(false);
         return d;
     }
     private Drawable edge(int id,int color) {
-        id=frame(id);
         Drawable d=patch(id);
         if(PlayerTheme.luminance(color)>.35) {
             // Bake edge opacity into the pixels: Android button state containers
@@ -49,16 +37,7 @@ final class PlayerSkin {
         d.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT); d.setFilterBitmap(false); return d;
     }
     private Drawable face(int color,int edge,boolean grain) {
-        if(phosphor)return new PlasticSurface(context,color,edge==R.drawable.skin_well||edge==R.drawable.skin_key_down?PlasticSurface.RECESSED:PlasticSurface.RAISED,false);
-        if(reactor){
-            java.util.ArrayList<Drawable> parts=new java.util.ArrayList<>();parts.add(new ColorDrawable(color));
-            if(grain){
-                if(metal==null){BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=8;metal=BitmapFactory.decodeResource(context.getResources(),R.drawable.reactor_metal,options);}
-                BitmapDrawable texture=new BitmapDrawable(context.getResources(),metal);texture.setTargetDensity(160);texture.setTileModeXY(Shader.TileMode.REPEAT,Shader.TileMode.REPEAT);texture.setFilterBitmap(false);texture.setAlpha(85);parts.add(texture);
-            }
-            BitmapDrawable dots=tile(R.drawable.reactor_dither);dots.setAlpha(grain?180:100);parts.add(dots);if(edge!=0)parts.add(edge(edge,color));
-            LayerDrawable d=new LayerDrawable(parts.toArray(new Drawable[0]));d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK);return d;
-        }
+        if(chipAmp5)return new PlasticSurface(context,color,edge==R.drawable.skin_well||edge==R.drawable.skin_key_down?PlasticSurface.RECESSED:PlasticSurface.RAISED,false);
         BitmapDrawable brushed=grain?tile(R.drawable.skin_brushed):null;
         // Light surfaces need gentler grain to retain their text contrast.
         if(brushed!=null && PlayerTheme.luminance(color)>.35) {
@@ -68,14 +47,13 @@ final class PlayerSkin {
         LayerDrawable d=new LayerDrawable(parts); d.setPaddingMode(LayerDrawable.PADDING_MODE_STACK); return d;
     }
     Drawable chassis(int color) { return face(color,R.drawable.skin_chassis,true); }
-    Drawable header(int color){return new PlasticSurface(context,color,PlasticSurface.RECESSED,true);}
-    Drawable background(int color) { if(phosphor)return new PlasticSurface(context,color,PlasticSurface.PLAIN,false);return reactor?face(color,0,true):new ColorDrawable(color); }
+    Drawable header(int color){return chipAmp5?new PlasticSurface(context,color,PlasticSurface.RECESSED,true):display(color);}
+    Drawable background(int color) { if(chipAmp5)return new PlasticSurface(context,color,PlasticSurface.PLAIN,false);return new ColorDrawable(color); }
     Drawable panel(int color) { return face(color,R.drawable.skin_panel,PlayerTheme.luminance(color)<.35); }
     Drawable selection(int color) { return face(color,R.drawable.skin_panel,false); }
     Drawable well(int color) { return face(color,R.drawable.skin_well,false); }
     Drawable display(int color) {
-        if(phosphor)return new PlasticSurface(context,color,PlasticSurface.RECESSED,true);
-        if(reactor)return face(color,R.drawable.skin_well,false);
+        if(chipAmp5)return new PlasticSurface(context,color,PlasticSurface.RECESSED,true);
         BitmapDrawable lines=tile(R.drawable.skin_scanlines);
         if(PlayerTheme.luminance(color)>.35) lines.setAlpha(0);
         return new LayerDrawable(new Drawable[]{new ColorDrawable(color),lines,edge(R.drawable.skin_well,color)});
@@ -87,18 +65,18 @@ final class PlayerSkin {
         d.addState(new int[]{},face(color,R.drawable.skin_key,false)); return d;
     }
     Drawable rail(int color) {
-        if(phosphor)return new PlasticSurface(context,color,PlasticSurface.RAISED,false);
+        if(chipAmp5)return new PlasticSurface(context,color,PlasticSurface.RAISED,false);
         Drawable d=new LayerDrawable(new Drawable[]{new ColorDrawable(color),edge(R.drawable.skin_rail,color)}); return d;
     }
     Drawable thumb(int color) {
-        if(phosphor){GradientDrawable d=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{PlayerTheme.blend(color,0xffffffff,.15f),PlayerTheme.blend(color,0xff000000,.25f)});float density=context.getResources().getDisplayMetrics().density;d.setCornerRadius(4*density);d.setStroke(Math.max(1,Math.round(density)),0xff080b0c);d.setSize(Math.round(12*density),Math.round(20*density));return d;}
+        if(chipAmp5){GradientDrawable d=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{PlayerTheme.blend(color,0xffffffff,.15f),PlayerTheme.blend(color,0xff000000,.25f)});float density=context.getResources().getDisplayMetrics().density;d.setCornerRadius(4*density);d.setStroke(Math.max(1,Math.round(density)),0xff080b0c);d.setSize(Math.round(12*density),Math.round(20*density));return d;}
         Drawable d=context.getDrawable(R.drawable.skin_thumb).mutate();
         if(d instanceof BitmapDrawable) ((BitmapDrawable)d).setFilterBitmap(false);
         d.setColorFilter(color,PorterDuff.Mode.MULTIPLY); return d;
     }
     Drawable progress(PlayerTheme theme) {
-        Drawable track=phosphor?new DotRail(context,PlayerTheme.blend(theme.background,theme.text,.16f)):well(PlayerTheme.blend(theme.background,0xff000000,.18f));
-        ClipDrawable fill=new ClipDrawable(phosphor?new DotRail(context,theme.secondary):rail(theme.accent),Gravity.START,ClipDrawable.HORIZONTAL);
+        Drawable track=chipAmp5?new DotRail(context,PlayerTheme.blend(theme.background,theme.text,.16f)):well(PlayerTheme.blend(theme.background,0xff000000,.18f));
+        ClipDrawable fill=new ClipDrawable(chipAmp5?new DotRail(context,theme.secondary):rail(theme.accent),Gravity.START,ClipDrawable.HORIZONTAL);
         LayerDrawable layers=new LayerDrawable(new Drawable[]{track,fill}) {
             // ProgressBar adopts a drawable's minimum height on Android 8 too.
             // Frame source dimensions must not turn the seek track into a tall box.

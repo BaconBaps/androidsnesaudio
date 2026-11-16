@@ -1,6 +1,6 @@
 # ChipAmp9x
 
-A pixel-styled Android player for retro game soundtracks, with twelve themes,
+A pixel-styled Android player for retro game soundtracks, with two player styles and ten shared colour palettes,
 custom palettes, saved playlists, a channel mixer, four audio visualizers, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
@@ -58,10 +58,10 @@ Imports show a live, single-line readout of the archive, file and operation in p
 
 ## The app
 
-**New: Phosphor** — rounded charcoal plastic, chunky dot-matrix buttons, mint lettering and amber lights.
-Every theme has a recessed pinball-style dot-matrix header: the retro title glitches into a wave and reforms, with varied timings and waveform speed/frequency. Tap anywhere on the header to open Settings.
+**Classic and ChipAmp5** — choose crisp original frames or rounded plastic controls, with exactly the same ten colour palettes in either style. Each style remembers its selected palette.
+Every theme has a recessed pinball-style dot-matrix header: the title rests, occasionally glitches, scrolls down, then returns one letter at a time. Tap anywhere on the header to open Settings.
 
-<img src="docs/screenshots/theme-phosphor.png" width="300" alt="Phosphor skin with a mint dot-matrix header, rounded plastic panels and amber playback lights" />
+<img src="docs/screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 style with the Pixel Dark palette and rounded plastic controls" />
 
 <table>
   <tr>
@@ -90,7 +90,7 @@ Every theme has a recessed pinball-style dot-matrix header: the retro title glit
     <th>Export audio</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of twelve retro-inspired theme previews" /></td>
+    <td><img src="docs/screenshots/theme-picker.png" width="300" alt="Grid of ten retro-inspired theme previews" /></td>
     <td><img src="docs/screenshots/export-audio.png" width="300" alt="Save a track or trimmed clip as a WAV file with optional fades" /></td>
   </tr>
   <tr>
@@ -124,7 +124,7 @@ Every theme has a recessed pinball-style dot-matrix header: the retro title glit
   </tr>
 </table>
 
-[See all twelve themes](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
+[See all ten palettes in both styles](docs/THEMES.md) · [Try the original MIDI demo](downloads/ChipAmp9x-MIDI-demo.mid).
 
 ## Home-screen widget
 

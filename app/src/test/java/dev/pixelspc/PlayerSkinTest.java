@@ -42,28 +42,10 @@ public class PlayerSkinTest {
         button.setState(new int[]{android.R.attr.state_pressed});Bitmap down=render(button,160,100);assertFalse(up.sameAs(down));
         button.setState(new int[]{});assertTrue(up.sameAs(render(button,160,100)));
     }
-    @Test public void reactorFramesKeepCornersAndCustomThemesKeepTheMechanicalSkin() throws Exception {
-        android.content.Context c=RuntimeEnvironment.getApplication();PlayerTheme reactor=PlayerTheme.find("reactor");
-        int[] frames={R.drawable.reactor_chassis,R.drawable.reactor_panel,R.drawable.reactor_well,R.drawable.reactor_key,R.drawable.reactor_key_down,R.drawable.reactor_rail};
-        for(int id:frames)assertTrue(c.getDrawable(id) instanceof NinePatchDrawable);
-        // Stretch bands must stay uniform, rather than smearing decorative
-        // hatching or button dots into long bars at phone widths.
-        for(int id:new int[]{R.drawable.reactor_chassis,R.drawable.reactor_key,R.drawable.reactor_key_down}){
-            Bitmap wide=render(c.getDrawable(id),500,80);
-            int top=id==R.drawable.reactor_chassis?10:68;
-            for(int y=top;y<top+4;y++)for(int x=100;x<400;x++)assertEquals(wide.getPixel(100,y),wide.getPixel(x,y));
-        }
-        PlayerSkin skin=new PlayerSkin(c,reactor);
-        Bitmap small=render(c.getDrawable(R.drawable.reactor_well),100,80),large=render(c.getDrawable(R.drawable.reactor_well),500,300);
-        for(int y=0;y<8;y++)for(int x=0;x<8;x++){
-            assertEquals(small.getPixel(x,y),large.getPixel(x,y));
-            assertEquals(small.getPixel(99-x,79-y),large.getPixel(499-x,299-y));
-        }
-        ThemeStore.Draft draft=ThemeStore.from(reactor,false);draft.colors.put("player.spectrumHigh",0xffaaffcc);
-        PlayerTheme restored=ThemeStore.read(new java.io.ByteArrayInputStream(ThemeStore.encode(draft).toString().getBytes("UTF-8"))).theme();
-        assertTrue(restored.reactor());assertTrue(restored.nowPlaying().reactor());assertTrue(restored.library().reactor());
-        assertEquals(0xffaaffcc,restored.nowPlaying().spectrumHigh);assertEquals(reactor.nowPlaying().spectrumLow,restored.nowPlaying().spectrumLow);
-        assertFalse(render(skin.button(reactor.accent),120,80).sameAs(render(new PlayerSkin(c).button(reactor.accent),120,80)));
+    @Test public void classicHeaderIsSquareAndChipAmp5HeaderHasRoundedCorners(){
+        android.content.Context c=RuntimeEnvironment.getApplication();PlayerTheme classic=PlayerTheme.find("dark"),chip=PlayerTheme.find("chip5-dark");
+        Bitmap square=render(new PlayerSkin(c,classic).header(classic.nowPlaying().spectrumBackground),300,100),rounded=render(new PlayerSkin(c,chip).header(chip.nowPlaying().spectrumBackground),300,100);
+        assertEquals(255,Color.alpha(square.getPixel(0,0)));assertEquals(0,Color.alpha(rounded.getPixel(0,0)));assertEquals(255,Color.alpha(rounded.getPixel(150,50)));
     }
     @Test public void lightThemeFrameShadowsStaySoft() {
         PlayerSkin skin=new PlayerSkin(RuntimeEnvironment.getApplication());

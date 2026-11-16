@@ -4,6 +4,18 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class PlayerThemeTest {
+    @Test public void chipAmp5PortsEveryClassicColourExactly() {
+        for(PlayerTheme classic:PlayerTheme.ALL) {
+            if(!PlayerStyle.CLASSIC.equals(classic.styleId))continue;
+            PlayerTheme chip=PlayerTheme.find("chip5-"+classic.id);
+            assertEquals(classic.name,chip.name);
+            assertTrue(chip.chipAmp5());
+            for(PlayerTheme[] pair:new PlayerTheme[][]{{classic,chip},{classic.nowPlaying(),chip.nowPlaying()},{classic.library(),chip.library()}}) {
+                PlayerTheme a=pair[0],b=pair[1];
+                assertArrayEquals(new int[]{a.background,a.text,a.muted,a.accent,a.secondary,a.border,a.surface,a.heading,a.onAccent,a.spectrumBackground,a.spectrumLow,a.spectrumMid,a.spectrumHigh,a.spectrumPeak},new int[]{b.background,b.text,b.muted,b.accent,b.secondary,b.border,b.surface,b.heading,b.onAccent,b.spectrumBackground,b.spectrumLow,b.spectrumMid,b.spectrumHigh,b.spectrumPeak});
+            }
+        }
+    }
     @Test public void playbackDeckIsDarkerAndItsAdaptedColorsStayReadable() {
         for(PlayerTheme theme:PlayerTheme.ALL) {
             PlayerTheme p=theme.nowPlaying();
@@ -36,7 +48,7 @@ public class PlayerThemeTest {
             assertTrue(t.name+" play button",PlayerTheme.contrast(t.accent,t.onAccent)>=4.5);
             assertTrue(t.name+" header",PlayerTheme.contrast(t.nowPlaying().spectrumBackground,t.headerInk())>=4.5);
         }
-        assertEquals(12,PlayerTheme.ALL.length);
+        assertEquals(20,PlayerTheme.ALL.length);
         for(String removed:new String[]{"retired-theme","playstation","dreamcast","n64"})
             assertSame(PlayerTheme.ALL[0],PlayerTheme.find(removed));
     }

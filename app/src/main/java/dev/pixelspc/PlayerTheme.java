@@ -4,17 +4,17 @@ import java.util.*;
 
 /** UI roles shared by the player, dialogs, system bars, and pixel spectrum. */
 public final class PlayerTheme {
-    public final String id,name,inspiration;
+    public final String id,name,inspiration,styleId;
     public final boolean dark;
     public final int background,text,muted,accent,onAccent,border,surface,secondary,heading;
     public final int spectrumBackground,spectrumLow,spectrumMid,spectrumHigh,spectrumPeak;
     final Map<String,Integer> colors;final String prefix,baseId;
 
     private PlayerTheme(String id,String name,String inspiration,boolean dark,int background,int text,int accent,int secondary) {
-        this(id,name,inspiration,dark,background,text,accent,secondary,Collections.emptyMap(),"",id);
+        this(id,name,inspiration,dark,background,text,accent,secondary,Collections.emptyMap(),"",id,PlayerStyle.CLASSIC);
     }
-    private PlayerTheme(String id,String name,String inspiration,boolean dark,int bg,int fg,int ac,int second,Map<String,Integer> colors,String prefix,String baseId) {
-        this.id=id;this.name=name;this.inspiration=inspiration;this.colors=Collections.unmodifiableMap(new HashMap<>(colors));this.prefix=prefix;this.baseId=baseId;
+    private PlayerTheme(String id,String name,String inspiration,boolean dark,int bg,int fg,int ac,int second,Map<String,Integer> colors,String prefix,String baseId,String styleId) {
+        this.styleId=styleId;this.id=id;this.name=name;this.inspiration=inspiration;this.colors=Collections.unmodifiableMap(new HashMap<>(colors));this.prefix=prefix;this.baseId=baseId;
         background=value("background",bg);text=value("text",fg);accent=value("accent",ac);secondary=value("secondary",second);
         this.dark=colors.isEmpty()?dark:luminance(background)<.35;
         border=value("border",blend(background,text,.22f));surface=value("surface",blend(background,accent,this.dark?.14f:.06f));
@@ -32,23 +32,11 @@ public final class PlayerTheme {
         return fallback;
     }
     boolean spectrumGradient(){return colors.containsKey(prefix+"spectrumLow")||colors.containsKey(prefix+"spectrumMid")||colors.containsKey(prefix+"spectrumHigh");}
-    static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors){PlayerTheme t=find(base);Map<String,Integer> merged=new HashMap<>(t.colors);merged.putAll(colors);return new PlayerTheme(id,name,"Custom theme",t.dark,t.background,t.text,t.accent,t.secondary,merged,"",t.id);}
+    static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors){return custom(id,name,base,colors,find(base).styleId);}
+    static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors,String style){PlayerTheme t=find(base);Map<String,Integer> merged=new HashMap<>(t.colors);merged.putAll(colors);return new PlayerTheme(id,name,"Custom theme",t.dark,t.background,t.text,t.accent,t.secondary,merged,"",t.id,style);}
     int headerInk(){int bg=nowPlaying().spectrumBackground,color=accent;for(int i=0;i<=20;i++){color=blend(accent,luminance(bg)<.35?0xffffffff:0xff000000,i/20f);if(contrast(bg,color)>=4.5)break;}return color;}
-    boolean phosphor(){return baseId.equals("phosphor");}
-    boolean reactor(){return baseId.equals("reactor");}
-    private static PlayerTheme reactorTheme(){
-        Map<String,Integer> c=new HashMap<>();
-        c.put("player.spectrumLow",0xffffd16c);c.put("player.spectrumMid",0xffffa04b);c.put("player.spectrumHigh",0xffff6252);c.put("player.spectrumPeak",0xffffedba);
-        c.put("player.spectrumBackground",0xff100e0c);
-        return new PlayerTheme("reactor","Reactor","Dithered iron · amber phosphor & warning red",true,0xff30201b,0xfff0dfbc,0xffffce83,0xffff7764,c,"","reactor");
-    }
-    private static PlayerTheme phosphorTheme(){
-        Map<String,Integer> c=new HashMap<>();c.put("player.button",0xff303a3c);c.put("player.buttonText",0xffa5e5be);c.put("player.accent",0xfff3e5b7);
-        c.put("player.spectrumBackground",0xff0b1011);c.put("player.readout",0xff0b1011);
-        c.put("player.spectrumLow",0xffffbd49);c.put("player.spectrumMid",0xffffd16f);c.put("player.spectrumHigh",0xffffdf8e);c.put("player.spectrumPeak",0xffffe8ad);
-        return new PlayerTheme("phosphor","Phosphor","Molded charcoal · mint dots & amber light",true,0xff252c2e,0xfff3e5b7,0xffa5e5be,0xffffc65d,c,"","phosphor");
-    }
-    public static final PlayerTheme[] ALL={
+    boolean chipAmp5(){return PlayerStyle.CHIPAMP5.equals(styleId);}
+    private static final PlayerTheme[] CLASSIC={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),
         new PlayerTheme("dark","Pixel Dark","Deep ocean & electric teal",true,0xff08191e,0xffd6f3ef,0xff53d8d0,0xffffbd80),
         new PlayerTheme("snes","SNES","US hardware · gray & purple",false,0xffe7e5eb,0xff30283e,0xff6845aa,0xffc4b3df),
@@ -59,9 +47,14 @@ public final class PlayerTheme {
         new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
         new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),
         new PlayerTheme("desktop-98","Llama","Midnight metal · phosphor green & brass",true,0xff202232,0xffe4e9d7,0xffa8f238,0xffd8bc72),
-        reactorTheme(),phosphorTheme()
     };
-    public static PlayerTheme find(String id) { for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
+    public static final PlayerTheme[] ALL=allStyles();
+    private static PlayerTheme[] allStyles(){
+        List<PlayerTheme> list=new ArrayList<>(Arrays.asList(CLASSIC));
+        for(PlayerTheme t:CLASSIC)list.add(new PlayerTheme("chip5-"+t.id,t.name,t.inspiration,t.dark,t.background,t.text,t.accent,t.secondary,t.colors,"","chip5-"+t.id,PlayerStyle.CHIPAMP5));
+        return list.toArray(new PlayerTheme[0]);
+    }
+    public static PlayerTheme find(String id) { if("reactor".equals(id))id="dark";if("phosphor".equals(id))id="chip5-dark";for(PlayerTheme t:ALL) if(t.id.equals(id)) return t; return ALL[0]; }
     /** A darker, contrast-safe version of the selected palette for the playback deck. */
     public PlayerTheme nowPlaying() {
         int bg=blend(background,0xff000000,dark?.55f:.82f);
@@ -70,7 +63,7 @@ public final class PlayerTheme {
             lightAccent=blend(accent,0xffffffff,step/20f);
             if(contrast(blend(bg,lightAccent,.14f),lightAccent)>=4.5) break;
         }
-        return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary,colors,"player.",baseId);
+        return new PlayerTheme(id+"-player",name,inspiration,true,bg,dark?text:0xffedf2f4,lightAccent,secondary,colors,"player.",baseId,styleId);
     }
     /** Quieter list surfaces with palette-matched text that keeps its contrast. */
     public PlayerTheme library() {
@@ -80,7 +73,7 @@ public final class PlayerTheme {
             adjusted=blend(accent,dark?0xffffffff:0xff000000,step/20f);
             if(contrast(bg,adjusted)>=4.5 && contrast(blend(bg,adjusted,dark?.14f:.06f),adjusted)>=4.5) break;
         }
-        return new PlayerTheme(id+"-library",name,inspiration,dark,bg,text,adjusted,secondary,colors,"library.",baseId);
+        return new PlayerTheme(id+"-library",name,inspiration,dark,bg,text,adjusted,secondary,colors,"library.",baseId,styleId);
     }
     public int libraryButtonBackground() { return value("libraryButton",blend(background,0xffffffff,dark?.075f:.16f)); }
     public String label() { return name+"\n"+inspiration; }

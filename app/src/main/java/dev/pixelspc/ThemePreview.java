@@ -6,7 +6,7 @@ import android.view.View;
 
 /** A small rendered image of the player palette, independent of live playback. */
 public final class ThemePreview extends View {
-    private final PlayerTheme theme,playbackTheme,listTheme;
+    private final PlayerTheme theme,playbackTheme,listTheme;private final String caption;
     private final Paint paint=new Paint();
     private final android.text.TextPaint headingPaint=new android.text.TextPaint();
     private android.text.StaticLayout heading;
@@ -15,17 +15,18 @@ public final class ThemePreview extends View {
     private final android.graphics.drawable.Drawable well,key,chassis,header,library;
     private static final int[] BARS={3,5,8,6,4,7,9,5,3,6,8,4};
     public ThemePreview(Context context) { this(context,PlayerTheme.ALL[0],false); }
-    public ThemePreview(Context context,PlayerTheme theme,boolean selected) {
-        super(context); logo=new ChipLogo(context,theme);gear=new DotGlyph(true,theme.headerInk()); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);header=skin.header(playbackTheme.spectrumBackground);library=skin.button(theme.libraryButtonBackground());well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
+    public ThemePreview(Context context,PlayerTheme theme,boolean selected) {this(context,theme,selected,theme.name);}
+    ThemePreview(Context context,PlayerTheme theme,boolean selected,String caption) {
+        super(context);this.caption=caption; logo=new ChipLogo(context,theme);gear=new DotGlyph(true,theme.headerInk()); this.theme=theme; playbackTheme=theme.nowPlaying(); listTheme=theme.library(); PlayerSkin skin=new PlayerSkin(context,theme); chassis=skin.background(theme.background);header=skin.header(playbackTheme.spectrumBackground);library=skin.button(theme.libraryButtonBackground());well=skin.well(playbackTheme.background); key=skin.button(playbackTheme.buttonFace(playbackTheme.accent)); setSelected(selected); setClickable(true); setFocusable(true);
         setContentDescription("Select "+theme.name+" theme"+(selected?", selected":""));
-        headingPaint.setTypeface(Typeface.createFromAsset(context.getAssets(),"fonts/pixel.ttf"));
-        headingPaint.setTextSize(7*getResources().getDisplayMetrics().scaledDensity);
+        headingPaint.setTypeface(UiFonts.body(context));
+        headingPaint.setTextSize(8.75f*getResources().getDisplayMetrics().scaledDensity);
         headingPaint.setColor(theme.heading);
     }
     @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
         super.onSizeChanged(w,h,oldw,oldh);
         int inset=Math.round(9*getResources().getDisplayMetrics().density);
-        String label=theme.name.toUpperCase(java.util.Locale.ROOT);
+        String label=caption.toUpperCase(java.util.Locale.ROOT);
         heading=android.text.StaticLayout.Builder.obtain(label,0,label.length(),headingPaint,Math.max(1,w-2*inset))
             .setIncludePad(false).setMaxLines(2).setEllipsize(android.text.TextUtils.TruncateAt.END).build();
     }
@@ -35,9 +36,9 @@ public final class ThemePreview extends View {
     }
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas); canvas.save(); canvas.scale(getWidth()/160f,getHeight()/150f);
-        box(canvas,theme.background,0,0,160,150);if(theme.reactor()||theme.phosphor()){chassis.setBounds(0,0,160,150);chassis.draw(canvas);}
+        box(canvas,theme.background,0,0,160,150);if(theme.chipAmp5()){chassis.setBounds(0,0,160,150);chassis.draw(canvas);}
         header.setBounds(10,3,150,25);header.draw(canvas);logo.drawInto(canvas,logoBox);gear.setBounds(131,6,147,22);gear.draw(canvas);
-        if(theme.phosphor()){library.setBounds(15,26,145,35);library.draw(canvas);}else box(canvas,theme.libraryButtonBackground(),15,26,130,9); text(canvas,"LIBRARY",theme.accent,66,33,5,true);
+        if(theme.chipAmp5()){library.setBounds(15,26,145,35);library.draw(canvas);}else box(canvas,theme.libraryButtonBackground(),15,26,130,9); text(canvas,"LIBRARY",theme.accent,66,33,5,true);
         box(canvas,listTheme.background,15,38,130,20);
         for(int row=0;row<2;row++) { box(canvas,row==0?listTheme.accent:listTheme.muted,17,42+row*9,64-row*13,2); box(canvas,theme.border,17,47+row*9,126,1); }
         well.setBounds(13,61,147,111); well.draw(canvas);

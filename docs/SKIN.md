@@ -176,3 +176,15 @@ preview cards render the static title. No animated image is bundled in the APK.
 Title, frame and cog all open Settings directly. Back leads to the full app menu.
 The parent header provides one accessible action; child glyphs remain touchable
 without introducing duplicate accessibility/keyboard stops.
+
+## Current styles (v1.26.0)
+
+Reactor has been removed. Classic and ChipAmp5 share the same ten unchanged
+Classic palettes, including all derived player/library roles. ChipAmp5 retains
+rounded molded plastic geometry; Classic has a square recessed header. Shared
+Classic frame sprites retain their inner edging. Tiny5 replaces the regular and
+small-label fonts; Doto titles and Jersey 15 menu headings remain.
+
+The header now holds the title, briefly glitches at random, scrolls downward and
+slides letters in one at a time. Idle refresh is reduced and hidden/disabled
+animation guards remain. There is no header waveform phase.

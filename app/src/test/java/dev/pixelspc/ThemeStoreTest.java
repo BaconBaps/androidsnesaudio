@@ -12,6 +12,15 @@ import static org.junit.Assert.*;
 public class ThemeStoreTest {
     private Context context;private ThemeStore store;
     @Before public void setup(){context=RuntimeEnvironment.getApplication();context.getSharedPreferences("custom-themes",0).edit().clear().commit();context.getSharedPreferences("appearance",0).edit().clear().commit();store=new ThemeStore(context);}
+    @Test public void stylesRememberIndependentPalettesAndFilterCustomThemes()throws Exception {
+        context.getSharedPreferences("appearance",0).edit().putString("style","classic").putString("theme.classic","snes").putString("theme.chipamp5","chip5-game-boy").commit();
+        assertEquals("snes",ThemeStore.selected(context).id);
+        context.getSharedPreferences("appearance",0).edit().putString("style","chipamp5").commit();
+        assertEquals("chip5-game-boy",ThemeStore.selected(context).id);
+        ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("chip5-dark"),false);store.save(d);
+        assertEquals("chipamp5",ThemeStore.decode(ThemeStore.encode(d)).style);
+        assertEquals(11,store.all("chipamp5").size());assertEquals(10,store.all("classic").size());
+    }
     @Test public void namedThemeRoundTripsIndependentPlayerLibraryAndSpectrumColours()throws Exception{
         ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("desktop-98"),false);d.name="Night sky";d.colors.put("background",0xff101020);d.colors.put("player.background",0xff050509);d.colors.put("library.text",0xffccbbee);d.colors.put("player.spectrumLow",0xff55aaee);d.colors.put("player.spectrumMid",0xffcc55aa);d.colors.put("player.spectrumHigh",0xffeeaa55);d.colors.put("player.button",0xff334455);store.save(d);
         context.getSharedPreferences("appearance",0).edit().putString("theme",d.id).commit();PlayerTheme selected=ThemeStore.selected(context);assertEquals("Night sky",selected.name);assertEquals(0xff101020,selected.background);assertEquals(0xff050509,selected.nowPlaying().background);assertEquals(0xffccbbee,selected.library().text);assertTrue(selected.nowPlaying().spectrumGradient());assertEquals(0xff55aaee,selected.nowPlaying().spectrumLow);assertEquals(0xff334455,selected.nowPlaying().buttonFace(0));

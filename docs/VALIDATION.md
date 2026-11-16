@@ -611,3 +611,15 @@ runs in visible/focused windows with system animation enabled and no frozen
 editing; other renders show the static title. No audio-worker or decoder changes.
 APK certificate matches the previous release; 16 KiB ZIP alignment passes.
 These remain Robolectric checks, not physical-device animation benchmarks.
+
+## v1.26.0 — styles, shared palettes and calm header
+
+Full debug build, Robolectric suite and Android lint pass. Classic and ChipAmp5
+use the same ten original palettes; a regression test compares every colour role
+in app, player and library. Style-specific selections/custom themes are tested.
+Reactor resources are removed, Classic header corners are square, and ChipAmp5
+keeps rounded plastic geometry. Tiny5 is bundled under its OFL licence.
+Header tests cover quiet holds, bounded glitches, downward exit and sequential
+letter returns. Screenshots use Robolectric native graphics, not a physical
+Android device. APK signature matches the preceding release and 16 KiB zip
+alignment passes.

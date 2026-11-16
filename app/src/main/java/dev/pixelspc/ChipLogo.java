@@ -7,7 +7,7 @@ import android.view.View;
 
 /** Programmatic pinball display: retro sans title, restrained glitches and a randomized wave. */
 final class ChipLogo extends View {
-    private static int[] titleX,titleY;
+    private static int[] titleX,titleY,titleLetter;private static final int[] letterLeft=new int[9];
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int color;
     private final RectF viewport=new RectF();
@@ -17,13 +17,17 @@ final class ChipLogo extends View {
     ChipLogo(Context c,PlayerTheme theme){super(c);color=theme.headerInk();loadTitle(c);setContentDescription(c.getString(R.string.app_name));setTooltipText("Open settings");setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);}
     private static synchronized void loadTitle(Context c){
         if(titleX!=null)return;
-        Bitmap mask=Bitmap.createBitmap(HeaderAnimation.COLS,HeaderAnimation.ROWS,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(mask);Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTypeface(UiFonts.body(c));p.setTextSize(17);p.setColor(Color.WHITE);
+        Bitmap mask=Bitmap.createBitmap(HeaderAnimation.COLS,HeaderAnimation.ROWS,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(mask);Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTypeface(UiFonts.brand(c));p.setTextSize(17);p.setColor(Color.WHITE);
         float width=p.measureText("ChipAmp9x");if(width>88)p.setTextSize(p.getTextSize()*88/width);
         Rect ink=new Rect();p.getTextBounds("ChipAmp9x",0,9,ink);if(ink.height()>16){p.setTextSize(p.getTextSize()*16/ink.height());p.getTextBounds("ChipAmp9x",0,9,ink);}
-        canvas.drawText("ChipAmp9x",(HeaderAnimation.COLS-p.measureText("ChipAmp9x"))/2,(HeaderAnimation.ROWS-ink.height())/2f-ink.top,p);
-        int[] xs=new int[HeaderAnimation.COLS*HeaderAnimation.ROWS],ys=new int[xs.length];int count=0;
-        for(int y=0;y<HeaderAnimation.ROWS;y++)for(int x=0;x<HeaderAnimation.COLS;x++)if(Color.alpha(mask.getPixel(x,y))>95){xs[count]=x;ys[count++]=y;}
-        titleX=java.util.Arrays.copyOf(xs,count);titleY=java.util.Arrays.copyOf(ys,count);mask.recycle();
+        float baseline=(HeaderAnimation.ROWS-ink.height())/2f-ink.top;float start=(HeaderAnimation.COLS-p.measureText("ChipAmp9x"))/2;
+        int[] xs=new int[HeaderAnimation.COLS*HeaderAnimation.ROWS*9],ys=new int[xs.length],letters=new int[xs.length];int count=0;
+        String text="ChipAmp9x";
+        for(int letter=0;letter<9;letter++){
+            mask.eraseColor(Color.TRANSPARENT);canvas.drawText(text,letter,letter+1,start+p.measureText(text,0,letter),baseline,p);letterLeft[letter]=HeaderAnimation.COLS;
+            for(int y=0;y<HeaderAnimation.ROWS;y++)for(int x=0;x<HeaderAnimation.COLS;x++)if(Color.alpha(mask.getPixel(x,y))>95){xs[count]=x;ys[count]=y;letters[count++]=letter;letterLeft[letter]=Math.min(letterLeft[letter],x);}
+        }
+        titleX=java.util.Arrays.copyOf(xs,count);titleY=java.util.Arrays.copyOf(ys,count);titleLetter=java.util.Arrays.copyOf(letters,count);mask.recycle();
     }
     void setFrozen(boolean value){frozen=value;invalidate();}
     void drawInto(Canvas c,RectF box){renderFrame(c,box,0,false);}
@@ -37,21 +41,12 @@ final class ChipLogo extends View {
         float step=Math.min(box.width()/(HeaderAnimation.COLS+2),box.height()/(HeaderAnimation.ROWS+2)),ox=box.centerX()-(HeaderAnimation.COLS-1)*step/2,oy=box.centerY()-(HeaderAnimation.ROWS-1)*step/2;
         HeaderAnimation.Cycle cycle=animation.cycle();int stage=moving?cycle.stage(elapsed):HeaderAnimation.TITLE,glitch=moving?cycle.glitch(elapsed):-1;
         c.save();c.clipRect(box);
-        if(stage==HeaderAnimation.WAVE){for(int x=0;x<HeaderAnimation.COLS;x++)dot(c,x,cycle.waveY(x,elapsed/1000f),step,ox,oy,255);}
-        else for(int i=0;i<titleX.length;i++){
+        if(stage==HeaderAnimation.WAIT){c.restore();return;}
+        for(int i=0;i<titleX.length;i++){
             float x=titleX[i],y=titleY[i];
-            if(stage==HeaderAnimation.TITLE&&glitch>=0){
-                int band=3+(cycle.band+glitch*3)%10;
-                if(y>=band&&y<band+cycle.bandSize)x+=glitch%2==0?cycle.shift:-cycle.shift;
-                if(glitch==cycle.glitches.length-1&&((titleX[i]+glitch)%13==0))continue;
-            }else if(stage==HeaderAnimation.BREAK||stage==HeaderAnimation.REFORM){
-                boolean reform=stage==HeaderAnimation.REFORM;
-                float q=HeaderAnimation.ease(reform?(elapsed-cycle.title-cycle.scatter-cycle.wave)/(float)cycle.reform:(elapsed-cycle.title)/(float)cycle.scatter);
-                int order=cycle.reverse?titleX.length-1-i:i;float wx=order%HeaderAnimation.COLS;
-                float seconds=reform?(cycle.title+cycle.scatter+cycle.wave)/1000f:elapsed/1000f;
-                float wy=cycle.waveY(wx,seconds),drift=(float)Math.sin(i*2.7+cycle.drift)*(float)Math.sin(q*Math.PI)*3;
-                float blend=reform?1-q:q;x=x*(1-blend)+wx*blend+drift;y=y*(1-blend)+wy*blend;
-            }
+            if(stage==HeaderAnimation.TITLE&&glitch>=0){int band=3+(cycle.band+glitch*3)%10;if(y>=band&&y<band+cycle.bandSize)x+=cycle.shift;}
+            else if(stage==HeaderAnimation.EXIT)y+=(HeaderAnimation.ROWS+2)*HeaderAnimation.ease((elapsed-cycle.title)/(float)cycle.scroll);
+            else if(stage==HeaderAnimation.ENTER){int letter=titleLetter[i];x+=(HeaderAnimation.COLS+2-letterLeft[letter])*(1-cycle.letterProgress(letter,elapsed));}
             dot(c,x,y,step,ox,oy,255);
         }
         c.restore();
@@ -61,6 +56,6 @@ final class ChipLogo extends View {
     @Override protected void onDraw(Canvas c){
         super.onDraw(c);viewport.set(getPaddingLeft(),getPaddingTop(),getWidth()-getPaddingRight(),getHeight()-getPaddingBottom());
         boolean moving=!frozen&&getWindowVisibility()==VISIBLE&&hasWindowFocus()&&isShown()&&ValueAnimator.areAnimatorsEnabled();long elapsed=moving?animation.elapsed(SystemClock.uptimeMillis()):0;
-        renderFrame(c,viewport,elapsed,moving);if(moving)postInvalidateDelayed(50);
+        renderFrame(c,viewport,elapsed,moving);if(moving)postInvalidateDelayed(animation.cycle().nextDelay(elapsed));
     }
 }

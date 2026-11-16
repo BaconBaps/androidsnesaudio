@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A small Android player for big retro soundtracks. A live pixel spectrum,
-twelve retro palettes, and a local library for the games you grew up with.
+ten retro palettes in two styles, and a local library for the games you grew up with.
 
 <img src="screenshots/theme-desktop-98.png" width="300" alt="ChipAmp9x soundtrack library and player with live spectrum" />
 
@@ -485,16 +485,6 @@ from the library makes its tracks unavailable in saved playlists; remaining
 tracks keep their order, and an empty playlist can still be renamed or deleted.
 Names may be up to 80 characters; up to 100 playlists of 1000 tracks can be saved.
 
-## Reactor skin
-
-Choose **Header → Color theme → Reactor**. This additional skin uses
-original dithered rust-metal artwork, fixed riveted nine-patch frames, mechanical
-button faces and recessed dark displays. Spectrum and waveform highlights have
-pixel glow in amber and warning red. Tap the visualizer to cycle its existing
-four modes. The texture and glow belong to Reactor and its custom-theme copies;
-other themes keep their existing appearance. Reactor can be edited, saved and
-exported using the custom-theme editor.
-
 ## Channel mixer and UI fonts (v1.22.0)
 
 Open **Header → Back → Playback tools → Channel mixer** for a loaded GME track.
@@ -514,7 +504,7 @@ voices rather than a fixed instrument list. There are no invented activity
 meters or per-voice volume sliders: this engine API exposes mute/solo only.
 Exports use a fresh decoder and retain the original full mix.
 
-Pixelify Sans replaces regular sans-serif app text, including library entries,
+Tiny5 replaces regular sans-serif app text, including library entries,
 metadata, imports, form fields and dialogs. Jersey 15 is used for menu titles
 and menu section headings. Existing pixel controls, dot-matrix display titles
 and symbol fonts remain separate. Both new fonts are bundled for offline use
@@ -574,38 +564,15 @@ a reliable overall completion percentage.
 
 <img src="screenshots/import-progress.png" width="310" alt="Import screen with a live one-line archive and track readout" />
 
-## Dot-matrix header and Phosphor theme (v1.24.0)
+## Player styles and dot-matrix header (v1.26.0)
 
-Every theme uses a dark recessed, animated dot-matrix header. Its retro
-sans-serif title and decorative waveform use one palette colour, matching the
-fixed cog. Tapping the header opens Settings; holding it opens saved themes.
+Open **Header → Player style** to choose Classic or ChipAmp5. Both styles offer
+exactly the same ten Classic colour palettes via **Color theme**. Each remembers
+its last palette; saved custom themes belong to their selected style. Classic
+uses square header corners; ChipAmp5 has rounded plastic panels and controls.
+Reactor is no longer offered.
 
-Choose **Header → Color theme → Phosphor** for rounded charcoal
-plastic panels, chunky playback buttons, dot-matrix control symbols and
-tracklist names, mint lettering, amber spectrum dots and a dotted seek rail.
-The rounded bezels keep a fixed edge width at different sizes. Phosphor can
-be copied, edited, saved and exported like other themes; its custom copies
-retain the plastic geometry and dot controls. The import/export screens and
-player dialogs also use the skin. Existing audio controls and visualizer modes
-work as before.
-
-## Pinball header animation (v1.25.0)
-
-The header now uses the approved single-colour decorative dot-matrix sequence:
-**retro sans title → brief glitches → waveform → title**. Glitch timing, row
-shifts, dot dropouts, transition patterns and segment lengths vary each cycle.
-Waveform speed, spatial frequency, amplitude, phase and direction also vary,
-with stable parameters inside each cycle so the animation stays coherent.
-The former scrolling subtitle is replaced by this graphical animation.
-
-Tap **any part of the header**, including the title, cog or frame, to open
-Settings directly. **Back** opens the full app menu for Music and Playback tools.
-Holding the header still opens saved themes. The whole header is one accessible
-settings action; decorative child views do not create duplicate focus stops.
-
-The animation runs only in a visible, focused window. Android disabled-animation
-settings, theme editing and theme preview cards use a complete static title.
-The header wave is decorative; the Now Playing visualizers still follow decoded
-music. No GIF or video playback is used for the animated header.
-
-<img src="screenshots/header-pinball-sequence.png" width="600" alt="Actual Android-rendered header frames: title, glitch, wave and reform" />
+The header title rests with occasional brief glitches, scrolls down off the
+display, then returns one letter at a time from the right. Tap anywhere on the
+header to open Settings. Tiny5 is used for regular UI and small pixel labels;
+Doto track titles and Jersey 15 settings headings remain.
