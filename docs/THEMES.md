@@ -1,6 +1,6 @@
 # Player themes
 
-Choose a palette from the image-preview grid opened by **Header → Color theme**. Your selection is saved;
+Choose a palette from the image-preview grid opened by **Header → Settings → Color theme**. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
@@ -78,7 +78,7 @@ Deep violet shell and mint highlights.
 
 ## ChipAmp5 style
 
-Open **Header → Player style** to switch between Classic and ChipAmp5. Both offer
+Open **Header → Settings → Player style** to switch between Classic and ChipAmp5. Both offer
 exactly the same ten palettes shown above. ChipAmp5 changes the geometry to
 rounded plastic bezels and chunky controls; Classic keeps square header corners.
 Each style remembers its colour selection and has its own saved custom themes.
@@ -88,7 +88,7 @@ Each style remembers its colour selection and has its own saved custom themes.
 
 Chakra Petch is used for regular UI; Press Start 2P is used for small pixel labels. Doto track titles and Jersey 15
 menu headings remain. The header rests most of the time, occasionally glitches,
-scrolls down and returns letter by letter. Tap the header to open Settings.
+scrolls down and returns letter by letter. Tap the header to open the Player menu.
 
 The custom theme editor includes **Header display**: tap the header in the frozen
 preview (or choose it in Parts) to adjust **Dots / cog** and **Screen** separately.

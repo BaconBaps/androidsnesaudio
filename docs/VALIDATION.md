@@ -641,3 +641,13 @@ fallbacks. Theme JSON round-trip and editor registration tests cover the new
 roles. Debug build, Robolectric suite and lint pass. Screenshots are generated
 with Robolectric native graphics; no physical-device verification was performed.
 APK signing continuity and 16 KiB zip alignment pass.
+
+## v1.27.1 — Player Menu header and compact mode controls
+
+All header regions open Player Menu, with Settings reachable from its entry.
+The existing header UI test checks the title, cog and display surround.
+ChipAmp5 shuffle/loop buttons use narrower layout weights, Previous/Next height
+and smaller glyphs while retaining ON/OFF state labels. Classic is unchanged.
+Debug build, Robolectric suite and lint pass; renders use native Robolectric
+graphics, not a physical device. APK signature continuity and 16 KiB alignment
+are verified.

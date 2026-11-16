@@ -14,7 +14,7 @@ final class ChipLogo extends View {
     private final HeaderAnimation animation=new HeaderAnimation(new java.util.Random().nextLong());
     private boolean frozen;
     ChipLogo(Context c){this(c,ThemeStore.selected(c));}
-    ChipLogo(Context c,PlayerTheme theme){super(c);color=theme.headerInk();loadTitle(c);setContentDescription(c.getString(R.string.app_name));setTooltipText("Open settings");setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);}
+    ChipLogo(Context c,PlayerTheme theme){super(c);color=theme.headerInk();loadTitle(c);setContentDescription(c.getString(R.string.app_name));setTooltipText("Open player menu");setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);}
     private static synchronized void loadTitle(Context c){
         if(titleX!=null)return;
         Bitmap mask=Bitmap.createBitmap(HeaderAnimation.COLS,HeaderAnimation.ROWS,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(mask);Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTypeface(UiFonts.brand(c));p.setTextSize(17);p.setColor(Color.WHITE);

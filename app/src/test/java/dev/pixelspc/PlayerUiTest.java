@@ -245,18 +245,18 @@ public class PlayerUiTest {
         ThemeStore.Draft draft=ThemeStore.from(PlayerTheme.find("phosphor"),false);draft.name="Blue phosphor";draft.colors.put("accent",0xff9cbfff);new ThemeStore(app).save(draft);
         assertTrue(ThemeStore.read(new java.io.ByteArrayInputStream(ThemeStore.encode(draft).toString().getBytes("UTF-8"))).theme().chipAmp5());
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
-            c.get().selectTheme(draft.id);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Open settings from header"));
+            c.get().selectTheme(draft.id);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Open player menu from header"));
             c.recreate();assertTrue(ThemeStore.selected(app).chipAmp5());assertEquals(draft.id,ThemeStore.selected(app).id);assertTrue(findDescription(c.get().getWindow().getDecorView(),"Previous track") instanceof MatrixControl);assertSame(track,service.current);assertEquals(12000,service.position);assertTrue(service.playing);
             c.get().selectTheme("light");assertFalse(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertSame(track,service.current);
         }
     }
     private void openAppMenu(MainActivity a){
-        findDescription(a.getWindow().getDecorView(),"Open settings").performClick();android.app.Dialog settings=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(settings.getWindow().getDecorView(),"Back to app menu").performClick();
+        findDescription(a.getWindow().getDecorView(),"Open player menu").performClick();
     }
-    @Test public void everyHeaderRegionOpensSettingsAndMainMenuRemainsReachable()throws Exception{
+    @Test public void everyHeaderRegionOpensPlayerMenuAndSettingsRemainsReachable()throws Exception{
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
-            MainActivity a=c.get();for(String name:new String[]{"Open settings from header","ChipAmp9x","Open settings"}){
-                View target=findDescription(a.getWindow().getDecorView(),name);assertTrue(target.isClickable());target.performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(menu.getWindow().getDecorView(),"SETTINGS"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Color theme"));findText(menu.getWindow().getDecorView(),"CLOSE").performClick();
+            MainActivity a=c.get();for(String name:new String[]{"Open player menu from header","ChipAmp9x","Open player menu"}){
+                View target=findDescription(a.getWindow().getDecorView(),name);assertTrue(target.isClickable());target.performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Import music"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Settings"));findText(menu.getWindow().getDecorView(),"CLOSE").performClick();
             }
             openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findDescription(menu.getWindow().getDecorView(),"Import music"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Playback tools"));
         }
@@ -438,7 +438,7 @@ public class PlayerUiTest {
             assertEquals("ChipAmp9x",a.getApplicationInfo().loadLabel(a.getPackageManager()).toString());
             assertTrue(((ViewGroup)a.findViewById(android.R.id.content)).getChildAt(0).getBackground() instanceof android.graphics.drawable.ColorDrawable);
             int top=-1;
-            for(String label:new String[]{"Open settings"}) {
+            for(String label:new String[]{"Open player menu"}) {
                 View v=findDescription(decor,label); assertTrue(v instanceof ImageButton);
                 assertNotNull(((View)v.getParent()).getBackground());
                 assertNull(v.getBackground());assertNull(((ImageButton)v).getImageTintList());

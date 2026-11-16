@@ -30,7 +30,7 @@ final class MatrixControl extends TextView {
     }
     @Override protected void onDraw(Canvas c){
         String text=getText().toString();boolean mode=text.contains("\n");float density=getResources().getDisplayMetrics().density;
-        float size=Math.min(getWidth()-12*density,(getHeight()-(mode?18:10)*density));float step=Math.max(0,size/21),cx=getWidth()/2f,cy=(getHeight()-(mode?15*density:0))/2;
+        float size=Math.min(getWidth()-12*density,(getHeight()-(mode?18:10)*density));float step=Math.max(0,size*(mode?.78f:1)/21),cx=getWidth()/2f,cy=(getHeight()-(mode?15*density:0))/2;
         int color=(text.equals("▶")||text.equals("Ⅱ"))?lamp:getCurrentTextColor();
         for(int y=0;y<=20;y++)for(int x=0;x<=20;x++)if(lit(text,x,y)){
             paint.setColor(color);paint.setAlpha(35);c.drawCircle(cx+(x-10)*step,cy+(y-10)*step,step*.75f,paint);paint.setAlpha(255);c.drawCircle(cx+(x-10)*step,cy+(y-10)*step,step*.36f,paint);

@@ -566,7 +566,7 @@ a reliable overall completion percentage.
 
 ## Player styles and dot-matrix header (v1.26.0)
 
-Open **Header → Player style** to choose Classic or ChipAmp5. Both styles offer
+Open **Header → Settings → Player style** to choose Classic or ChipAmp5. Both styles offer
 exactly the same ten Classic colour palettes via **Color theme**. Each remembers
 its last palette; saved custom themes belong to their selected style. Classic
 uses square header corners; ChipAmp5 has rounded plastic panels and controls.
@@ -574,10 +574,17 @@ Reactor is no longer offered.
 
 The header title rests with occasional brief glitches, scrolls down off the
 display, then returns one letter at a time from the right. Tap anywhere on the
-header to open Settings. Chakra Petch is used for regular UI and Press Start 2P for small pixel labels;
+header to open the Player menu. Chakra Petch is used for regular UI and Press Start 2P for small pixel labels;
 Doto track titles and Jersey 15 settings headings remain.
 
 The custom theme editor includes **Header display**: tap the header in the frozen
 preview (or choose it in Parts) to adjust **Dots / cog** and **Screen** separately.
 These colours save/export with the theme without changing the visualizer or main
 accent. Existing themes retain their previous header appearance until edited.
+
+## Header menu and compact ChipAmp5 controls (v1.27.1)
+
+Tap the header title, cog or display surround to open **Player Menu**. Settings
+remains inside that menu. ChipAmp5 shuffle and loop controls are narrower, match
+Previous/Next button height and use smaller glyphs above their ON/OFF labels.
+Classic controls retain their existing sizes.
