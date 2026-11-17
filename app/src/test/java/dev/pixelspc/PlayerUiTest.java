@@ -230,7 +230,7 @@ public class PlayerUiTest {
         new Playlists(app).save(null,"Selected mix",java.util.Arrays.asList(sources));
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Play Track 1").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertEquals(2,actions.getListView().getCount());assertEquals("Export audio…",actions.getListView().getAdapter().getItem(0));assertEquals("Playback tools",actions.getListView().getAdapter().getItem(1));captureView(actions.getWindow().getDecorView(),"track-actions.png",822,650);
+            assertEquals(3,actions.getListView().getCount());assertEquals("Rename track…",actions.getListView().getAdapter().getItem(2));assertEquals("Export audio…",actions.getListView().getAdapter().getItem(0));assertEquals("Playback tools",actions.getListView().getAdapter().getItem(1));captureView(actions.getWindow().getDecorView(),"track-actions.png",822,650);
             actions.getListView().performItemClick(null,1,1);android.app.Dialog tools=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertNotNull(findText(tools.getWindow().getDecorView(),"SELECTED TRACK"));assertNotNull(findText(tools.getWindow().getDecorView(),"Track 1"));assertNull(findDescription(tools.getWindow().getDecorView(),"Change SoundFont…"));assertFalse(findDescription(tools.getWindow().getDecorView(),"Channel mixer").isEnabled());
             captureView(tools.getWindow().getDecorView(),"selected-track-tools.png",822,1100);findDescription(tools.getWindow().getDecorView(),"Export audio…").performClick();android.content.Intent exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
@@ -247,6 +247,17 @@ public class PlayerUiTest {
             c.get().selectTheme(draft.id);assertFalse(ThemeStore.selected(app).chipAmp5());assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);c.get().selectStyle(PlayerStyle.CHIPAMP5);assertEquals(draft.id,ThemeStore.selected(app).id);assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Open player menu from header"));
             c.recreate();assertTrue(ThemeStore.selected(app).chipAmp5());assertEquals(draft.id,ThemeStore.selected(app).id);assertTrue(findDescription(c.get().getWindow().getDecorView(),"Previous track") instanceof MatrixControl);assertSame(track,service.current);assertEquals(12000,service.position);assertTrue(service.playing);
             c.get().selectStyle(PlayerStyle.CLASSIC);assertEquals(draft.id,ThemeStore.selected(app).id);assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);assertFalse(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertSame(track,service.current);
+        }
+    }
+    @Test public void renamingATrackUpdatesLibraryQueueAndReadoutWithoutRestartingPlayback()throws Exception{
+        Library.Track[] tracks=playlistSources();service.current=tracks[1];service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(tracks));service.position=54321;service.playing=true;
+        new Playlists(app).save(null,"Names",java.util.Arrays.asList(tracks));new TrackFavorites(app).toggle(tracks[1]);
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();a.selectTheme("dark");findDescription(a.getWindow().getDecorView(),"Play Track 1").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            actions.getListView().performItemClick(null,2,2);AlertDialog rename=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();EditText input=(EditText)findDescription(rename.getWindow().getDecorView(),"Track name");input.setText(" ");rename.getButton(-1).performClick();assertTrue(rename.isShowing());assertNotNull(input.getError());
+            input.setText("  Overworld  ");assertEquals(PlayerTheme.find("dark").text,input.getCurrentTextColor());captureView(rename.getWindow().getDecorView(),"rename-track.png",720,420);rename.getButton(-1).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals("Overworld",service.current.title);assertEquals(54321,service.position);assertTrue(service.playing);
+            Library restored=new Library(app);assertEquals("Overworld",restored.games.get(1).tracks.get(0).title);assertEquals("Overworld",new Playlists(app).all(restored.games).get(0).tracks.get(1).title);assertTrue(new TrackFavorites(app).contains(restored.games.get(1).tracks.get(0)));
         }
     }
     private void openFavourites(MainActivity a){

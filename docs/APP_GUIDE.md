@@ -658,3 +658,17 @@ and imported custom themes are available in both styles: editing, renaming or
 deleting one affects the same shared theme. Existing themes and their colours
 are preserved; the most recently selected palette is retained when upgrading.
 Old theme files remain importable. Style changes affect geometry, not colours.
+
+## NES track names and track renaming (v1.31.0)
+
+NSFE files can supply individual song names, durations and playlist ordering;
+ChipAmp9x reads those fields when present. Plain NSF files usually provide only
+game/composer metadata and numbered subsongs. Unnamed NSF/NSFE imports now show
+**Track 01**, **Track 02**, etc., with game metadata kept separately. Existing
+NSF names generated as “filename · number” receive the cleaner fallback too.
+
+Hold a track in the tracklist or queue and choose **Rename track…**. Names are
+saved locally in the library; the original audio file is untouched. Saved
+playlists and favourites retain their references, and the current playback,
+notification and widget title update without restarting the song. Renaming is
+available for other supported formats too. NSFE embedded titles are preserved.

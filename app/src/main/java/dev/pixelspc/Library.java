@@ -12,9 +12,9 @@ import java.util.*;
 public final class Library {
     public static final class Track {
         public String path,title,game,artist,system;
-        public int index,length,loopLength;
-        JSONObject json() throws JSONException { return new JSONObject().put("path",path).put("title",title).put("game",game).put("artist",artist).put("system",system).put("index",index).put("length",length).put("loopLength",loopLength); }
-        static Track from(JSONObject o) throws JSONException { Track t=new Track(); t.path=o.getString("path"); t.title=o.getString("title"); t.game=o.getString("game"); t.artist=o.getString("artist"); t.system=o.getString("system"); t.index=o.getInt("index"); t.length=o.getInt("length"); t.loopLength=o.has("loopLength")?o.optInt("loopLength",0):SpcTiming.loopLength(new File(t.path)); return t; }
+        public int index,length,loopLength;public boolean renamed;
+        JSONObject json() throws JSONException { return new JSONObject().put("path",path).put("title",title).put("game",game).put("artist",artist).put("system",system).put("index",index).put("length",length).put("loopLength",loopLength).put("renamed",renamed); }
+        static Track from(JSONObject o) throws JSONException { Track t=new Track(); t.path=o.getString("path"); t.title=o.getString("title");t.renamed=o.optBoolean("renamed",false); t.game=o.getString("game"); t.artist=o.getString("artist"); t.system=o.getString("system"); t.index=o.getInt("index");if(!t.renamed&&ArchiveImporter.extension(t.path).equals("nsf")&&t.title.endsWith(" · "+(t.index+1)))t.title=String.format(Locale.ROOT,"Track %02d",t.index+1); t.length=o.getInt("length"); t.loopLength=o.has("loopLength")?o.optInt("loopLength",0):SpcTiming.loopLength(new File(t.path)); return t; }
     }
     public static final class Game {
         public String name,id; public List<Track> tracks=new ArrayList<>();
@@ -26,7 +26,7 @@ public final class Library {
         context=c; store=new AtomicFile(new File(c.getFilesDir(),"library.json"));
         if(store.getBaseFile().exists()) {
             JSONArray a=new JSONArray(new String(store.readFully(),"UTF-8"));
-            for(int i=0;i<a.length();i++) { JSONObject o=a.getJSONObject(i); Game g=new Game(); g.name=o.getString("name"); g.id=o.getString("id"); JSONArray ts=o.getJSONArray("tracks"); for(int j=0;j<ts.length();j++) g.tracks.add(Track.from(ts.getJSONObject(j))); games.add(g); }
+            for(int i=0;i<a.length();i++) { JSONObject o=a.getJSONObject(i); Game g=new Game(); g.name=o.getString("name"); g.id=o.getString("id"); JSONArray ts=o.getJSONArray("tracks"); for(int j=0;j<ts.length();j++) g.tracks.add(Track.from(ts.getJSONObject(j)));for(Track track:g.tracks)if(nes(track.path)&&track.game.isEmpty())track.game=g.name; games.add(g); }
         }
     }
     public Game importFile(Uri uri) throws Exception {
@@ -57,9 +57,9 @@ public final class Library {
                     for(int i=0;i<count;i++) {
                         progress.update("Reading track "+fileIndex+"/"+entries.size()+" · "+e.name+(count>1?" · stream "+(i+1)+"/"+count:""));
                         String[] info=Engine.info(h,i); Track t=new Track(); t.path=e.file.getAbsolutePath(); t.index=i;
-                        t.title=(SoundFonts.midi(e.name)||info[0].isEmpty())?e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(i+1):""):info[0];
+                        t.title=trackTitle(e.name,info[0],count,i);
                         if(ArchiveImporter.extension(e.name).equals("xa"))t.title=e.name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+info[0]:"");
-                        t.game=info[1]; t.artist=info[2]; t.system=info[3]; t.length=Engine.length(h,i);
+                        t.game=info[1];if(t.game.isEmpty()&&nes(e.name))t.game=e.name.replaceFirst("\\.[^.]+$",""); t.artist=info[2]; t.system=info[3]; t.length=Engine.length(h,i);
                         t.loopLength=e.file.getName().endsWith(".spc")?SpcTiming.loopLength(e.file):0;
                         game.tracks.add(t);
                     }
@@ -73,6 +73,20 @@ public final class Library {
             temp.delete();
             if(!saved) ArchiveImporter.removeTree(dir);
         }
+    }
+    static boolean nes(String path){String ext=ArchiveImporter.extension(path);return ext.equals("nsf")||ext.equals("nsfe");}
+    static String trackTitle(String name,String song,int count,int index){
+        if(!SoundFonts.midi(name)&&song!=null&&!song.trim().isEmpty())return song;
+        if(nes(name))return String.format(Locale.ROOT,"Track %02d",index+1);
+        return name.replaceFirst("\\.[^.]+$","")+(count>1?" · "+(index+1):"");
+    }
+    public synchronized void renameTrack(Track target,String name)throws Exception{
+        name=name==null?"":name.trim();if(name.isEmpty()||name.length()>120||name.contains("\n")||name.contains("\r"))throw new IOException("Use a track name between 1 and 120 characters");
+        List<Track> matches=new ArrayList<>();List<String> titles=new ArrayList<>();List<Boolean> flags=new ArrayList<>();
+        for(Game game:games)for(Track track:game.tracks)if(track.path.equals(target.path)&&track.index==target.index){matches.add(track);titles.add(track.title);flags.add(track.renamed);}
+        if(matches.isEmpty())throw new IOException("This track is no longer in the library");
+        for(Track track:matches){track.title=name;track.renamed=true;}
+        try{save();}catch(Exception failure){for(int i=0;i<matches.size();i++){matches.get(i).title=titles.get(i);matches.get(i).renamed=flags.get(i);}throw failure;}
     }
     public synchronized void rename(Game game,String name) throws Exception {
         name=name==null?"":name.trim();

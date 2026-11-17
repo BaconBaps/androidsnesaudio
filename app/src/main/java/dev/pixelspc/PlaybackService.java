@@ -185,6 +185,11 @@ public class PlaybackService extends Service {
             for(ActivityManager.AppTask task:tasks.getAppTasks()) task.finishAndRemoveTask();
         });
     }
+    public void refreshTrackTitle(Library.Track target,String title){
+        for(Library.Track track:queue)if(track.path.equals(target.path)&&track.index==target.index){track.title=title;track.renamed=true;}
+        if(current!=null&&current.path.equals(target.path)&&current.index==target.index){current.title=title;current.renamed=true;}
+        changed();
+    }
     public void refreshAppearance() { changed(); }
     public long sleepRemainingMs() { return Math.max(0,sleepUntil-SystemClock.elapsedRealtime()); }
     public void setSleepTimer(long durationMs) {

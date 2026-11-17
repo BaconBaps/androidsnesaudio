@@ -725,3 +725,16 @@ Legacy saved files remain readable, and existing themes are not deleted.
 Regression tests check shared custom listings, style switching/recreation,
 colour preservation and unchanged playback. Full debug build, Robolectric suite
 and lint pass. APK signing continuity and 16 KiB alignment pass.
+
+## v1.31.0 — NES names and persistent track renaming
+
+Generated original NSF/NSFE fixtures passed through the real host JNI decoder:
+NSFE labels, game/composer, durations and playlist ordering are already read
+correctly. Standard NSF has game metadata but lacks per-song labels. New unnamed
+NES imports use Track 01 etc.; legacy generated NSF names are cleaned up without
+overwriting explicit user names. Track renames persist per path/subsong with
+atomic save/rollback and leave source files unchanged. UI tests cover validation,
+dark-theme readability, queue/current-title refresh, playlist/favourite identity
+and unchanged playback position/state. Full debug build, Robolectric suite and
+lint pass. Native metadata smoke test, signing continuity and 16 KiB alignment
+pass. No physical-device playback verification was performed for this release.
