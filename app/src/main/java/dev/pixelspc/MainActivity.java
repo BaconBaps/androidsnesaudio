@@ -33,7 +33,8 @@ public class MainActivity extends Activity {
     private final Handler main=new Handler(Looper.getMainLooper());
     private final ExecutorService importer=Executors.newSingleThreadExecutor();
     private String shownError="";
-    private Dialog libraryPicker,channelMixerDialog;
+    private HeaderMenuDialog libraryPicker;
+    private Dialog channelMixerDialog;
     private ThemeEditor.State editState;
     private final List<ThemeEditor.Target> editTargets=new ArrayList<>();
     private final List<Dialog> editorDialogs=new ArrayList<>();
@@ -68,7 +69,7 @@ public class MainActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); out.putBoolean("showFavourites",showFavourites);out.putString("themeExport",pendingThemeExport);if(editState!=null)try{out.putString("themeEdit",editState.json().toString());}catch(Exception ignored){}out.putBoolean("showQueue",showQueue);out.putStringArrayList("pendingQueueIds",pendingQueueIds);if(selected!=null)out.putString("selectedGame",selected.id); }
     @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); if(editState==null)main.post(tick); } }
     @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
-    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismissNow();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
+    @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismissNow();if(libraryPicker!=null)libraryPicker.dismissNow();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
     private final Runnable tick=new Runnable() { public void run() { if(editState!=null)return;updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
     private TextView text(String s,int size,int color) { TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color); t.setTypeface(UiFonts.body(MainActivity.this)); t.setFontFeatureSettings("kern"); return t; }
@@ -257,19 +258,19 @@ public class MainActivity extends Activity {
         gap(actions,8);TextView rename=button("RENAME",accentColor,theme.surface);rename.setContentDescription(Playlists.saved(game)?"Rename playlist "+game.name:"Rename "+game.name+" in library");add(actions,rename,-1,48);
         gap(actions,8);TextView export=button("EXPORT AUDIO",accentColor,theme.surface);export.setContentDescription("Export audio from "+game.name);add(actions,export,-1,48);export.setEnabled(!game.tracks.isEmpty());
         gap(actions,8);TextView tools=button("PLAYBACK TOOLS",accentColor,theme.surface);tools.setContentDescription("Playback tools for "+game.name);add(actions,tools,-1,48);tools.setEnabled(!game.tracks.isEmpty());
-        export.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismiss();actionMenu[0].dismiss();collectionAction(game,0);});
-        tools.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismiss();actionMenu[0].dismiss();collectionAction(game,1);});
-        if(game.tracks.stream().anyMatch(t->SoundFonts.midi(t.path))){gap(actions,8);TextView font=button("CHANGE SOUNDFONT",accentColor,theme.surface);font.setContentDescription("Change SoundFont for "+game.name);add(actions,font,-1,48);font.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismiss();actionMenu[0].dismiss();collectionAction(game,2);});}
+        export.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismissNow();actionMenu[0].dismiss();collectionAction(game,0);});
+        tools.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismissNow();actionMenu[0].dismiss();collectionAction(game,1);});
+        if(game.tracks.stream().anyMatch(t->SoundFonts.midi(t.path))){gap(actions,8);TextView font=button("CHANGE SOUNDFONT",accentColor,theme.surface);font.setContentDescription("Change SoundFont for "+game.name);add(actions,font,-1,48);font.setOnClickListener(v->{if(libraryPicker!=null)libraryPicker.dismissNow();actionMenu[0].dismiss();collectionAction(game,2);});}
         gap(actions,24);rule(actions);gap(actions,16);
         TextView delete=button("DELETE",textColor,theme.surface);delete.setContentDescription("Delete "+game.name+" from library");add(actions,delete,-1,48);
         ScrollView actionScroll=new ScrollView(this);actionScroll.addView(actions);
         AlertDialog menu=dialog().setTitle(game.name).setView(actionScroll).setNegativeButton("CANCEL",null).show();actionMenu[0]=menu;
         play.setTextColor(accentColor);enqueue.setTextColor(accentColor);rename.setTextColor(accentColor);delete.setTextColor(theme.dark?0xffffa0a8:0xffa32e3b);
         play.setEnabled(player!=null&&!game.tracks.isEmpty());enqueue.setEnabled(player!=null&&!game.tracks.isEmpty());
-        play.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();selectLibraryGame(game);notifyPermission();player.play(game.tracks,0);renderTracks();});
-        enqueue.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();player.appendTracks(game.tracks);showQueue=true;showFavourites=false;renderTracks();});
-        rename.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();renameLibrary(game);});
-        delete.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismiss();confirmDelete(game);});
+        play.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismissNow();selectLibraryGame(game);notifyPermission();player.play(game.tracks,0);renderTracks();});
+        enqueue.setOnClickListener(v->{if(player==null)return;menu.dismiss();if(libraryPicker!=null)libraryPicker.dismissNow();player.appendTracks(game.tracks);showQueue=true;showFavourites=false;renderTracks();});
+        rename.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismissNow();renameLibrary(game);});
+        delete.setOnClickListener(v->{menu.dismiss();if(libraryPicker!=null)libraryPicker.dismissNow();confirmDelete(game);});
     }
     private void renameLibrary(Library.Game game) {
         Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
@@ -284,6 +285,8 @@ public class MainActivity extends Activity {
     }
     private void chooseGame(){chooseGame(false);}
     private void chooseGame(boolean focusPlaylists) {
+        if(appMenu!=null)appMenu.dismissNow();
+        if(libraryPicker!=null)libraryPicker.dismissNow();
         List<LibraryPlatforms.Group> groups=LibraryPlatforms.group(library.games);
         LibraryPlatforms.Group playlists=new LibraryPlatforms.Group("Playlists");playlists.games.addAll(savedPlaylists());
         Library.Game favouriteEntry=new Library.Game();favouriteEntry.id="favourites";favouriteEntry.name="Favourites";favouriteEntry.tracks=favourites.tracks(library.games);playlists.games.add(favouriteEntry);groups.add(playlists);
@@ -320,20 +323,24 @@ public class MainActivity extends Activity {
         for(int i=0;i<groups.size();i++) if(prefs.getBoolean("expanded:"+groups.get(i).name,groups.get(i).name.equals(selectedPlatform))) list.expandGroup(i);
         list.setOnGroupExpandListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,true).apply());
         list.setOnGroupCollapseListener(group->prefs.edit().putBoolean("expanded:"+groups.get(group).name,false).apply());
-        Context themed=new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog);
-        Dialog picker=new Dialog(themed); picker.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        LinearLayout body=column(); body.setBackground(skin.chassis(backgroundColor)); body.setPadding(dp(12),dp(12),dp(12),dp(12));
-        TextView title=pixel("Library",18,theme.heading); add(body,title,-1,44); add(body,text("Hold a soundtrack or playlist for actions",12,mutedColor),-1,24);gap(body,8);
-        TextView save=button("SAVE CURRENT PLAYLIST",accentColor,theme.surface);save.setContentDescription("Save current playlist");save.setEnabled(!currentTracks().isEmpty());add(body,save,-1,44);gap(body,8);save.setOnClickListener(v->{picker.dismiss();saveCurrentPlaylist(true);});
+        HeaderMenuDialog picker=new HeaderMenuDialog(this,libraryButton);
+        LinearLayout body=column();body.setBackground(skin.panel(theme.libraryButtonBackground()));body.setPadding(dp(8),dp(6),dp(8),dp(8));body.setContentDescription("Expanded library panel");
+        TextView title=button("LIBRARY ▴",accentColor,theme.libraryButtonBackground());title.setBackground(null);if(theme.chipAmp5()){title.setTypeface(dotMatrixBold);title.setTextSize(16);}title.setContentDescription("Collapse library");add(body,title,-1,38);title.setOnClickListener(v->picker.dismiss());
+        add(body,text("Hold a soundtrack or playlist for actions",12,mutedColor),-1,24);gap(body,6);
+        TextView save=button("SAVE CURRENT PLAYLIST",accentColor,theme.surface);save.setContentDescription("Save current playlist");save.setEnabled(!currentTracks().isEmpty());add(body,save,-1,44);gap(body,8);save.setOnClickListener(v->{picker.dismissNow();saveCurrentPlaylist(true);});
         body.addView(list,new LinearLayout.LayoutParams(-1,0,1)); gap(body,8);
         LinearLayout actions=row(); TextView close=button("CLOSE",accentColor,backgroundColor),importMusic=button("IMPORT MUSIC",accentColor,backgroundColor);
         LinearLayout.LayoutParams closeParams=new LinearLayout.LayoutParams(0,dp(44),1); closeParams.setMargins(0,0,dp(8),0); actions.addView(close,closeParams);
         actions.addView(importMusic,new LinearLayout.LayoutParams(0,dp(44),2)); add(body,actions,-1,44);
         picker.setContentView(body,new ViewGroup.LayoutParams(-1,-1)); picker.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
-        close.setOnClickListener(v->picker.dismiss()); importMusic.setOnClickListener(v->{ picker.dismiss(); pickFile(); });
+        close.setOnClickListener(v->picker.dismiss()); importMusic.setOnClickListener(v->{ picker.dismissNow(); pickFile(); });
         libraryPicker=picker;
         list.setOnChildClickListener((parent,view,group,child,id)->{ Library.Game game=groups.get(group).games.get(child);if(game==favouriteEntry){showFavourites=true;showQueue=false;}else selectLibraryGame(game);picker.dismiss(); renderTracks(); return true; });
-        picker.show(); picker.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(720)),Math.round(getResources().getDisplayMetrics().heightPixels*.86f));
+        libraryButton.setSelected(true);libraryButton.setText("LIBRARY ▴");
+        picker.setOnDismissListener(d->{libraryButton.setSelected(false);libraryButton.setText("LIBRARY ▾");});
+        picker.show();int available=playbackDeck.getTop()-libraryButton.getTop()-dp(8);
+        if(available<dp(180))available=Math.round(getResources().getDisplayMetrics().heightPixels*.62f);
+        picker.expand(Math.min(dp(644),available));
         if(focusPlaylists)list.post(()->list.setSelectedGroup(groups.size()-1));
     }
     private HeaderMenuDialog appMenu;
@@ -356,6 +363,7 @@ public class MainActivity extends Activity {
     }
     private void showMenuPage(String page) {showMenuPage(page,null);}
     private void showMenuPage(String page,Library.Track selectedTrack) {
+        if(libraryPicker!=null)libraryPicker.dismissNow();
         HeaderMenuDialog menu=appMenu;
         if(menu==null||!menu.isShowing()){menu=new HeaderMenuDialog(this,menuAnchor);appMenu=menu;}
         final HeaderMenuDialog display=menu;
@@ -670,7 +678,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.28.2").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.29.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

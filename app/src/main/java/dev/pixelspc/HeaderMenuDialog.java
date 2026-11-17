@@ -7,7 +7,7 @@ import android.graphics.Rect;
 import android.view.*;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-/** A focused menu window anchored exactly over the existing recessed header. */
+/** An expanding panel anchored exactly over its existing header or Library button. */
 final class HeaderMenuDialog extends Dialog {
     private final View anchor;
     private ValueAnimator motion;

@@ -691,3 +691,16 @@ space. Submenu changes no longer animate or resize the display; opening/closing
 still animate. The existing UI regression now requires exact height equality
 across Player Menu, Settings, Playback and Back navigation. Full debug build,
 Robolectric tests and lint pass. APK signing continuity and 16 KiB alignment pass.
+
+## v1.29.0 — Library button expansion
+
+Library now uses the shared expanding-panel container anchored to its button,
+without a dimmed backdrop. Its fixed expanded height stops above the playback
+deck; accordions scroll internally. Header/collapse, selection, playlist saving,
+import and long-press actions retain their behaviours. Panels are mutually
+exclusive and are dismissed on Activity destruction. UI tests check button-width
+alignment, fixed height after accordion expansion, unchanged playback/deck
+position, collapse and persisted accordion selection. Full debug build,
+Robolectric suite and lint pass. Renders use native Robolectric graphics, with
+no physical-device animation verification. Signing continuity and 16 KiB APK
+alignment pass.

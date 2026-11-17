@@ -542,6 +542,21 @@ public class PlayerUiTest {
             findText(browser.getWindow().getDecorView(),"IMPORT MUSIC").performClick();assertEquals(ImportActivity.class.getName(),Shadows.shadowOf(c.get()).getNextStartedActivityForResult().intent.getComponent().getClassName());
         }
     }
+    @Test public void libraryExpandsFromItsButtonAtFixedHeightWithoutMovingPlayback()throws Exception {
+        Library.Track[] tracks=playlistSources();service.current=tracks[0];service.playing=true;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();a.selectTheme("chip5-dark");capture(a,"library-panel-collapsed.png");
+            View anchor=findDescription(a.getWindow().getDecorView(),"Open music library"),deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");int deckTop=deck.getTop();anchor.performClick();
+            android.app.Dialog panel=org.robolectric.shadows.ShadowDialog.getLatestDialog();org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
+            android.view.WindowManager.LayoutParams params=panel.getWindow().getAttributes();int height=params.height;
+            assertEquals(anchor.getWidth(),params.width);assertTrue(height>anchor.getHeight());assertTrue(height<=deckTop-anchor.getTop());assertEquals(0,params.flags&android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            ExpandableListView list=(ExpandableListView)findDescription(panel.getWindow().getDecorView(),"Soundtracks grouped by platform");
+            for(int group=0;group<list.getExpandableListAdapter().getGroupCount();group++)list.expandGroup(group);
+            assertEquals(height,panel.getWindow().getAttributes().height);assertEquals(deckTop,deck.getTop());assertSame(tracks[0],service.current);assertTrue(service.playing);
+            capturePanel(a,panel,"library-panel-expanded.png","Open music library");
+            findDescription(panel.getWindow().getDecorView(),"Collapse library").performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertFalse(panel.isShowing());assertFalse(anchor.isSelected());
+        }
+    }
     @Test public void libraryAccordionsKeepTheirStateAndSelectTheCorrectSoundtrack() throws Exception {
         org.json.JSONArray games=new org.json.JSONArray();
         for(String[] info:new String[][]{{"Super Nintendo","Donkey Kong Country"},{"Game Boy","Tetris"},{"Sega Genesis","Sonic the Hedgehog"},{"SNES","Super Metroid"}}) {
@@ -550,14 +565,15 @@ public class PlayerUiTest {
         }
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),games.toString().getBytes("UTF-8"));
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
-            MainActivity a=c.get(); View opener=findDescription(a.getWindow().getDecorView(),"Open music library"); opener.performClick();
+            MainActivity a=c.get();capture(a,"library-collapsed.png"); View opener=findDescription(a.getWindow().getDecorView(),"Open music library"); opener.performClick();
             android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
             assertEquals(4,list.getExpandableListAdapter().getGroupCount());
-            assertTrue(browser.getWindow().getAttributes().height>=a.dp(650));
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
+            View deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");assertTrue(browser.getWindow().getAttributes().height<=deck.getTop()-opener.getTop());
             assertTrue(list.isGroupExpanded(2)); assertFalse(list.isGroupExpanded(0));
             list.expandGroup(0); list.collapseGroup(2); captureView(browser.getWindow().getDecorView(),"library-platforms.png",774,1500);
-            assertTrue(list.getHeight()>=a.dp(500)); browser.dismiss();
+            assertTrue(list.getHeight()>a.dp(100)); browser.dismiss();
             opener.performClick(); browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
             assertTrue(list.isGroupExpanded(0)); assertFalse(list.isGroupExpanded(2));
@@ -586,12 +602,13 @@ public class PlayerUiTest {
     private View findText(View v,String label) { if(v instanceof TextView && label.contentEquals(((TextView)v).getText())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findText(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private View findDescription(View v,String label) { if(label.contentEquals(v.getContentDescription()==null?"":v.getContentDescription())) return v; if(v instanceof ViewGroup) for(int i=0;i<((ViewGroup)v).getChildCount();i++) { View found=findDescription(((ViewGroup)v).getChildAt(i),label); if(found!=null) return found; } return null; }
     private GridLayout findGrid(View view) { if(view instanceof GridLayout) return (GridLayout)view; if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) { GridLayout grid=findGrid(((ViewGroup)view).getChildAt(i)); if(grid!=null) return grid; } return null; }
-    private void captureHeaderMenu(MainActivity a,android.app.Dialog menu,String name)throws Exception{
+    private void captureHeaderMenu(MainActivity a,android.app.Dialog menu,String name)throws Exception{capturePanel(a,menu,name,"Open player menu from header");}
+    private void capturePanel(MainActivity a,android.app.Dialog menu,String name,String anchorDescription)throws Exception{
         View activity=a.getWindow().getDecorView(),display=menu.getWindow().getDecorView();
         android.view.WindowManager.LayoutParams params=menu.getWindow().getAttributes();
         display.measure(View.MeasureSpec.makeMeasureSpec(params.width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(params.height,View.MeasureSpec.EXACTLY));display.layout(0,0,params.width,params.height);
         Bitmap bitmap=Bitmap.createBitmap(activity.getWidth(),activity.getHeight(),Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bitmap);activity.draw(canvas);
-        View header=findDescription(activity,"Open player menu from header");int[] at=new int[2];header.getLocationInWindow(at);canvas.save();canvas.translate(at[0],at[1]);display.draw(canvas);canvas.restore();
+        View header=findDescription(activity,anchorDescription);int[] at=new int[2];header.getLocationInWindow(at);canvas.save();canvas.translate(at[0],at[1]);display.draw(canvas);canvas.restore();
         File dir=new File(System.getProperty("user.dir"),"../docs/screenshots");dir.mkdirs();try(OutputStream out=new FileOutputStream(new File(dir,name))){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,out));}
     }
     private void capture(MainActivity a,String name) throws Exception { captureView(a.getWindow().getDecorView(),name,822,1782); }
