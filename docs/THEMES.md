@@ -1,6 +1,6 @@
 # Player themes
 
-Choose a palette from the image-preview grid opened by **Header → Settings → Color theme**. Your selection is saved;
+Choose a palette from the image-preview grid opened by **Header → Color theme**. Your selection is saved;
 changing it keeps the current track and playback position. These original color
 palettes draw inspiration from console hardware and logos; no console artwork or
 logos are bundled.
@@ -78,10 +78,10 @@ Deep violet shell and mint highlights.
 
 ## ChipAmp5 style
 
-Open **Header → Settings → Player style** to switch between Classic and ChipAmp5. Both offer
+Open **Header → Player style** to switch between Classic and ChipAmp5. Both offer
 exactly the same ten palettes shown above. ChipAmp5 changes the geometry to
 rounded plastic bezels and chunky controls; Classic keeps square header corners.
-Each style remembers its colour selection and has its own saved custom themes.
+Colour selection and saved custom themes are shared across both styles.
 
 <img src="screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 with the identical Pixel Dark palette" />
 <img src="screenshots/theme-chip5-light.png" width="300" alt="ChipAmp5 with the identical Pixel Light palette" />

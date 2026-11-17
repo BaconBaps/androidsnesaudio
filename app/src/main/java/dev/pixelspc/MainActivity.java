@@ -371,18 +371,16 @@ public class MainActivity extends Activity {
         LinearLayout body=column();body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setBackground(skin.header(theme.headerBackground()));body.setPadding(dp(12),dp(10),dp(12),dp(10));body.setContentDescription("Expanded header display");
         LinearLayout heading=row();
         if(!page.equals("main")){TextView back=matrixText("‹ BACK",14);back.setContentDescription("Back to app menu");add(heading,back,88,42);back.setOnClickListener(v->showMenuPage("main"));}
-        TextView title=matrixText(page.equals("main")?"PLAYER MENU":page.equals("playback")?"PLAYBACK":"SETTINGS",19);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
+        TextView title=matrixText(page.equals("main")?"PLAYER MENU":"PLAYBACK",19);heading.addView(title,new LinearLayout.LayoutParams(0,dp(42),1));add(body,heading,-1,42);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(android.graphics.Color.TRANSPARENT);scroll.setPadding(dp(5),dp(4),dp(5),dp(4));scroll.setVerticalScrollBarEnabled(false);scroll.setVerticalFadingEdgeEnabled(true);scroll.setFadingEdgeLength(dp(16));LinearLayout entries=column();scroll.addView(entries);body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         if(page.equals("main")) {
             menuSection(entries,"MUSIC");
             menuEntry(entries,menu,"Import music",true,false,this::pickFile);
             menuEntry(entries,menu,"Library",true,false,this::chooseGame);
             menuEntry(entries,menu,showQueue?"Back to tracklist":"Playback queue",true,false,()->{showQueue=!showQueue;showFavourites=false;renderTracks();});
-            menuEntry(entries,menu,"Save current playlist",!currentTracks().isEmpty(),false,()->saveCurrentPlaylist(false));
-            menuEntry(entries,menu,showFavourites?"Back to tracklist":"Favourites",true,false,()->{showFavourites=!showFavourites;showQueue=false;renderTracks();});
+            menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Player style",true,false,this::chooseStyle);menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
             menuSection(entries,"PLAYER");menuEntry(entries,menu,"Playback tools",true,true,()->showMenuPage("playback"));
-            menuSection(entries,"PREFERENCES");menuEntry(entries,menu,"Settings",true,true,()->showMenuPage("settings"));
-            gap(entries,16);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
+            menuSection(entries,"APP");menuEntry(entries,menu,"About ChipAmp9x",true,false,this::about);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
         } else if(page.equals("playback")) {
             final Library.Track target=selectedTrack!=null?selectedTrack:player==null?null:player.current;
             menuSection(entries,selectedTrack==null?"CURRENT TRACK":"SELECTED TRACK");
@@ -394,10 +392,8 @@ public class MainActivity extends Activity {
             if(selectedTrack==null||SoundFonts.midi(target.path))menuEntry(entries,menu,selectedTrack==null?"Track SoundFont…":"Change SoundFont…",target!=null&&SoundFonts.midi(target.path),false,()->chooseTrackSoundFont(target));
             menuSection(entries,"LISTENING");String sleep=player!=null&&player.sleepRemainingMs()>0?"Sleep timer · "+((player.sleepRemainingMs()+59999)/60000)+" min left":"Sleep timer";
             menuEntry(entries,menu,sleep,player!=null,false,this::chooseSleepTimer);
-        } else {
-            menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Player style",true,false,this::chooseStyle);menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
-            menuSection(entries,"APP");menuEntry(entries,menu,"About ChipAmp9x",true,false,this::about);
         }
+
         gap(body,4);TextView close=matrixText("CLOSE",15);close.setGravity(Gravity.CENTER);close.setContentDescription("Close player menu");add(body,close,-1,44);close.setOnClickListener(v->display.dismiss());
         menu.setContentView(body,new ViewGroup.LayoutParams(-1,-1));
         menu.setOnKeyListener((d,key,event)->{if(key!=KeyEvent.KEYCODE_BACK)return false;if(event.getAction()==KeyEvent.ACTION_UP){if(page.equals("main"))display.dismiss();else showMenuPage("main");}return true;});
@@ -592,24 +588,23 @@ public class MainActivity extends Activity {
         accentColor=palette.accent; borderColor=palette.border;
     }
     void selectTheme(String id) {
-        applyPalette(ThemeStore.find(this,id));
+        PlayerTheme palette=ThemeStore.find(this,id);if(id.startsWith("custom-"))palette=palette.inStyle(ThemeStore.style(this));selectPalette(palette);
+    }
+    private void selectPalette(PlayerTheme palette){
+        applyPalette(palette);
         getSharedPreferences("appearance",MODE_PRIVATE).edit().putString("theme",theme.id).putString("theme."+theme.styleId,theme.id).putString("style",theme.styleId).apply();
-        seeking=false; buildUI(); if(player!=null) player.refreshAppearance();else PlayerWidget.updateAll(this);
+        seeking=false;buildUI();if(player!=null)player.refreshAppearance();else PlayerWidget.updateAll(this);
     }
-    void selectStyle(String style){
-        if(!PlayerStyle.valid(style))return;
-        getSharedPreferences("appearance",MODE_PRIVATE).edit().putString("theme."+theme.styleId,theme.id).apply();
-        selectTheme(ThemeStore.paletteForStyle(this,style).id);
-    }
+    void selectStyle(String style){if(PlayerStyle.valid(style))selectPalette(ThemeStore.paletteForStyle(this,style));}
     private void chooseStyle(){
         LinearLayout body=column();body.setPadding(dp(10),dp(8),dp(10),dp(8));
-        TextView hint=text("Choose a style, then pick its colours. Each style remembers your last palette.",14,textColor);add(body,hint,-1,-2);
+        TextView hint=text("Choose a style. Your current colours and saved themes work with both.",14,textColor);add(body,hint,-1,-2);
         GridLayout grid=new GridLayout(this);grid.setColumnCount(2);add(body,grid,-1,190);
         AlertDialog picker=dialog().setTitle("Player style").setView(body).setNegativeButton("CANCEL",null).create();
         int i=0;for(String style:new String[]{PlayerStyle.CLASSIC,PlayerStyle.CHIPAMP5}){
             ThemePreview preview=new ThemePreview(this,ThemeStore.paletteForStyle(this,style),theme.styleId.equals(style),PlayerStyle.name(style));preview.setContentDescription("Select "+PlayerStyle.name(style)+" style");
             GridLayout.LayoutParams params=new GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(i++,1f));params.width=0;params.height=dp(180);params.setMargins(dp(4),dp(4),dp(4),dp(4));grid.addView(preview,params);
-            preview.setOnClickListener(v->{picker.dismiss();selectStyle(style);chooseTheme();});
+            preview.setOnClickListener(v->{picker.dismiss();selectStyle(style);});
         }
         picker.show();picker.getWindow().setBackgroundDrawable(skin.chassis(backgroundColor));tintDialog(picker.getWindow().getDecorView());picker.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels-dp(24),dp(560)),-2);
     }
@@ -678,7 +673,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.29.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.30.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

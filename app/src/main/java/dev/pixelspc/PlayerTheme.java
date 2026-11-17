@@ -36,6 +36,11 @@ public final class PlayerTheme {
     static PlayerTheme custom(String id,String name,String base,Map<String,Integer> colors,String style){PlayerTheme t=find(base);Map<String,Integer> merged=new HashMap<>(t.colors);merged.putAll(colors);return new PlayerTheme(id,name,"Custom theme",t.dark,t.background,t.text,t.accent,t.secondary,merged,"",t.id,style);}
     int headerBackground(){return value("headerBackground",nowPlaying().spectrumBackground);}
     int headerInk(){if(colors.containsKey("headerInk"))return colors.get("headerInk");int bg=headerBackground(),color=accent;for(int i=0;i<=20;i++){color=blend(accent,luminance(bg)<.35?0xffffffff:0xff000000,i/20f);if(contrast(bg,color)>=4.5)break;}return color;}
+    PlayerTheme inStyle(String style){
+        if(styleId.equals(style))return this;
+        if(!id.startsWith("custom-")){String base=id.startsWith("chip5-")?id.substring(6):id;return find(PlayerStyle.CHIPAMP5.equals(style)?"chip5-"+base:base);}
+        return new PlayerTheme(id,name,inspiration,dark,background,text,accent,secondary,colors,prefix,baseId,style);
+    }
     boolean chipAmp5(){return PlayerStyle.CHIPAMP5.equals(styleId);}
     private static final PlayerTheme[] CLASSIC={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),

@@ -566,9 +566,9 @@ a reliable overall completion percentage.
 
 ## Player styles and dot-matrix header (v1.26.0)
 
-Open **Header → Settings → Player style** to choose Classic or ChipAmp5. Both styles offer
-exactly the same ten Classic colour palettes via **Color theme**. Each remembers
-its last palette; saved custom themes belong to their selected style. Classic
+Open **Header → Player style** to choose Classic or ChipAmp5. Both styles offer
+exactly the same ten Classic colour palettes via **Color theme**. The active
+palette and all saved custom themes are shared between styles. Classic
 uses square header corners; ChipAmp5 has rounded plastic panels and controls.
 Reactor is no longer offered.
 
@@ -606,11 +606,10 @@ built-in entry and cannot be renamed or deleted as a saved playlist.
 Tap anywhere on the header to expand its recessed display into Player Menu.
 Menu text uses a finer dot-matrix font and the header’s custom ink/background
 colours in either style. The title animation pauses while the menu is open.
-Settings and Playback tools replace the contents at the same fixed expanded
-display height. Long pages scroll inside the display; playback controls
+Playback tools replace the contents at the same fixed expanded display height. Long pages scroll inside the display; playback controls
 stay in place below it. Back returns from a submenu; Back on the main page,
 Close, or an outside tap collapses it. System-disabled animations are respected.
-Settings uses the same dot-matrix size hierarchy as the other menu pages,
+The main menu uses the same dot-matrix size hierarchy as the Playback page,
 while keeping 48 dp entry tap areas. Detailed tools such as the
 mixer and colour editor open their existing screens.
 
@@ -646,3 +645,16 @@ accordion state, Save current playlist and Import music remain available.
 The panel follows the active style and palette and respects disabled animations.
 
 <img src="screenshots/library-panel-expanded.png" width="330" alt="ChipAmp5 Library button expanded into platform accordions covering the tracklist and playback section" />
+
+## Shared palettes and streamlined Player Menu (v1.30.0)
+
+Player Menu contains **Music** (Import, Library, Playback queue), **Look & Sound**
+(Player style, Color theme, SoundFonts, Custom themes), **Player** (Playback tools)
+and **App** (About, Exit). Save current playlist is in Library; Favourites is in
+Library → Playlists. The separate Settings/Preferences page is removed.
+
+Switching between Classic and ChipAmp5 preserves the current palette. All saved
+and imported custom themes are available in both styles: editing, renaming or
+deleting one affects the same shared theme. Existing themes and their colours
+are preserved; the most recently selected palette is retained when upgrading.
+Old theme files remain importable. Style changes affect geometry, not colours.

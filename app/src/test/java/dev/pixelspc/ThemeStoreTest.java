@@ -23,14 +23,21 @@ public class ThemeStoreTest {
         assertEquals(before.headerBackground(),ThemeEditor.color(ThemeStore.from(before,false),"headerBackground"));
         assertEquals(before.accent,after.accent);assertEquals(before.nowPlaying().spectrumBackground,after.nowPlaying().spectrumBackground);
     }
-    @Test public void stylesRememberIndependentPalettesAndFilterCustomThemes()throws Exception {
+    @Test public void stylesShareActivePaletteAndEveryCustomTheme()throws Exception {
         context.getSharedPreferences("appearance",0).edit().putString("style","classic").putString("theme.classic","snes").putString("theme.chipamp5","chip5-game-boy").commit();
         assertEquals("snes",ThemeStore.selected(context).id);
         context.getSharedPreferences("appearance",0).edit().putString("style","chipamp5").commit();
         assertEquals("chip5-game-boy",ThemeStore.selected(context).id);
         ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("chip5-dark"),false);store.save(d);
         assertEquals("chipamp5",ThemeStore.decode(ThemeStore.encode(d)).style);
-        assertEquals(11,store.all("chipamp5").size());assertEquals(10,store.all("classic").size());
+        assertEquals(11,store.all("chipamp5").size());assertEquals(11,store.all("classic").size());
+        context.getSharedPreferences("appearance",0).edit().putString("theme",d.id).commit();
+        assertEquals(d.id,ThemeStore.selected(context).id);assertTrue(ThemeStore.selected(context).chipAmp5());
+        context.getSharedPreferences("appearance",0).edit().putString("style","classic").commit();
+        assertEquals(d.id,ThemeStore.selected(context).id);assertFalse(ThemeStore.selected(context).chipAmp5());
+        assertEquals(d.colors,store.drafts("classic").get(0).colors);
+        context.getSharedPreferences("appearance",0).edit().putString("theme","snes").commit();
+        assertEquals("chip5-snes",ThemeStore.paletteForStyle(context,"chipamp5").id);
     }
     @Test public void namedThemeRoundTripsIndependentPlayerLibraryAndSpectrumColours()throws Exception{
         ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("desktop-98"),false);d.name="Night sky";d.colors.put("background",0xff101020);d.colors.put("player.background",0xff050509);d.colors.put("library.text",0xffccbbee);d.colors.put("player.spectrumLow",0xff55aaee);d.colors.put("player.spectrumMid",0xffcc55aa);d.colors.put("player.spectrumHigh",0xffeeaa55);d.colors.put("player.button",0xff334455);store.save(d);

@@ -713,3 +713,15 @@ underneath, and collapsing reveals its unchanged controls. Existing UI tests now
 check that the panel extends over the playback deck while preserving fixed
 height, accordion actions, selection and playback state. Full debug build,
 Robolectric tests and lint pass. Signing continuity and 16 KiB alignment pass.
+
+## v1.30.0 — menu cleanup and shared palettes
+
+Player Menu now places Look & Sound under Music and About/Exit in App at the
+bottom, removes the Settings/Preferences page, and leaves Save playlist and
+Favourites in Library. Menu UI tests cover order, removed entries and retained
+Playback navigation. Palettes and all saved/imported custom themes are shared
+between Classic and ChipAmp5; switching style retains colours and custom ID.
+Legacy saved files remain readable, and existing themes are not deleted.
+Regression tests check shared custom listings, style switching/recreation,
+colour preservation and unchanged playback. Full debug build, Robolectric suite
+and lint pass. APK signing continuity and 16 KiB alignment pass.

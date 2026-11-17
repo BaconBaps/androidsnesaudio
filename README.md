@@ -58,8 +58,8 @@ Imports show a live, single-line readout of the archive, file and operation in p
 
 ## The app
 
-**Classic and ChipAmp5** — choose crisp original frames or rounded plastic controls, with exactly the same ten colour palettes in either style. Each style remembers its selected palette.
-Every theme has a recessed pinball-style dot-matrix header: the title rests, occasionally glitches, scrolls down, then returns one letter at a time. Tap anywhere on the header to expand its dot-matrix Player menu, with in-place Settings and Playback pages.
+**Classic and ChipAmp5** — choose crisp original frames or rounded plastic controls, with exactly the same ten colour palettes in either style. Switch styles while keeping the same palette, including saved custom themes.
+Every theme has a recessed pinball-style dot-matrix header: the title rests, occasionally glitches, scrolls down, then returns one letter at a time. Tap anywhere on the header to expand its dot-matrix Player menu, with appearance controls on the main page and an in-place Playback page.
 
 <img src="docs/screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 style with the Pixel Dark palette and rounded plastic controls" />
 
@@ -111,7 +111,7 @@ Every theme has a recessed pinball-style dot-matrix header: the title rests, occ
     <th>Playback tools</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/app-menu.png" width="300" alt="Themed menu grouped into Music, Player and Preferences" /></td>
+    <td><img src="docs/screenshots/app-menu.png" width="300" alt="Themed menu grouped into Music, Look & Sound, Player and App" /></td>
     <td><img src="docs/screenshots/playback-menu.png" width="300" alt="Playback submenu with export, track SoundFont and sleep timer" /></td>
   </tr>
   <tr>

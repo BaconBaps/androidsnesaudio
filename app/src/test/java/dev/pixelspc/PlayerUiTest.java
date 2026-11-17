@@ -129,8 +129,7 @@ public class PlayerUiTest {
             }
             a.selectTheme("desktop-98");
             findDescription(a.getWindow().getDecorView(),"Add DK Island Swing to favourites").performClick();
-            openAppMenu(a);
-            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Favourites").performClick();
+            openFavourites(a);
             assertNotNull(findText(a.getWindow().getDecorView(),"Favourite tracks"));
             assertNull(findText(a.getWindow().getDecorView(),"Theme"));
             assertNotNull(findText(a.getWindow().getDecorView(),"DK Island Swing"));
@@ -214,9 +213,9 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             MainActivity a=c.get();a.selectTheme("chip5-dark");
             openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"Settings")).getTypeface());
-            findDescription(menu.getWindow().getDecorView(),"Settings").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"SETTINGS")).getTypeface());
+            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"Color theme")).getTypeface());
+            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertSame(org.robolectric.util.ReflectionHelpers.getField(a,"dotMatrixBold"),((TextView)findText(menu.getWindow().getDecorView(),"PLAYER MENU")).getTypeface());
             captureView(menu.getWindow().getDecorView(),"settings-fonts.png",822,1100);menu.dismiss();
             openAppMenu(a);menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertTrue(findDescription(menu.getWindow().getDecorView(),"Channel mixer").isEnabled());findDescription(menu.getWindow().getDecorView(),"Channel mixer").performClick();android.app.Dialog mixer=org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -240,15 +239,20 @@ public class PlayerUiTest {
             exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
         }
     }
-    @Test public void phosphorCustomThemeKeepsRoundedControlsAndDotHeaderWithoutChangingPlayback()throws Exception{
+    @Test public void sharedCustomThemeSwitchesStylesWithoutChangingColoursOrPlayback()throws Exception{
         Library.Track track=playlistSources()[0];service.current=track;service.queue=java.util.Collections.singletonList(track);service.position=12000;service.playing=true;
         ThemeStore.Draft draft=ThemeStore.from(PlayerTheme.find("phosphor"),false);draft.name="Blue phosphor";draft.colors.put("accent",0xff9cbfff);new ThemeStore(app).save(draft);
         assertTrue(ThemeStore.read(new java.io.ByteArrayInputStream(ThemeStore.encode(draft).toString().getBytes("UTF-8"))).theme().chipAmp5());
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
-            c.get().selectTheme(draft.id);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Open player menu from header"));
+            c.get().selectTheme(draft.id);assertFalse(ThemeStore.selected(app).chipAmp5());assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);c.get().selectStyle(PlayerStyle.CHIPAMP5);assertEquals(draft.id,ThemeStore.selected(app).id);assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);capture(c.get(),"theme-phosphor-custom.png");assertTrue(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertNotNull(findDescription(c.get().getWindow().getDecorView(),"Open player menu from header"));
             c.recreate();assertTrue(ThemeStore.selected(app).chipAmp5());assertEquals(draft.id,ThemeStore.selected(app).id);assertTrue(findDescription(c.get().getWindow().getDecorView(),"Previous track") instanceof MatrixControl);assertSame(track,service.current);assertEquals(12000,service.position);assertTrue(service.playing);
-            c.get().selectTheme("light");assertFalse(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertSame(track,service.current);
+            c.get().selectStyle(PlayerStyle.CLASSIC);assertEquals(draft.id,ThemeStore.selected(app).id);assertEquals(0xff9cbfff,ThemeStore.selected(app).accent);assertFalse(findDescription(c.get().getWindow().getDecorView(),"Pause") instanceof MatrixControl);assertSame(track,service.current);
         }
+    }
+    private void openFavourites(MainActivity a){
+        findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog panel=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        ExpandableListView list=(ExpandableListView)findDescription(panel.getWindow().getDecorView(),"Soundtracks grouped by platform");int group=list.getExpandableListAdapter().getGroupCount()-1;list.expandGroup(group);
+        list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(group,list.getExpandableListAdapter().getChildrenCount(group)-1)),0);
     }
     private void openAppMenu(MainActivity a){
         findDescription(a.getWindow().getDecorView(),"Open player menu").performClick();
@@ -264,13 +268,12 @@ public class PlayerUiTest {
             assertEquals(header.getWidth(),params.width);assertTrue(params.height>header.getHeight());
             assertTrue(params.height<=deckTop-header.getTop());assertEquals(0,params.flags&android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             int expanded=params.height;captureHeaderMenu(a,menu,"header-menu-expanded.png");
-            findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
+
             assertSame(menu,org.robolectric.shadows.ShadowDialog.getLatestDialog());
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
             assertEquals(expanded,menu.getWindow().getAttributes().height);assertEquals(deckTop,deck.getTop());
-            TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"SETTINGS"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertTrue(settingsTitle.getTextSize()>colourEntry.getTextSize());assertEquals(17*a.getResources().getDisplayMetrics().scaledDensity,colourEntry.getTextSize(),.01f);
+            TextView settingsTitle=(TextView)findText(menu.getWindow().getDecorView(),"PLAYER MENU"),colourEntry=(TextView)findText(menu.getWindow().getDecorView(),"Color theme");assertTrue(settingsTitle.getTextSize()>colourEntry.getTextSize());assertEquals(17*a.getResources().getDisplayMetrics().scaledDensity,colourEntry.getTextSize(),.01f);
             captureHeaderMenu(a,menu,"header-menu-settings.png");
-            findDescription(menu.getWindow().getDecorView(),"Back to app menu").performClick();
             assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));assertEquals(expanded,menu.getWindow().getAttributes().height);
             findDescription(menu.getWindow().getDecorView(),"Playback tools").performClick();
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertEquals(expanded,menu.getWindow().getAttributes().height);
@@ -279,10 +282,10 @@ public class PlayerUiTest {
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);assertFalse(menu.isShowing());
         }
     }
-    @Test public void everyHeaderRegionOpensPlayerMenuAndSettingsRemainsReachable()throws Exception{
+    @Test public void everyHeaderRegionOpensPlayerMenuAndAppearanceRemainsReachable()throws Exception{
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             MainActivity a=c.get();for(String name:new String[]{"Open player menu from header","ChipAmp9x","Open player menu"}){
-                View target=findDescription(a.getWindow().getDecorView(),name);assertTrue(target.isClickable());target.performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Import music"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Settings"));findText(menu.getWindow().getDecorView(),"CLOSE").performClick();
+                View target=findDescription(a.getWindow().getDecorView(),name);assertTrue(target.isClickable());target.performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findText(menu.getWindow().getDecorView(),"PLAYER MENU"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Import music"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Color theme"));findText(menu.getWindow().getDecorView(),"CLOSE").performClick();
             }
             openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();assertNotNull(findDescription(menu.getWindow().getDecorView(),"Import music"));assertNotNull(findDescription(menu.getWindow().getDecorView(),"Playback tools"));
         }
@@ -342,19 +345,19 @@ public class PlayerUiTest {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a=c.get();a.selectTheme("desktop-98");openAppMenu(a);
             android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();View decor=menu.getWindow().getDecorView();
-            for(String label:new String[]{"Import music","Library","Playback queue","Favourites","Playback tools","Settings","Exit app"})assertNotNull(findDescription(decor,label));
-            assertNotNull(findText(decor,"MUSIC"));assertNotNull(findText(decor,"PREFERENCES"));captureView(decor,"app-menu.png",774,1288);
+            for(String label:new String[]{"Import music","Library","Playback queue","Playback tools","Color theme","Player style","SoundFonts","Custom themes","About ChipAmp9x","Exit app"})assertNotNull(findDescription(decor,label));
+            assertNotNull(findText(decor,"MUSIC"));assertNotNull(findText(decor,"LOOK & SOUND"));assertNotNull(findText(decor,"APP"));String order=text(decor);assertTrue(order.indexOf("MUSIC")<order.indexOf("LOOK & SOUND"));assertTrue(order.indexOf("LOOK & SOUND")<order.indexOf("PLAYER\n"));assertTrue(order.indexOf("APP")<order.indexOf("Exit app"));captureView(decor,"app-menu.png",774,1288);
             findDescription(decor,"Playback tools").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();
             assertFalse(findDescription(decor,"Export current track…").isEnabled());assertFalse(findDescription(decor,"Track SoundFont…").isEnabled());assertTrue(findDescription(decor,"Sleep timer").isEnabled());captureView(decor,"playback-menu.png",774,712);
-            findDescription(decor,"Back to app menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Settings").performClick();
-            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();assertNotNull(findDescription(decor,"Color theme"));assertNotNull(findDescription(decor,"SoundFonts"));assertNotNull(findDescription(decor,"About ChipAmp9x"));captureView(decor,"settings-menu.png",774,696);
-            assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK)));assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK)));menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback queue").performClick();assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));
+            findDescription(decor,"Back to app menu").performClick();menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();decor=menu.getWindow().getDecorView();assertNotNull(findDescription(decor,"Color theme"));assertNotNull(findDescription(decor,"SoundFonts"));assertNotNull(findDescription(decor,"About ChipAmp9x"));assertNull(findDescription(decor,"Settings"));assertNull(findDescription(decor,"Favourites"));assertNull(findDescription(decor,"Save current playlist"));assertNull(findText(decor,"PREFERENCES"));captureView(decor,"settings-menu.png",774,696);
+            findDescription(decor,"Playback tools").performClick();assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_BACK)));assertTrue(menu.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK)));menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Playback queue").performClick();assertNotNull(findText(a.getWindow().getDecorView(),"Playback queue"));
         }
     }
     @Test public void soundFontMenuShowsDefaultBankAndLaunchesDocumentPicker() throws Exception {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             openAppMenu(c.get());
-            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Settings").performClick();
+
             findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"SoundFonts").performClick();
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertTrue(dialog.getListView().getAdapter().getItem(0).toString().contains("Pixel GM"));
@@ -368,7 +371,7 @@ public class PlayerUiTest {
     @Test public void themePickerPersistsDarkModeAcrossRecreation() {
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()) {
             openAppMenu(c.get());
-            findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Settings").performClick();
+
             findDescription(org.robolectric.shadows.ShadowDialog.getLatestDialog().getWindow().getDecorView(),"Color theme").performClick();
             AlertDialog dialog=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
             GridLayout grid=findGrid(dialog.getWindow().getDecorView()); assertNotNull(grid);
@@ -491,7 +494,7 @@ public class PlayerUiTest {
         for(int i=0;i<2;i++){Library.Track t=new Library.Track();t.path="/fixture/playlist-"+i+".spc";t.title="Track "+i;t.game="Game "+i;t.artist="Composer";t.system=i==0?"Super Nintendo":"Game Boy";t.length=180000;t.index=0;tracks[i]=t;games.put(new org.json.JSONObject().put("id","source-"+i).put("name",t.game).put("tracks",new org.json.JSONArray().put(t.json())));}
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),games.toString().getBytes("UTF-8"));return tracks;
     }
-    private AlertDialog playlistSavePrompt(MainActivity a){openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Save current playlist").performClick();return (AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();}
+    private AlertDialog playlistSavePrompt(MainActivity a){findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Save current playlist").performClick();return (AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();}
     @Test public void savedMixedPlaylistLoadsFromItsAccordionAndSupportsActionsWithoutInterruptingPlayback()throws Exception{
         Library.Track[] sources=playlistSources();Library.Track aTrack=sources[0],bTrack=sources[1];service.current=bTrack;service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(bTrack,aTrack,bTrack));service.index=0;service.position=12345;service.playing=true;
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){

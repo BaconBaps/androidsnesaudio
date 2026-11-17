@@ -21,15 +21,15 @@ final class ThemeStore {
         SharedPreferences p=context.getSharedPreferences("appearance",Context.MODE_PRIVATE);String style=p.getString("style",null);if(PlayerStyle.valid(style))return style;
         return find(context,p.getString("theme","light")).styleId;
     }
-    static PlayerTheme selected(Context context){String style=style(context);SharedPreferences p=context.getSharedPreferences("appearance",Context.MODE_PRIVATE);String legacy=p.getString("theme","light"),id=p.getString("theme."+style,legacy);PlayerTheme t=find(context,id);return t.styleId.equals(style)?t:PlayerTheme.find(PlayerStyle.defaultTheme(style));}
-    static PlayerTheme paletteForStyle(Context context,String style){SharedPreferences p=context.getSharedPreferences("appearance",Context.MODE_PRIVATE);String fallback=p.getString("theme",PlayerStyle.defaultTheme(style));if(!find(context,fallback).styleId.equals(style))fallback=PlayerStyle.defaultTheme(style);String id=p.getString("theme."+style,fallback);PlayerTheme t=find(context,id);return t.styleId.equals(style)?t:PlayerTheme.find(PlayerStyle.defaultTheme(style));}
+    static PlayerTheme selected(Context context){String style=style(context);SharedPreferences p=context.getSharedPreferences("appearance",Context.MODE_PRIVATE);String id=p.getString("theme",p.getString("theme."+style,PlayerStyle.defaultTheme(style)));return find(context,id).inStyle(style);}
+    static PlayerTheme paletteForStyle(Context context,String style){return selected(context).inStyle(style);}
     static PlayerTheme find(Context context,String id){for(Draft d:new ThemeStore(context).drafts())if(d.id.equals(id))return d.theme();return PlayerTheme.find(id);}
     List<Draft> drafts(){
         List<Draft> result=new ArrayList<>();try{JSONArray array=new JSONArray(prefs.getString("library","[]"));for(int i=0;i<Math.min(array.length(),LIMIT);i++){try{JSONObject item=array.getJSONObject(i);Draft d=decode(item);String id=item.getString("id");if(id.matches("custom-[a-f0-9-]{36}")){d.id=id;result.add(d);}}catch(Exception invalid){android.util.Log.w("ThemeStore","Skipping invalid saved theme",invalid);}}}catch(Exception ignored){/* Default themes remain available. */}return result;
     }
     List<PlayerTheme> all(){List<PlayerTheme> result=new ArrayList<>(Arrays.asList(PlayerTheme.ALL));for(Draft d:drafts())result.add(d.theme());return result;}
-    List<PlayerTheme> all(String style){List<PlayerTheme> list=new ArrayList<>();for(PlayerTheme t:all())if(t.styleId.equals(style))list.add(t);return list;}
-    List<Draft> drafts(String style){List<Draft> list=new ArrayList<>();for(Draft d:drafts())if(d.style.equals(style))list.add(d);return list;}
+    List<PlayerTheme> all(String style){List<PlayerTheme> list=new ArrayList<>();for(PlayerTheme t:PlayerTheme.ALL)if(t.styleId.equals(style))list.add(t);for(Draft d:drafts())list.add(d.theme().inStyle(style));return list;}
+    List<Draft> drafts(String style){List<Draft> list=new ArrayList<>();for(Draft d:drafts()){Draft copy=d.copy();copy.style=style;list.add(copy);}return list;}
     static Draft from(PlayerTheme theme,boolean duplicate){Draft d=new Draft(duplicate||!theme.id.startsWith("custom-")?"custom-"+UUID.randomUUID():theme.id,duplicate||!theme.id.startsWith("custom-")?theme.name+" copy":theme.name,theme.baseId);d.style=theme.styleId;d.colors.putAll(theme.colors);return d;}
     void save(Draft draft)throws Exception{synchronized(ThemeStore.class){
         validate(draft);List<Draft> drafts=drafts();boolean replaced=false;for(int i=0;i<drafts.size();i++)if(drafts.get(i).id.equals(draft.id)){drafts.set(i,draft.copy());replaced=true;break;}
