@@ -704,3 +704,12 @@ position, collapse and persisted accordion selection. Full debug build,
 Robolectric suite and lint pass. Renders use native Robolectric graphics, with
 no physical-device animation verification. Signing continuity and 16 KiB APK
 alignment pass.
+
+## v1.29.1 — taller Library panel
+
+The Library expansion now fills available app space below its button, covering
+the playback section and respecting bottom padding/insets. Playback continues
+underneath, and collapsing reveals its unchanged controls. Existing UI tests now
+check that the panel extends over the playback deck while preserving fixed
+height, accordion actions, selection and playback state. Full debug build,
+Robolectric tests and lint pass. Signing continuity and 16 KiB alignment pass.

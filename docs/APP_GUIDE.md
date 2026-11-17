@@ -634,14 +634,15 @@ The expanded header now keeps the same full height on Player Menu, Settings and
 Playback pages. Only opening and closing animate its height; shorter pages leave
 the remaining display space empty, like a fixed hardware display.
 
-## Expanding Library panel (v1.29.0)
+## Expanding Library panel (v1.29.1)
 
-Press **Library** to expand the button into a library panel over the tracklist.
-Platform and Playlists accordions scroll inside a fixed-height panel; playback
-controls remain in place below it. Tap the Library heading, Close, Android Back
+Press **Library** to expand the button into a library panel over the tracklist
+and playback section, using the space down to the bottom of the app. Platform
+and Playlists accordions scroll inside this fixed-height panel. Playback keeps
+running underneath; collapse the panel to reveal its controls. Tap the Library heading, Close, Android Back
 or outside the panel to collapse it. Selecting a soundtrack, saved playlist or
 Favourites closes the panel and shows its tracks. Long-press actions, remembered
 accordion state, Save current playlist and Import music remain available.
 The panel follows the active style and palette and respects disabled animations.
 
-<img src="screenshots/library-panel-expanded.png" width="330" alt="ChipAmp5 Library button expanded into platform accordions above playback controls" />
+<img src="screenshots/library-panel-expanded.png" width="330" alt="ChipAmp5 Library button expanded into platform accordions covering the tracklist and playback section" />

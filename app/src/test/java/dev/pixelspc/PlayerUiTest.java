@@ -549,7 +549,7 @@ public class PlayerUiTest {
             View anchor=findDescription(a.getWindow().getDecorView(),"Open music library"),deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");int deckTop=deck.getTop();anchor.performClick();
             android.app.Dialog panel=org.robolectric.shadows.ShadowDialog.getLatestDialog();org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
             android.view.WindowManager.LayoutParams params=panel.getWindow().getAttributes();int height=params.height;
-            assertEquals(anchor.getWidth(),params.width);assertTrue(height>anchor.getHeight());assertTrue(height<=deckTop-anchor.getTop());assertEquals(0,params.flags&android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            assertEquals(anchor.getWidth(),params.width);assertTrue(height>anchor.getHeight());assertTrue(height>deckTop-anchor.getTop());assertTrue(height<=((View)anchor.getParent()).getHeight()-anchor.getTop());assertEquals(0,params.flags&android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             ExpandableListView list=(ExpandableListView)findDescription(panel.getWindow().getDecorView(),"Soundtracks grouped by platform");
             for(int group=0;group<list.getExpandableListAdapter().getGroupCount();group++)list.expandGroup(group);
             assertEquals(height,panel.getWindow().getAttributes().height);assertEquals(deckTop,deck.getTop());assertSame(tracks[0],service.current);assertTrue(service.playing);
@@ -570,7 +570,7 @@ public class PlayerUiTest {
             ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");
             assertEquals(4,list.getExpandableListAdapter().getGroupCount());
             org.robolectric.shadows.ShadowLooper.idleMainLooper(400,java.util.concurrent.TimeUnit.MILLISECONDS);
-            View deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");assertTrue(browser.getWindow().getAttributes().height<=deck.getTop()-opener.getTop());
+            View deck=findDescription(a.getWindow().getDecorView(),"Now Playing panel");assertTrue(browser.getWindow().getAttributes().height>deck.getTop()-opener.getTop());
             assertTrue(list.isGroupExpanded(2)); assertFalse(list.isGroupExpanded(0));
             list.expandGroup(0); list.collapseGroup(2); captureView(browser.getWindow().getDecorView(),"library-platforms.png",774,1500);
             assertTrue(list.getHeight()>a.dp(100)); browser.dismiss();
