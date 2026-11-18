@@ -22,10 +22,10 @@ public class ImportFlowTest {
     public static class Decoder {
         static volatile java.util.concurrent.CountDownLatch blocked,proceed;
         @Implementation protected static void __staticInitializer__(){}
-        @Implementation protected static long open(String path)throws IOException{if(blocked!=null){blocked.countDown();try{if(!proceed.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("Test import timed out");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException(e);}}if(Files.readAllBytes(Paths.get(path))[0]==127)throw new IOException("Invalid music");return 1;}
+        @Implementation protected static long open(String path)throws IOException{if(blocked!=null){blocked.countDown();try{if(!proceed.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("Test import timed out");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException(e);}}if(Files.readAllBytes(Paths.get(path))[0]==127)throw new IOException("Invalid music");return Math.max(1,Files.readAllBytes(Paths.get(path))[0]);}
         @Implementation protected static void close(long handle){}
-        @Implementation protected static int count(long handle){return 1;}
-        @Implementation protected static String[] info(long handle,int index){return new String[]{"Test track","Fixture","Artist","Super Nintendo",""};}
+        @Implementation protected static int count(long handle){return handle>=10&&handle<=12?(int)handle-8:1;}
+        @Implementation protected static String[] info(long handle,int index){return handle>=10&&handle<=12?new String[]{"Song "+handle+"-"+index,"NES Game "+handle,"NES Composer","Nintendo NES",""}:new String[]{"Test track","Fixture","Artist","Super Nintendo",""};}
         @Implementation protected static int length(long handle,int index){return 180000;}
     }
     private Context context;
@@ -53,6 +53,27 @@ public class ImportFlowTest {
             find(decor,"ADD AND QUEUE").performClick();drain(c.get());assertEquals(Activity.RESULT_OK,Shadows.shadowOf(c.get()).getResultCode());Intent result=Shadows.shadowOf(c.get()).getResultIntent();assertTrue(result.getBooleanExtra(ImportActivity.QUEUE,false));assertEquals(1,result.getStringArrayListExtra(ImportActivity.IDS).size());
             assertEquals(2,new Library(context).games.get(0).tracks.size());assertTrue(first.exists());assertTrue(second.exists());
         }
+    }
+    @Test public void multipleNsfeFilesKeepTheirOwnGamesForAddAndQueueAfterRotation()throws Exception{
+        for(boolean queue:new boolean[]{false,true}){
+            new File(context.getFilesDir(),"library.json").delete();ArchiveImporter.removeTree(new File(context.getFilesDir(),"sets"));
+            try(org.robolectric.android.controller.ActivityController<ImportActivity> c=Robolectric.buildActivity(ImportActivity.class).setup()){
+                ClipData clip=ClipData.newRawUri("NES sets",Uri.fromFile(source("One.nsfe",10)));clip.addItem(new ClipData.Item(Uri.fromFile(source("Two.NSFE",11))));clip.addItem(new ClipData.Item(Uri.fromFile(source("Three.nsfe",12))));Intent picked=new Intent();picked.setClipData(clip);
+                c.get().onActivityResult(1,Activity.RESULT_OK,picked);drain(c.get());c.recreate();find(c.get().getWindow().getDecorView(),queue?"ADD AND QUEUE":"ADD").performClick();drain(c.get());
+                Intent result=Shadows.shadowOf(c.get()).getResultIntent();assertEquals(Activity.RESULT_OK,Shadows.shadowOf(c.get()).getResultCode());assertEquals(queue,result.getBooleanExtra(ImportActivity.QUEUE,false));assertEquals(3,result.getStringArrayListExtra(ImportActivity.IDS).size());
+                List<Library.Game> games=new Library(context).games;assertEquals(3,games.size());Set<String> ids=new HashSet<>();
+                for(int i=0;i<3;i++){Library.Game game=games.get(i);assertTrue(ids.add(game.id));assertEquals("NES Game "+(10+i),game.name);assertEquals(i+2,game.tracks.size());for(int n=0;n<game.tracks.size();n++){Library.Track track=game.tracks.get(n);assertEquals("Song "+(10+i)+"-"+n,track.title);assertEquals(n,track.index);assertEquals(game.name,track.game);assertTrue(track.path.contains(game.id));}}
+            }
+        }
+    }
+    @Test public void nsfSetsStaySeparateBesideGroupedLooseTracksAndFolderPaths()throws Exception{
+        List<ImportDocuments.Item> items=Arrays.asList(item(source("SameA.nsf",10),"First/Same.nsf"),item(source("SameB.nsf",11),"Second/Same.nsf"),item(source("One.spc",1),"Loose/One.spc"),item(source("Two.spc",1),"Loose/Two.spc"));Set<String> chosen=new HashSet<>();for(ImportDocuments.Item item:items)chosen.add(item.key());
+        List<Library.Game> games=ImportBatch.run(context,items,chosen,"Folder");assertEquals(3,games.size());assertEquals(2,games.get(0).tracks.size());assertEquals("NES Game 10",games.get(1).name);assertEquals(2,games.get(1).tracks.size());assertEquals("NES Game 11",games.get(2).name);assertEquals(3,games.get(2).tracks.size());
+    }
+    @Test public void failedNsfeBatchRollsBackEverySeparateSet()throws Exception{
+        File one=source("Good.nsfe",10),bad=source("Bad.nsfe",127);List<ImportDocuments.Item> items=Arrays.asList(item(one,"Good.nsfe"),item(bad,"Bad.nsfe"));Set<String> chosen=new HashSet<>();for(ImportDocuments.Item item:items)chosen.add(item.key());
+        try{ImportBatch.run(context,items,chosen,"NES sets");fail();}catch(IOException expected){assertEquals("Invalid music",expected.getMessage());}
+        assertTrue(new Library(context).games.isEmpty());assertEquals(0,new File(context.getFilesDir(),"sets").listFiles().length);assertTrue(one.exists());assertTrue(bad.exists());
     }
     @Test public void addReturnsLibraryOnlyAction()throws Exception{
         try(org.robolectric.android.controller.ActivityController<ImportActivity> c=Robolectric.buildActivity(ImportActivity.class).setup()){

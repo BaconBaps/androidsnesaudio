@@ -771,3 +771,15 @@ not overwrite an existing name. UI tests cover cancellation, existing/new target
 name validation, duplicate handling and unchanged playback queue/position/state.
 Full debug build, Robolectric suite and lint pass. Native decoding is unchanged.
 APK signing continuity and 16 KiB alignment pass.
+
+## v1.33.1 — separate batch NSF/NSFE sets
+
+Selected NSF/NSFE files import independently, preserving each game's metadata
+and subsongs. Regression tests cover Add/Add and queue after rotation, mixed
+loose-track selection, folder paths, uppercase extensions, repeated basenames
+and rollback when a later set fails. Full debug build, unit/UI suite and lint
+pass. An optional real-JNI integration test verifies the three supplied arcade
+ZIPs remain separate, including the import review flow, and generated NSFE sets
+retain independent titles, labels, playlist order and durations after reload.
+Native decoder code is unchanged. APK signing continuity and 16 KiB alignment
+pass. Existing merged library entries are not automatically migrated.

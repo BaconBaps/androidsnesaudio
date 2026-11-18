@@ -702,3 +702,14 @@ current playback queue. Existing order and unavailable stored references are
 preserved. Find saved playlists under **Library → Playlists**.
 
 <img src="screenshots/add-to-playlist.png" width="320" alt="Add to playlist picker with existing playlists and New playlist option" />
+
+## Batch NSF/NSFE imports (v1.33.1)
+
+Selecting several NSF or NSFE files now creates one library entry per file.
+Each keeps its own game metadata, subsongs, names and playback order. This works
+with Add, Add and queue, and folder selection. ZIP/RSN sets stay separate as
+before; ordinary loose tracks and PSF/USF dependency sets retain their grouping.
+The batch still rolls back if any selected file fails.
+
+Existing merged entries are left untouched. Re-import the affected NSF/NSFE
+files to create separate entries; the old entry can be managed through Library.
