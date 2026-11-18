@@ -15,7 +15,7 @@ Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of Sou
 | `.nsf`, `.nsfe` | NES / Famicom |
 | `.gbs` | Game Boy / Game Boy Color |
 | `.gym` | Sega Mega Drive / Genesis |
-| `.vgm`, `.vgz` | Multiple systems, including Mega Drive / Genesis, Master System and Game Gear; playback depends on the sound chips used in the file |
+| `.vgm`, `.vgz` | Multiple systems, including Mega Drive / Genesis, Master System, Game Gear and arcade CPS-1/CPS-2/Konami; broader libvgm chip playback (OPL4 excluded) |
 | `.hes` | PC Engine / TurboGrafx-16 |
 | `.kss` | MSX and some Master System / Game Gear music |
 | `.ay` | ZX Spectrum / Amstrad CPC |

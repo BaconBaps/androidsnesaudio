@@ -1,0 +1,2 @@
+# Preserve the historical whitespace in this unmodified upstream snapshot.
+third_party/libvgm/** -whitespace

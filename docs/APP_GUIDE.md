@@ -672,3 +672,19 @@ saved locally in the library; the original audio file is untouched. Saved
 playlists and favourites retain their references, and the current playback,
 notification and widget title update without restarting the song. Renaming is
 available for other supported formats too. NSFE embedded titles are preserved.
+
+## Arcade and wider VGM playback (v1.32.0)
+
+VGM/VGZ files using arcade and other chips beyond GME’s console support now use
+libvgm. This includes CPS-1 (YM2151 + OKI), CPS-2 QSound and The Simpsons arcade
+(YM2151 + Konami K053260), plus a wider range of Sega, Namco, Yamaha and other
+chip implementations. Existing library imports use the new decoder immediately;
+there is no need to remove or reimport them. Console VGM files already handled
+by GME retain that decoder and its channel mixer.
+
+GD3 names/timings, seeking, native loop points and WAV export work with the new
+route. Arcade instrument mixing is not exposed yet. QSF and additional libvgm
+containers such as S98/DRO are not added by this update. OPL4/YMF278B is excluded
+from this build and produces a clear unsupported-chip message. Expanded VGM data
+is limited to 64 MiB, sample ROM banks to 64 MiB each/128 MiB total. Broken or
+unsupported command/data blocks are rejected instead of silently skipped.

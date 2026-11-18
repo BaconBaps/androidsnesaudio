@@ -9,6 +9,7 @@
 #include "usf_decoder.h"
 #include "midi_decoder.h"
 #include "psx_audio.h"
+#include "vgm_decoder.h"
 
 static jstring utf8(JNIEnv*,const std::string&);
 static void fail(JNIEnv* e,const char* text){
@@ -20,6 +21,7 @@ static void fail(JNIEnv* e,const char* text){
 }
 struct Decoder {
     bool looping=false;int channelMask=0;
+    std::unique_ptr<VgmDecoder> vgm;
     std::unique_ptr<PsxAudio> stream;
     Music_Emu* gme=nullptr;std::unique_ptr<PsfDecoder> psf;std::unique_ptr<UsfDecoder> usf;std::unique_ptr<MidiDecoder> midi;
     ~Decoder(){if(gme)gme_delete(gme);}
@@ -40,16 +42,17 @@ extern "C" JNIEXPORT jlong JNICALL Java_dev_pixelspc_Engine_open(JNIEnv* e,jclas
     try{
         std::unique_ptr<Decoder> d(new Decoder);std::ifstream input(file,std::ios::binary);char magic[4]={};input.read(magic,4);
         auto dot=file.find_last_of('.');std::string ext=dot==std::string::npos?"":file.substr(dot);for(char& c:ext)if(c>='A'&&c<='Z')c+=32;
-        if(ext==".xa"||ext==".vag")d->stream.reset(new PsxAudio(file));else if((std::string(magic,3)=="PSF"&&uint8_t(magic[3])==0x21)||ext==".usf"||ext==".miniusf")d->usf.reset(new UsfDecoder(file));else if(ext==".mid"||ext==".midi")d->midi.reset(new MidiDecoder(file));else if(std::string(magic,3)=="PSF"||ext==".psf"||ext==".minipsf")d->psf.reset(new PsfDecoder(file));else checked(gme_open_file(file.c_str(),&d->gme,44100));
+        if(ext==".xa"||ext==".vag")d->stream.reset(new PsxAudio(file));else if((std::string(magic,3)=="PSF"&&uint8_t(magic[3])==0x21)||ext==".usf"||ext==".miniusf")d->usf.reset(new UsfDecoder(file));else if(ext==".mid"||ext==".midi")d->midi.reset(new MidiDecoder(file));else if(std::string(magic,3)=="PSF"||ext==".psf"||ext==".minipsf")d->psf.reset(new PsfDecoder(file));else{if(ext==".vgm"||ext==".vgz"||std::string(magic,4)=="Vgm ")d->vgm=VgmDecoder::openIfNeeded(file);if(!d->vgm)checked(gme_open_file(file.c_str(),&d->gme,44100));}
         return reinterpret_cast<jlong>(d.release());
     }catch(const std::exception& ex){fail(e,ex.what());return 0;}
 }
 extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_close(JNIEnv*,jclass,jlong h){delete reinterpret_cast<Decoder*>(h);}
-extern "C" JNIEXPORT jint JNICALL Java_dev_pixelspc_Engine_count(JNIEnv* e,jclass,jlong h){try{auto&d=get(h);return d.stream?d.stream->count():(d.usf||d.psf||d.midi)?1:gme_track_count(d.gme);}catch(const std::exception&ex){fail(e,ex.what());return 0;}}
+extern "C" JNIEXPORT jint JNICALL Java_dev_pixelspc_Engine_count(JNIEnv* e,jclass,jlong h){try{auto&d=get(h);return d.stream?d.stream->count():(d.vgm||d.usf||d.psf||d.midi)?1:gme_track_count(d.gme);}catch(const std::exception&ex){fail(e,ex.what());return 0;}}
 extern "C" JNIEXPORT jobjectArray JNICALL Java_dev_pixelspc_Engine_info(JNIEnv* e,jclass,jlong h,jint index){
     try{
         auto&d=get(h);std::vector<std::string> values;
-        if(d.stream)values=d.stream->info(index);
+        if(d.vgm){if(index)throw std::runtime_error("Invalid VGM track index");values=d.vgm->info();}
+        else if(d.stream)values=d.stream->info(index);
         else if(d.usf){if(index)throw std::runtime_error("Invalid USF track index");values=d.usf->info();}
         else if(d.midi){if(index)throw std::runtime_error("Invalid MIDI track index");values=d.midi->info();}
         else if(d.psf){if(index)throw std::runtime_error("Invalid PSF track index");values=d.psf->info();}
@@ -59,23 +62,23 @@ extern "C" JNIEXPORT jobjectArray JNICALL Java_dev_pixelspc_Engine_info(JNIEnv* 
     }catch(const std::exception&ex){fail(e,ex.what());return nullptr;}
 }
 extern "C" JNIEXPORT jint JNICALL Java_dev_pixelspc_Engine_length(JNIEnv*e,jclass,jlong h,jint index){
-    try{auto&d=get(h);if(d.stream)return d.stream->length(index);if(d.usf)return d.usf->length();if(d.midi)return d.midi->length();if(d.psf)return d.psf->length();gme_info_t*i=nullptr;checked(gme_track_info(d.gme,&i,index));int ms=i->length>0?i->length:i->intro_length+i->loop_length*2;gme_free_info(i);return ms>0?ms:180000;}catch(const std::exception&ex){fail(e,ex.what());return 180000;}
+    try{auto&d=get(h);if(d.vgm)return d.vgm->length();if(d.stream)return d.stream->length(index);if(d.usf)return d.usf->length();if(d.midi)return d.midi->length();if(d.psf)return d.psf->length();gme_info_t*i=nullptr;checked(gme_track_info(d.gme,&i,index));int ms=i->length>0?i->length:i->intro_length+i->loop_length*2;gme_free_info(i);return ms>0?ms:180000;}catch(const std::exception&ex){fail(e,ex.what());return 180000;}
 }
 extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_start(JNIEnv*e,jclass,jlong h,jint index,jint length){
-    try{auto&d=get(h);if(d.stream)d.stream->start(index);else if(d.usf){if(index)throw std::runtime_error("Invalid USF track index");d.usf->start();}else if(d.midi){if(index)throw std::runtime_error("Invalid MIDI track index");d.midi->start();}else if(d.psf){if(index)throw std::runtime_error("Invalid PSF track index");d.psf->start();}else{checked(gme_start_track(d.gme,index));gme_set_fade(d.gme,length);}}catch(const std::exception&ex){fail(e,ex.what());}
+    try{auto&d=get(h);if(d.vgm){if(index)throw std::runtime_error("Invalid VGM track index");d.vgm->start();}else if(d.stream)d.stream->start(index);else if(d.usf){if(index)throw std::runtime_error("Invalid USF track index");d.usf->start();}else if(d.midi){if(index)throw std::runtime_error("Invalid MIDI track index");d.midi->start();}else if(d.psf){if(index)throw std::runtime_error("Invalid PSF track index");d.psf->start();}else{checked(gme_start_track(d.gme,index));gme_set_fade(d.gme,length);}}catch(const std::exception&ex){fail(e,ex.what());}
 }
 extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_setLoop(JNIEnv*e,jclass,jlong h,jboolean enabled,jint length){
-    try{auto&d=get(h);d.looping=enabled;if(d.stream)d.stream->loop(enabled);else if(d.usf)d.usf->loop(enabled);else if(d.midi)d.midi->loop(enabled);else if(d.psf)d.psf->loop(enabled);else{gme_ignore_silence(d.gme,(enabled||d.channelMask)?1:0);int at=gme_tell(d.gme);gme_set_fade(d.gme,enabled?-1:std::max(at,length));}}catch(const std::exception&ex){fail(e,ex.what());}
+    try{auto&d=get(h);d.looping=enabled;if(d.vgm)d.vgm->loop(enabled,length);else if(d.stream)d.stream->loop(enabled);else if(d.usf)d.usf->loop(enabled);else if(d.midi)d.midi->loop(enabled);else if(d.psf)d.psf->loop(enabled);else{gme_ignore_silence(d.gme,(enabled||d.channelMask)?1:0);int at=gme_tell(d.gme);gme_set_fade(d.gme,enabled?-1:std::max(at,length));}}catch(const std::exception&ex){fail(e,ex.what());}
 }
 extern "C" JNIEXPORT jboolean JNICALL Java_dev_pixelspc_Engine_render(JNIEnv*e,jclass,jlong h,jshortArray pcm){
     try{auto&d=get(h);int count=e->GetArrayLength(pcm);if(count<=0||count>1048576||count%2)throw std::runtime_error("Invalid stereo output buffer");
         jshort* out=e->GetShortArrayElements(pcm,nullptr);if(!out)return false;bool ended=false;
-        try{if(d.stream)ended=d.stream->render(out,count);else if(d.usf)ended=d.usf->render(out,count);else if(d.midi)ended=d.midi->render(out,count);else if(d.psf)ended=d.psf->render(out,count);else{checked(gme_play(d.gme,count,out));ended=gme_track_ended(d.gme);}}catch(...){e->ReleaseShortArrayElements(pcm,out,0);throw;}
+        try{if(d.vgm)ended=d.vgm->render(out,count);else if(d.stream)ended=d.stream->render(out,count);else if(d.usf)ended=d.usf->render(out,count);else if(d.midi)ended=d.midi->render(out,count);else if(d.psf)ended=d.psf->render(out,count);else{checked(gme_play(d.gme,count,out));ended=gme_track_ended(d.gme);}}catch(...){e->ReleaseShortArrayElements(pcm,out,0);throw;}
         e->ReleaseShortArrayElements(pcm,out,0);return ended;
     }catch(const std::exception&ex){fail(e,ex.what());return false;}
 }
-extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_seek(JNIEnv*e,jclass,jlong h,jint ms){try{auto&d=get(h);if(ms<0||ms>86400000)throw std::runtime_error("Invalid seek position");if(d.stream)d.stream->seek(ms);else if(d.usf)d.usf->seek(ms);else if(d.midi)d.midi->seek(ms);else if(d.psf)d.psf->seek(ms);else checked(gme_seek(d.gme,ms));}catch(const std::exception&ex){fail(e,ex.what());}}
-extern "C" JNIEXPORT jint JNICALL Java_dev_pixelspc_Engine_tell(JNIEnv*e,jclass,jlong h){try{auto&d=get(h);return d.stream?d.stream->tell():d.usf?d.usf->tell():d.midi?d.midi->tell():d.psf?d.psf->tell():gme_tell(d.gme);}catch(const std::exception&ex){fail(e,ex.what());return 0;}}
+extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_seek(JNIEnv*e,jclass,jlong h,jint ms){try{auto&d=get(h);if(ms<0||ms>86400000)throw std::runtime_error("Invalid seek position");if(d.vgm)d.vgm->seek(ms);else if(d.stream)d.stream->seek(ms);else if(d.usf)d.usf->seek(ms);else if(d.midi)d.midi->seek(ms);else if(d.psf)d.psf->seek(ms);else checked(gme_seek(d.gme,ms));}catch(const std::exception&ex){fail(e,ex.what());}}
+extern "C" JNIEXPORT jint JNICALL Java_dev_pixelspc_Engine_tell(JNIEnv*e,jclass,jlong h){try{auto&d=get(h);return d.vgm?d.vgm->tell():d.stream?d.stream->tell():d.usf?d.usf->tell():d.midi?d.midi->tell():d.psf?d.psf->tell():gme_tell(d.gme);}catch(const std::exception&ex){fail(e,ex.what());return 0;}}
 
 extern "C" JNIEXPORT void JNICALL Java_dev_pixelspc_Engine_soundFont(JNIEnv*e,jclass,jlong h,jstring path){
     const char* file=e->GetStringUTFChars(path,nullptr);if(!file)return;

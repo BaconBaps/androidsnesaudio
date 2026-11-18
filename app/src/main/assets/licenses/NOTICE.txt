@@ -90,3 +90,12 @@ LazyUSF2 / Mupen64Plus from Cog revision
 `1ef38735c065da74c499eda05e0ae7b1e953586c`. GPL-2.0-or-later and CC0 components;
 see LazyUSF2-NOTICE.txt and the retained source headers in third_party/lazyusf2.
 The combined build remains GPLv3. No game ROM, BIOS or N64 soundtrack is bundled.
+
+## libvgm arcade / extended VGM playback
+
+Pinned libvgm sources and original per-file notices are in `third_party/libvgm`;
+see its SOURCE.md for revision and build selections. The app enables the broad
+chip collection, preserving the existing GME route for its console VGM chips.
+OPL4's GPL-2.0-only implementation is not linked into this GPLv3 APK. No game
+tracks or proprietary sample-ROM files are included. Full source and app build
+scripts are available in this repository.

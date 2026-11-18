@@ -738,3 +738,25 @@ dark-theme readability, queue/current-title refresh, playlist/favourite identity
 and unchanged playback position/state. Full debug build, Robolectric suite and
 lint pass. Native metadata smoke test, signing continuity and 16 KiB alignment
 pass. No physical-device playback verification was performed for this release.
+
+## v1.32.0 — arcade and wider VGM chip support
+
+Pinned libvgm provides the broad device collection for non-GME VGM chips. OPL4's
+GPL-2.0-only core is excluded and explicitly rejected. Existing console VGM
+routing/mixing remains on GME. Expanded file/ROM sizes and command/data-block
+lengths are bounded, GD3 conversion is portable to API 26, and old imports use
+the new route without reimporting. User music remains private and uncommitted.
+
+All supplied CPS-1 (47), CPS-2 (72), and Simpsons (45) tracks opened and generated
+nonzero PCM within 2 seconds: 164/164. Representative tracks pass forward/backward
+seeks, native loop-boundary crossings, loop-off fades/end and byte-identical
+raw-VGM/VGZ rendering. CPS-2 WAV export is audible at zero/nonzero offsets and
+does not advance live playback. Generated tests reject unknown commands,
+truncated sample blocks, invalid loop offsets and OPL4, and verify Unicode GD3 and decoder recovery.
+
+SPC/RSN extraction and 65 real SPC tracks, GME seek/mixer/NSFE checks, PSF, USF,
+MIDI and 11 XA/VAG streams pass against the combined native library. Android
+ARM64/x86_64 builds, all 138 Robolectric tests and lint pass. Both ABI configs
+exclude OPL4; ARM64 symbols confirm its emulator is not linked. Signing continuity
+and 16 KiB APK alignment pass. Host JNI proves generated audio; physical-device
+playback quality/performance still needs testing.
