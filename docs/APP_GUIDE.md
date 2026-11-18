@@ -688,3 +688,17 @@ containers such as S98/DRO are not added by this update. OPL4/YMF278B is exclude
 from this build and produces a clear unsupported-chip message. Expanded VGM data
 is limited to 64 MiB, sample ROM banks to 64 MiB each/128 MiB total. Broken or
 unsupported command/data blocks are rejected instead of silently skipped.
+
+## Add a track to a playlist (v1.33.0)
+
+Hold a track in a soundtrack, favourites, saved playlist or playback queue and
+choose **Add to playlist…**. Select an existing saved playlist to append it, or
+choose **＋ New playlist…**, enter a name and press Create. Cancel leaves saved
+playlists unchanged. An existing reference to that same imported track/subsong
+is reported as already present, avoiding accidental duplicates.
+
+This saves a reference to the track without copying audio or changing the
+current playback queue. Existing order and unavailable stored references are
+preserved. Find saved playlists under **Library → Playlists**.
+
+<img src="screenshots/add-to-playlist.png" width="320" alt="Add to playlist picker with existing playlists and New playlist option" />

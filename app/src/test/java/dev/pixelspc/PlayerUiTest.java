@@ -230,7 +230,7 @@ public class PlayerUiTest {
         new Playlists(app).save(null,"Selected mix",java.util.Arrays.asList(sources));
         try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
             MainActivity a=c.get();findDescription(a.getWindow().getDecorView(),"Play Track 1").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();
-            assertEquals(3,actions.getListView().getCount());assertEquals("Rename track…",actions.getListView().getAdapter().getItem(2));assertEquals("Export audio…",actions.getListView().getAdapter().getItem(0));assertEquals("Playback tools",actions.getListView().getAdapter().getItem(1));captureView(actions.getWindow().getDecorView(),"track-actions.png",822,650);
+            assertEquals(4,actions.getListView().getCount());assertEquals("Add to playlist…",actions.getListView().getAdapter().getItem(3));assertEquals("Rename track…",actions.getListView().getAdapter().getItem(2));assertEquals("Export audio…",actions.getListView().getAdapter().getItem(0));assertEquals("Playback tools",actions.getListView().getAdapter().getItem(1));captureView(actions.getWindow().getDecorView(),"track-actions.png",822,650);
             actions.getListView().performItemClick(null,1,1);android.app.Dialog tools=org.robolectric.shadows.ShadowDialog.getLatestDialog();
             assertNotNull(findText(tools.getWindow().getDecorView(),"SELECTED TRACK"));assertNotNull(findText(tools.getWindow().getDecorView(),"Track 1"));assertNull(findDescription(tools.getWindow().getDecorView(),"Change SoundFont…"));assertFalse(findDescription(tools.getWindow().getDecorView(),"Channel mixer").isEnabled());
             captureView(tools.getWindow().getDecorView(),"selected-track-tools.png",822,1100);findDescription(tools.getWindow().getDecorView(),"Export audio…").performClick();android.content.Intent exported=Shadows.shadowOf(a).getNextStartedActivity();assertEquals(sources[1].path,exported.getStringExtra("path"));assertSame(sources[0],service.current);assertEquals(54321,service.position);
@@ -258,6 +258,18 @@ public class PlayerUiTest {
             input.setText("  Overworld  ");assertEquals(PlayerTheme.find("dark").text,input.getCurrentTextColor());captureView(rename.getWindow().getDecorView(),"rename-track.png",720,420);rename.getButton(-1).performClick();Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             assertEquals("Overworld",service.current.title);assertEquals(54321,service.position);assertTrue(service.playing);
             Library restored=new Library(app);assertEquals("Overworld",restored.games.get(1).tracks.get(0).title);assertEquals("Overworld",new Playlists(app).all(restored.games).get(0).tracks.get(1).title);assertTrue(new TrackFavorites(app).contains(restored.games.get(1).tracks.get(0)));
+        }
+    }
+    private AlertDialog addTrackPrompt(MainActivity a){findDescription(a.getWindow().getDecorView(),"Play Track 1").performLongClick();AlertDialog actions=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();actions.getListView().performItemClick(null,3,3);return (AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();}
+    @Test public void trackMenuAddsToExistingOrNewPlaylistWithoutChangingPlayback()throws Exception{
+        Library.Track[] tracks=playlistSources();service.current=tracks[0];service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(tracks));service.position=54321;service.playing=true;String id=new Playlists(app).save(null,"Mix",java.util.Collections.singletonList(tracks[0]));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();a.selectTheme("chip5-dark");AlertDialog picker=addTrackPrompt(a);assertEquals(2,picker.getListView().getCount());captureView(picker.getWindow().getDecorView(),"add-to-playlist.png",720,500);picker.getButton(-2).performClick();assertEquals(1,new Playlists(app).all(new Library(app).games).get(0).tracks.size());
+            picker=addTrackPrompt(a);picker.getListView().performItemClick(null,1,1);Library.Game mix=new Playlists(app).all(new Library(app).games).get(0);assertEquals(id,mix.id);assertEquals(2,mix.tracks.size());assertEquals(tracks[1].path,mix.tracks.get(1).path);
+            picker=addTrackPrompt(a);picker.getListView().performItemClick(null,1,1);assertEquals(2,new Playlists(app).all(new Library(app).games).get(0).tracks.size());
+            picker=addTrackPrompt(a);picker.getListView().performItemClick(null,0,0);AlertDialog create=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();EditText input=(EditText)findDescription(create.getWindow().getDecorView(),"Playlist name");input.setText(" ");create.getButton(-1).performClick();assertTrue(create.isShowing());input.setText("Mix");create.getButton(-1).performClick();assertTrue(create.isShowing());input.setText("Solo");create.getButton(-1).performClick();
+            java.util.List<Library.Game> saved=new Playlists(app).all(new Library(app).games);assertEquals(2,saved.size());assertEquals("Solo",saved.get(1).name);assertEquals(1,saved.get(1).tracks.size());assertEquals(tracks[1].path,saved.get(1).tracks.get(0).path);
+            assertSame(tracks[0],service.current);assertEquals(54321,service.position);assertTrue(service.playing);assertEquals(2,service.queue.size());
         }
     }
     private void openFavourites(MainActivity a){

@@ -30,6 +30,17 @@ public class PlaylistsTest {
         Library.Game partial=store.all(Collections.singletonList(game(kept))).get(0);assertEquals(Collections.singletonList(kept),partial.tracks);assertEquals(id,partial.id);
         Library.Game empty=store.all(Collections.emptyList()).get(0);assertTrue(empty.tracks.isEmpty());store.rename(id,"Keep this name");assertEquals("Keep this name",store.all(Collections.emptyList()).get(0).name);
     }
+    @Test public void appendingKeepsStoredUnavailableReferencesAndDistinguishesSubsongs()throws Exception{
+        Library.Track missing=track("missing.nsf",0),a=track("game.nsf",0),b=track("game.nsf",1);Playlists store=new Playlists(context);String id=store.save(null,"Mix",Arrays.asList(missing,a));
+        assertTrue(store.append(id,b));assertFalse(store.append(id,a));assertFalse(store.append(id,b));
+        Library.Game saved=new Playlists(context).all(Collections.singletonList(game(missing,a,b))).get(0);assertEquals(Arrays.asList(missing,a,b),saved.tracks);
+        assertFalse(new String(Files.readAllBytes(file.toPath()),"UTF-8").contains("Artist"));
+    }
+    @Test public void appendLimitsAndMissingPlaylistLeaveTheFileUntouched()throws Exception{
+        Library.Track a=track("a.spc",0),b=track("b.spc",0);Playlists store=new Playlists(context);String id=store.save(null,"Full",Collections.nCopies(1000,a));byte[] before=Files.readAllBytes(file.toPath());
+        assertFalse(store.append(id,a));try{store.append(id,b);fail();}catch(IOException expected){}
+        try{store.append("playlist-missing",b);fail();}catch(IOException expected){}assertArrayEquals(before,Files.readAllBytes(file.toPath()));
+    }
     @Test public void invalidNamesEmptyListsAndDuplicatesCannotOverwriteExistingData()throws Exception{
         Library.Track a=track("a.spc",0);Playlists store=new Playlists(context);store.save(null,"Mix",Collections.singletonList(a));byte[] before=Files.readAllBytes(file.toPath());
         for(String name:new String[]{" ","mix",String.join("",Collections.nCopies(81,"a"))})try{store.save(null,name,Collections.singletonList(a));fail(name);}catch(IOException expected){}

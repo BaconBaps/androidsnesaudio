@@ -560,10 +560,31 @@ public class MainActivity extends Activity {
         prompt.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v->{try{String title=input.getText().toString().trim();library.renameTrack(track,title);track.title=title;track.renamed=true;if(player!=null)player.refreshTrackTitle(track,title);prompt.dismiss();renderTracks();}catch(Exception failure){input.setError(failure.getMessage());}});
         input.requestFocus();prompt.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
+    private void addTrackToPlaylist(Library.Track track){
+        boolean available=false;for(Library.Game game:library.games)for(Library.Track entry:game.tracks)if(sameTrack(entry,track))available=true;
+        if(!available){Toast.makeText(this,"This track is no longer in the library",Toast.LENGTH_LONG).show();return;}
+        final List<Library.Game> lists;try{lists=new Playlists(this).all(library.games);}catch(Exception failure){playlistError(failure);return;}
+        String[] labels=new String[lists.size()+1];labels[0]="＋ New playlist…";for(int i=0;i<lists.size();i++)labels[i+1]=lists.get(i).name+" · "+getResources().getQuantityString(R.plurals.track_count,lists.get(i).tracks.size(),lists.get(i).tracks.size());
+        dialog().setTitle("Add to playlist").setItems(labels,(d,which)->{
+            if(which==0){newPlaylistWithTrack(track);return;}Library.Game list=lists.get(which-1);
+            try{boolean added=new Playlists(this).append(list.id,track);if(added)trackAddedToPlaylist(list.id,list.name);else Toast.makeText(this,"Already in “"+list.name+"”",Toast.LENGTH_SHORT).show();}catch(Exception failure){playlistError(failure);}
+        }).setNegativeButton("CANCEL",null).show();
+    }
+    private void newPlaylistWithTrack(Library.Track track){
+        EditText input=new EditText(new ContextThemeWrapper(this,theme.dark?R.style.AppDarkDialog:R.style.AppLightDialog));input.setTypeface(UiFonts.body(this));input.setTextColor(textColor);input.setSingleLine(true);input.setHint("Playlist name");input.setHintTextColor(mutedColor);input.setContentDescription("Playlist name");input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(80)});
+        AlertDialog prompt=dialog().setTitle("New playlist").setView(input).setNegativeButton("CANCEL",null).setPositiveButton("CREATE",null).show();
+        prompt.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v->{try{String name=input.getText().toString().trim();String id=new Playlists(this).save(null,name,Collections.singletonList(track));prompt.dismiss();trackAddedToPlaylist(id,name);}catch(Exception failure){input.setError(failure.getMessage());}});
+        input.requestFocus();prompt.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    }
+    private void trackAddedToPlaylist(String id,String name)throws Exception{
+        if(selected!=null&&id.equals(selected.id))for(Library.Game list:new Playlists(this).all(library.games))if(id.equals(list.id)){selected=list;break;}
+        getSharedPreferences("library-browser",MODE_PRIVATE).edit().putBoolean("expanded:Playlists",true).apply();renderTracks();Toast.makeText(this,"Added to “"+name+"”",Toast.LENGTH_SHORT).show();
+    }
+    private void playlistError(Exception failure){dialog().setTitle("Could not add to playlist").setMessage(failure.getMessage()).setPositiveButton("OK",null).show();}
     private void trackActions(Library.Track track){
-        List<String> labels=new ArrayList<>();if(SoundFonts.midi(track.path))labels.add("Change SoundFont…");labels.add("Export audio…");labels.add("Playback tools");labels.add("Rename track…");
+        List<String> labels=new ArrayList<>();if(SoundFonts.midi(track.path))labels.add("Change SoundFont…");labels.add("Export audio…");labels.add("Playback tools");labels.add("Rename track…");labels.add("Add to playlist…");
         dialog().setTitle(track.title).setItems(labels.toArray(new String[0]),(d,which)->{
-            String action=labels.get(which);if(action.equals("Rename track…"))renameTrack(track);else if(action.equals("Change SoundFont…"))chooseTrackSoundFont(track);else if(action.equals("Export audio…"))exportTrack(track);else showMenuPage("playback",track);
+            String action=labels.get(which);if(action.equals("Add to playlist…"))addTrackToPlaylist(track);else if(action.equals("Rename track…"))renameTrack(track);else if(action.equals("Change SoundFont…"))chooseTrackSoundFont(track);else if(action.equals("Export audio…"))exportTrack(track);else showMenuPage("playback",track);
         }).setNegativeButton("CANCEL",null).show();
     }
     private void collectionAction(Library.Game game,int action){
@@ -576,10 +597,10 @@ public class MainActivity extends Activity {
     }
     private void queueActions(int at) {
         if(player==null||at>=player.queue.size())return;Library.Track track=player.queue.get(at);
-        List<String> labels=new ArrayList<>();if(at>0)labels.add("Move up");if(at+1<player.queue.size())labels.add("Move down");labels.add("Remove from queue");if(SoundFonts.midi(track.path))labels.add("Change SoundFont…");labels.add("Export audio…");labels.add("Playback tools");labels.add("Rename track…");
+        List<String> labels=new ArrayList<>();if(at>0)labels.add("Move up");if(at+1<player.queue.size())labels.add("Move down");labels.add("Remove from queue");if(SoundFonts.midi(track.path))labels.add("Change SoundFont…");labels.add("Export audio…");labels.add("Playback tools");labels.add("Rename track…");labels.add("Add to playlist…");
         dialog().setTitle(track.title).setItems(labels.toArray(new String[0]),(d,which)->{
             String action=labels.get(which);if(player==null)return;
-            if(action.equals("Rename track…"))renameTrack(track);else if(action.equals("Move up"))player.moveQueued(at,at-1);else if(action.equals("Move down"))player.moveQueued(at,at+1);else if(action.equals("Remove from queue"))player.removeQueued(at);else if(action.equals("Change SoundFont…"))chooseTrackSoundFont(track);else if(action.equals("Playback tools"))showMenuPage("playback",track);else exportTrack(track);renderTracks();
+            if(action.equals("Add to playlist…"))addTrackToPlaylist(track);else if(action.equals("Rename track…"))renameTrack(track);else if(action.equals("Move up"))player.moveQueued(at,at-1);else if(action.equals("Move down"))player.moveQueued(at,at+1);else if(action.equals("Remove from queue"))player.removeQueued(at);else if(action.equals("Change SoundFont…"))chooseTrackSoundFont(track);else if(action.equals("Playback tools"))showMenuPage("playback",track);else exportTrack(track);renderTracks();
         }).setNegativeButton("CANCEL",null).show();
     }
     void importUri(Uri uri) {
@@ -679,7 +700,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.32.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+) and libvgm (individual GPL/LGPL/BSD/MIT cores). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.33.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+) and libvgm (individual GPL/LGPL/BSD/MIT cores). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

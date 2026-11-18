@@ -760,3 +760,14 @@ ARM64/x86_64 builds, all 138 Robolectric tests and lint pass. Both ABI configs
 exclude OPL4; ARM64 symbols confirm its emulator is not linked. Signing continuity
 and 16 KiB APK alignment pass. Host JNI proves generated audio; physical-device
 playback quality/performance still needs testing.
+
+## v1.33.0 — add individual tracks to playlists
+
+Track and queue long-press menus offer Add to playlist, with an existing-playlist
+picker and New playlist flow. Append writes one reference atomically, preserves
+order/unavailable references, distinguishes subsong indexes, avoids accidental
+duplicate additions and enforces the 1000-track limit. Creating a playlist does
+not overwrite an existing name. UI tests cover cancellation, existing/new targets,
+name validation, duplicate handling and unchanged playback queue/position/state.
+Full debug build, Robolectric suite and lint pass. Native decoding is unchanged.
+APK signing continuity and 16 KiB alignment pass.

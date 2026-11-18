@@ -45,6 +45,17 @@ final class Playlists {
             next.put(new JSONObject().put("id",id).put("name",name).put("tracks",refs));write(next);return id;
         }
     }
+    /** Append one reference atomically, preserving stored order and unavailable imports. */
+    boolean append(String id,Library.Track track)throws Exception{
+        if(track==null||track.path==null||track.path.isEmpty()||track.index<0)throw new IOException("Invalid library track");
+        synchronized(Playlists.class){
+            JSONArray entries=read();JSONObject selected=null;for(int i=0;i<entries.length();i++)if(entries.getJSONObject(i).getString("id").equals(id))selected=entries.getJSONObject(i);
+            if(selected==null)throw new IOException("Playlist no longer exists");JSONArray refs=selected.getJSONArray("tracks");
+            for(int i=0;i<refs.length();i++){JSONObject ref=refs.getJSONObject(i);if(ref.getString("path").equals(track.path)&&ref.getInt("index")==track.index)return false;}
+            if(refs.length()>=TRACK_LIMIT)throw new IOException("A playlist can contain up to 1000 tracks");
+            refs.put(new JSONObject().put("path",track.path).put("index",track.index));write(entries);return true;
+        }
+    }
     void rename(String id,String name)throws Exception{
         name=name==null?"":name.trim();if(name.isEmpty()||name.length()>80)throw new IOException("Use a name between 1 and 80 characters");
         synchronized(Playlists.class){JSONArray entries=read();JSONObject selected=null;for(int i=0;i<entries.length();i++){JSONObject item=entries.getJSONObject(i);if(item.getString("id").equals(id))selected=item;else if(item.getString("name").equalsIgnoreCase(name))throw new IOException("A playlist with this name already exists");}if(selected==null)throw new IOException("Playlist no longer exists");selected.put("name",name);write(entries);}
