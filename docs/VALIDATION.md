@@ -839,3 +839,16 @@ contrast, style parity, custom-theme and widget tests pass; full APK build,
 UI/unit suite and lint pass. Robolectric gallery renders were visually checked
 for both revised palettes in ChipAmp5, with screenshots saved for both styles.
 APK signing continuity and 16 KiB alignment pass. Audio/native code is unchanged.
+
+## v1.34.3 — adopt the supplied SNES editor export
+
+Built-in SNES uses the supplied SNES.chiptheme.json body, heading, library and
+playback-button modifications, shared by both styles. A retained export fixture
+checks every supplied role against each built-in style through the theme editor's
+colour resolver. The authored SNES palette is exempt from the previous generic
+contrast minimums rather than silently recolouring the user's choices; the other
+palettes retain those checks. Light-shadow checks now select light palettes by
+their resolved brightness because the supplied SNES background resolves dark.
+Full debug build, unit/UI suite and lint pass. Both SNES gallery previews were
+updated, with the rounded-style preview inspected visually. Signing continuity
+and APK 16 KiB alignment pass. Native/audio code is unchanged.

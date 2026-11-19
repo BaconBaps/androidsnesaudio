@@ -763,3 +763,10 @@ selections and custom-theme bases remain compatible.
 plastic and charcoal recesses, blue UI accents, red details, and green, yellow,
 red and blue spectrum colours inspired by the four controller buttons. The
 separate Super Famicom palette remains available.
+
+## Supplied SNES revision (v1.34.3)
+
+The built-in SNES palette now matches the supplied SNES.chiptheme.json export:
+body #9AA09C, library background #878A88, headings #3D4041 and playback buttons
+#575857. The remaining exported colours are preserved. Both Classic and
+ChipAmp5 use this revision, retaining the existing SNES IDs and name.

@@ -12,6 +12,14 @@ import static org.junit.Assert.*;
 public class ThemeStoreTest {
     private Context context;private ThemeStore store;
     @Before public void setup(){context=RuntimeEnvironment.getApplication();context.getSharedPreferences("custom-themes",0).edit().clear().commit();context.getSharedPreferences("appearance",0).edit().clear().commit();store=new ThemeStore(context);}
+    @Test public void builtInSnesMatchesTheSuppliedEditorExportInBothStyles()throws Exception{
+        ThemeStore.Draft export;try(InputStream in=getClass().getResourceAsStream("/themes/SNES.chiptheme.json")){assertNotNull(in);export=ThemeStore.read(in);}
+        for(String id:new String[]{"snes","chip5-snes"}){
+            ThemeStore.Draft builtIn=ThemeStore.from(PlayerTheme.find(id),false);
+            assertEquals("SNES",builtIn.theme().name.replace(" copy",""));
+            for(Map.Entry<String,Integer> colour:export.colors.entrySet())assertEquals(id+" "+colour.getKey(),(int)colour.getValue(),ThemeEditor.color(builtIn,colour.getKey()));
+        }
+    }
     @Test public void headerColoursRoundTripWithoutChangingSpectrumOrAccent()throws Exception {
         ThemeStore.Draft d=ThemeStore.from(PlayerTheme.find("dark"),false);
         d.colors.put("headerInk",0xfff0a050);d.colors.put("headerBackground",0xff030609);

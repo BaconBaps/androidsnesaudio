@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "SNES copy",
+  "base": "chip5-snes",
+  "style": "chipamp5",
+  "colors": {
+    "border": "#8B9495",
+    "buttonText": "#24292B",
+    "surface": "#D5D8D5",
+    "heading": "#3D4041",
+    "player.spectrumMid": "#F2D650",
+    "player.spectrumBackground": "#151D20",
+    "player.spectrumHigh": "#ED5047",
+    "library.background": "#878A88",
+    "player.readout": "#151D20",
+    "button": "#D3D6D2",
+    "headerInk": "#EDF0E8",
+    "player.spectrumPeak": "#518FEC",
+    "player.background": "#252D31",
+    "player.button": "#575857",
+    "background": "#9AA09C",
+    "headerBackground": "#252D31",
+    "player.text": "#EDF0E8",
+    "player.accent": "#F2D650",
+    "player.secondary": "#DE514A",
+    "player.buttonText": "#20282C",
+    "player.spectrumLow": "#38B96A"
+  }
+}
