@@ -42,13 +42,28 @@ public final class PlayerTheme {
         return new PlayerTheme(id,name,inspiration,dark,background,text,accent,secondary,colors,prefix,baseId,style);
     }
     boolean chipAmp5(){return PlayerStyle.CHIPAMP5.equals(styleId);}
+    private static PlayerTheme hardwarePalette(String id,String name,String inspiration,int background,int text,int accent,int secondary,Object...roles){
+        Map<String,Integer> colors=new HashMap<>();for(int i=0;i<roles.length;i+=2)colors.put((String)roles[i],(Integer)roles[i+1]);
+        return new PlayerTheme(id,name,inspiration,false,background,text,accent,secondary,colors,"",id,PlayerStyle.CLASSIC);
+    }
     private static final PlayerTheme[] CLASSIC={
         new PlayerTheme("light","Pixel Light","The original lavender & cream",false,0xfff6f3eb,0xff302b40,0xff7453cc,0xffdce7bf),
         new PlayerTheme("dark","Pixel Dark","Deep ocean & electric teal",true,0xff08191e,0xffd6f3ef,0xff53d8d0,0xffffbd80),
-        new PlayerTheme("snes","SNES","US hardware · gray & purple",false,0xffe7e5eb,0xff30283e,0xff6845aa,0xffc4b3df),
+        hardwarePalette("snes","SNES","PAL hardware · grey shell & four-colour buttons",0xffc9ccca,0xff24292b,0xff184b91,0xffc63835,
+            "surface",0xffd5d8d5,"border",0xff8b9495,"button",0xffd3d6d2,"buttonText",0xff24292b,
+            "headerBackground",0xff252d31,"headerInk",0xffedf0e8,
+            "player.background",0xff252d31,"player.text",0xffedf0e8,"player.accent",0xfff2d650,"player.secondary",0xffde514a,
+            "player.button",0xffbfc5c1,"player.buttonText",0xff20282c,"player.readout",0xff151d20,
+            "player.spectrumBackground",0xff151d20,"player.spectrumLow",0xff38b96a,"player.spectrumMid",0xfff2d650,"player.spectrumHigh",0xffed5047,"player.spectrumPeak",0xff518fec),
         new PlayerTheme("super-famicom","Super Famicom","Navy shell · vivid red & gold buttons",true,0xff101f32,0xffeef2f8,0xffff7186,0xfff4cc49),
         new PlayerTheme("nes","NES","Graphite shell & cartridge red",true,0xff303239,0xfff3f4f6,0xffff9b9b,0xffb9c1cd),
-        new PlayerTheme("famicom","Famicom","Warm ivory & burgundy hardware",false,0xfff4e6cc,0xff4a2229,0xff922940,0xffd9b35a),
+        hardwarePalette("famicom","Chipamp 5","Silver plastic · navy glass & ice-blue glow",0xffccd2d9,0xff14243b,0xff173e78,0xff366baf,
+            "surface",0xffd9dfe5,"border",0xff74859a,"button",0xffd4dbe3,"buttonText",0xff15243b,
+            "headerBackground",0xff153568,"headerInk",0xffe8f3ff,
+            "library.background",0xff193966,"library.text",0xffedf4ff,"library.muted",0xffcbdcf4,"library.accent",0xffedf4ff,"library.surface",0xff355b8d,"library.border",0xff6a87ad,
+            "player.background",0xff414b5a,"player.text",0xfff2f6ff,"player.muted",0xffdae6f5,"player.accent",0xffe7f3ff,"player.secondary",0xff174c9c,"player.heading",0xfff2f6ff,
+            "player.surface",0xff354658,"player.button",0xffcdd5df,"player.buttonText",0xff14243b,"player.readout",0xff153568,
+            "player.spectrumBackground",0xff153568,"player.spectrumLow",0xff82dce9,"player.spectrumMid",0xffb7deff,"player.spectrumHigh",0xfff0f7ff,"player.spectrumPeak",0xfff0f7ff),
         new PlayerTheme("game-boy","Game Boy","Four shades of the original LCD",false,0xffd2dba0,0xff253b22,0xff38542a,0xff93a65b),
         new PlayerTheme("mega-drive","Mega Drive / Genesis","Black hardware · Sega blue & red",true,0xff111113,0xfff2eeee,0xff73acff,0xffe85b66),
         new PlayerTheme("gamecube","GameCube","Deep violet shell & mint highlights",true,0xff32194d,0xfff5eaff,0xffd2a8ff,0xff65e2b6),

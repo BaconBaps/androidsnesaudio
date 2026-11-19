@@ -750,3 +750,16 @@ it does not change the playback queue or start playback. Activity saved state
 still takes priority during recreation. If an entry has been removed, the player
 falls back to the latest library game or the empty-library view. Previously
 remembered saved playlists remain compatible.
+
+## Refreshed hardware palettes (v1.34.2)
+
+Famicom is replaced by **Chipamp 5**: cool silver plastic, navy glass displays,
+ice-blue/white display ink and a blue library selection. Choose the ChipAmp5
+player style for the rounded plastic controls closest to the reference; the same
+palette is also available in Classic. The old Famicom IDs are retained so saved
+selections and custom-theme bases remain compatible.
+
+**SNES** now follows PAL Super Nintendo / Super Famicom hardware: neutral grey
+plastic and charcoal recesses, blue UI accents, red details, and green, yellow,
+red and blue spectrum colours inspired by the four controller buttons. The
+separate Super Famicom palette remains available.

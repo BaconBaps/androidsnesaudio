@@ -76,6 +76,14 @@ Every theme has a recessed pinball-style dot-matrix header: the title rests, occ
 <img src="docs/screenshots/theme-chip5-dark.png" width="300" alt="ChipAmp5 style with the Pixel Dark palette and rounded plastic controls" />
 
 <table>
+  <tr><th>Chipamp 5</th><th>SNES · PAL hardware</th></tr>
+  <tr>
+    <td><img src="docs/screenshots/theme-chip5-famicom.png" width="300" alt="Chipamp 5 silver and navy palette in the rounded player style" /></td>
+    <td><img src="docs/screenshots/theme-chip5-snes.png" width="300" alt="PAL SNES grey palette with four-colour controller accents" /></td>
+  </tr>
+</table>
+
+<table>
   <tr>
     <th>Llama</th>
     <th>Pixel Light</th>

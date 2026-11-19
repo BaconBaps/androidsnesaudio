@@ -827,3 +827,15 @@ no saved bundle, and verify the selected game and unchanged playback. Additional
 checks cover saved playlists, the legacy preference, deleted entries, an empty
 library and recreation state priority. Full debug build, UI/unit tests and lint
 pass. Signing continuity and APK 16 KiB alignment pass.
+
+## v1.34.2 — silver/blue and PAL SNES palettes
+
+The Famicom slot is now Chipamp 5: silver body/buttons, navy header, readout,
+spectrum and tracklist, ice-blue display ink and blue selection. SNES now uses
+PAL/Super Famicom neutral greys, charcoal recesses and the red/yellow/green/blue
+button colours. Both palettes are shared unchanged across Classic and ChipAmp5;
+existing IDs are retained for stored selections/custom bases. Existing theme
+contrast, style parity, custom-theme and widget tests pass; full APK build,
+UI/unit suite and lint pass. Robolectric gallery renders were visually checked
+for both revised palettes in ChipAmp5, with screenshots saved for both styles.
+APK signing continuity and 16 KiB alignment pass. Audio/native code is unchanged.
