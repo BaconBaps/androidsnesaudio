@@ -1,7 +1,7 @@
 # ChipAmp9x
 
 A pixel-styled Android player for retro game soundtracks, with two player styles and ten shared colour palettes,
-custom palettes, saved playlists, a channel mixer, four audio visualizers, favourites, WAV export, a sleep timer,
+custom palettes, saved playlists, a channel mixer, five audio visualizers including projectM/MilkDrop, favourites, WAV export, a sleep timer,
 and a home-screen widget.
 Plays SPC/RSN, PlayStation PSF, Nintendo 64 USF and MIDI with your choice of SoundFonts.
 
@@ -42,9 +42,21 @@ are supporting files rather than standalone tracks.
 PSF2 (`.psf2`, `.minipsf2`), console ROMs and general audio formats such as MP3
 and FLAC are not currently supported.
 
+## projectM / MilkDrop visualizer
+
+Open **Player menu → Visualizers → projectM**. Three starter presets are included;
+tap the visualizer to cycle through all five displays.
+
+Use **PROJECTM PRESETS → Import preset / texture pack** to import a `.milk` file,
+a ZIP of presets, or a PNG/JPEG texture ZIP. Presets and textures can be imported
+separately. Choose a preset, advance to the next, or enable 45-second cycling.
+The downloaded packs stay on your device and are not bundled with the APK.
+projectM requires OpenGL ES 3.0; the pixel visualizers remain available on other
+devices. Demanding desktop presets may perform differently on phone GPUs.
+
 ## Channel mixer
 
-Open **Header → Back → Playback tools → Channel mixer** while playing a supported
+Open **Player menu → Playback tools → Channel mixer** while playing a supported
 GME track (SPC, NSF/NSFE, GBS, VGM/VGZ, GYM, HES, KSS, AY or SAP). Mute voices,
 solo one, or reset everything. Mutes survive scrubbing and pausing; switching
 tracks restores all channels. PSF, USF, MIDI, XA and VAG mixing is not available.

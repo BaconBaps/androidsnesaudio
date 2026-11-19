@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
     private LinearLayout root,trackList;
     private TextView gameTitle,gameMeta,nowTitle,nowArtist,playButton,time,shuffleButton,repeatButton,libraryButton,status,listHeading;
     private SeekBar seek;
-    private PixelVisualizer visualizer;
+    private VisualizerPanel visualizer;
     private long lastPlayerUpdate;
     private boolean seeking=false,busy=false,bound=false;
     private final Handler main=new Handler(Looper.getMainLooper());
@@ -43,8 +43,8 @@ public class MainActivity extends Activity {
     private void editTarget(View view,String title,String...roles){if(editState!=null)editTargets.add(new ThemeEditor.Target(view,title,roles));}
 
     private final ServiceConnection connection=new ServiceConnection() {
-        public void onServiceConnected(ComponentName n,IBinder b) { player=((PlaybackService.LocalBinder)b).get(); flushPendingQueue(); player.listener=()->{ if(editState==null){updatePlayer(); renderTracks();} }; if(editState==null){updatePlayer(); renderTracks();} }
-        public void onServiceDisconnected(ComponentName n) { player=null; }
+        public void onServiceConnected(ComponentName n,IBinder b) { player=((PlaybackService.LocalBinder)b).get(); if(visualizer!=null)visualizer.setAudioSource(player.visualizerPcm); flushPendingQueue(); player.listener=()->{ if(editState==null){updatePlayer(); renderTracks();} }; if(editState==null){updatePlayer(); renderTracks();} }
+        public void onServiceDisconnected(ComponentName n) { player=null; if(visualizer!=null)visualizer.setAudioSource(null); }
     };
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -67,8 +67,8 @@ public class MainActivity extends Activity {
         buildUI();
     }
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); out.putBoolean("showFavourites",showFavourites);out.putString("themeExport",pendingThemeExport);if(editState!=null)try{out.putString("themeEdit",editState.json().toString());}catch(Exception ignored){}out.putBoolean("showQueue",showQueue);out.putStringArrayList("pendingQueueIds",pendingQueueIds);if(selected!=null)out.putString("selectedGame",selected.id); }
-    @Override protected void onStart() { super.onStart(); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); if(editState==null)main.post(tick); } }
-    @Override protected void onStop() { main.removeCallbacks(tick); if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
+    @Override protected void onStart() { super.onStart(); if(visualizer!=null)visualizer.activityActive(true); if(library!=null) { bound=bindService(new Intent(this,PlaybackService.class),connection,BIND_AUTO_CREATE); if(editState==null)main.post(tick); } }
+    @Override protected void onStop() { main.removeCallbacks(tick); if(visualizer!=null){visualizer.activityActive(false);visualizer.setAudioSource(null);} if(player!=null) player.listener=null; if(bound) { unbindService(connection); bound=false; } player=null; super.onStop(); }
     @Override protected void onDestroy() { if(appMenu!=null)appMenu.dismissNow();if(libraryPicker!=null)libraryPicker.dismissNow();if(channelMixerDialog!=null)channelMixerDialog.dismiss();for(Dialog d:new ArrayList<>(editorDialogs))d.dismiss();main.removeCallbacks(repaintEdit); importer.shutdown(); super.onDestroy(); }
     private final Runnable tick=new Runnable() { public void run() { if(editState!=null)return;updateVisualizer(); if(SystemClock.uptimeMillis()-lastPlayerUpdate>=250) { updatePlayer(); lastPlayerUpdate=SystemClock.uptimeMillis(); } main.postDelayed(this,40); } };
     int dp(float n) { return (int)(getResources().getDisplayMetrics().density*n+.5f); }
@@ -94,6 +94,7 @@ public class MainActivity extends Activity {
         return button;
     }
     private void buildUI() {
+        if(visualizer!=null)visualizer.activityActive(false);
         editTargets.clear();skin=new PlayerSkin(this,theme);
         getWindow().setStatusBarColor(backgroundColor); getWindow().setNavigationBarColor(Build.VERSION.SDK_INT>=27||theme.dark?backgroundColor:textColor);
         int flags=theme.dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
@@ -127,7 +128,7 @@ public class MainActivity extends Activity {
         gap(root,8);
         LinearLayout playerPanel=column();playbackDeck=playerPanel; playerPanel.setBackground(skin.chassis(playbackTheme.background)); playerPanel.setContentDescription("Now Playing panel");editTarget(playerPanel,"Player background","player.background","player.border"); playerPanel.setPadding(dp(8),dp(6),dp(8),dp(6)); add(root,playerPanel,-1,-2);
         LinearLayout playerHeading=row(); View rail=new View(this); rail.setBackground(skin.rail(playbackTheme.secondary)); playerHeading.addView(rail,new LinearLayout.LayoutParams(dp(32),dp(7))); TextView tag=pixel(" NOW PLAYING",7,playbackTheme.heading); add(playerHeading,tag,-2,-2); View playerRail=new View(this); playerRail.setBackground(skin.rail(playbackTheme.secondary)); LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(0,dp(6),1); railParams.setMargins(dp(8),0,dp(8),0); playerHeading.addView(playerRail,railParams); TextView quality=pixel("♪  44.1 kHz",6,playbackTheme.muted); add(playerHeading,quality,-2,-2); add(playerPanel,playerHeading,-1,22);editTarget(playerHeading,"Player heading","player.heading","player.secondary");
-        visualizer=new PixelVisualizer(this); visualizer.setPlayerTheme(playbackTheme);editTarget(visualizer,"Spectrum colours","player.spectrumLow","player.spectrumMid","player.spectrumHigh","player.spectrumPeak","player.spectrumBackground","player.heading"); add(playerPanel,visualizer,-1,126); gap(playerPanel,6);
+        visualizer=new VisualizerPanel(this); visualizer.setPlayerTheme(playbackTheme);visualizer.setAudioSource(player==null?null:player.visualizerPcm);visualizer.activityActive(hasWindowFocus());editTarget(visualizer,"Spectrum colours","player.spectrumLow","player.spectrumMid","player.spectrumHigh","player.spectrumPeak","player.spectrumBackground","player.heading"); add(playerPanel,visualizer,-1,126); gap(playerPanel,6);
         LinearLayout readout=column(); readout.setBackground(skin.well(playbackTheme.value("readout",playbackTheme.background)));editTarget(readout,"Track readout","player.readout","player.accent","player.muted"); readout.setPadding(dp(8),dp(4),dp(8),dp(4)); add(playerPanel,readout,-1,-2);
         nowTitle=trackTitle("No track selected",22,playbackTheme.accent); nowTitle.setTypeface(dotMatrixBold); add(readout,nowTitle,-1,30);editTarget(nowTitle,"Track title","player.accent");
         nowArtist=text("Choose a track to press play",11,playbackTheme.muted); nowArtist.setSingleLine(true); add(readout,nowArtist,-1,20);editTarget(nowArtist,"Artist text","player.muted");
@@ -378,7 +379,7 @@ public class MainActivity extends Activity {
             menuEntry(entries,menu,"Import music",true,false,this::pickFile);
             menuEntry(entries,menu,"Library",true,false,this::chooseGame);
             menuEntry(entries,menu,showQueue?"Back to tracklist":"Playback queue",true,false,()->{showQueue=!showQueue;showFavourites=false;renderTracks();});
-            menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Player style",true,false,this::chooseStyle);menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
+            menuSection(entries,"LOOK & SOUND");menuEntry(entries,menu,"Player style",true,false,this::chooseStyle);menuEntry(entries,menu,"Color theme",true,false,this::chooseTheme);menuEntry(entries,menu,"SoundFonts",true,false,this::manageSoundFonts);menuEntry(entries,menu,"Visualizers",true,false,this::chooseVisualizer);menuEntry(entries,menu,"Custom themes",true,false,this::showSavedThemes);
             menuSection(entries,"PLAYER");menuEntry(entries,menu,"Playback tools",true,true,()->showMenuPage("playback"));
             menuSection(entries,"APP");menuEntry(entries,menu,"About ChipAmp9x",true,false,this::about);menuEntry(entries,menu,"Exit app",true,false,this::exitApp);
         } else if(page.equals("playback")) {
@@ -441,6 +442,25 @@ public class MainActivity extends Activity {
     private void soundFontChanged(String affectedPath) {
         if(player!=null && player.current!=null && (affectedPath==null?soundFonts.overrideId(player.current.path).isEmpty():player.current.path.equals(affectedPath))) player.reloadSoundFont();
         Toast.makeText(this,"SoundFont saved",Toast.LENGTH_SHORT).show();
+    }
+    private void chooseVisualizer() {
+        String[] labels={"Spectrum","Waveform","Stereo scope","Orbit","projectM · MilkDrop presets"};
+        dialog().setTitle("Visualizers").setSingleChoiceItems(labels,visualizer.mode(),(d,which)->{visualizer.selectMode(which);d.dismiss();if(which==4)manageProjectM();}).setNeutralButton("PROJECTM PRESETS",(d,w)->manageProjectM()).setNegativeButton("CLOSE",null).show();
+    }
+    private void manageProjectM() {
+        String[] choices={"Choose preset…","Next preset","Automatic cycling · "+(visualizer.automatic()?"ON":"OFF"),"Import preset / texture pack…"};
+        dialog().setTitle("projectM").setItems(choices,(d,which)->{
+            if(which==0){List<ProjectMPresets.Preset> presets=visualizer.presets();String[] names=new String[presets.size()];int checked=0;for(int i=0;i<names.length;i++){names[i]=presets.get(i).name;if(presets.get(i).id.equals(visualizer.selectedPreset()))checked=i;}
+                dialog().setTitle("MilkDrop presets").setSingleChoiceItems(names,checked,(picker,at)->{visualizer.choosePreset(presets.get(at).id);visualizer.selectMode(4);picker.dismiss();}).setNegativeButton("CANCEL",null).show();
+            }else if(which==1){visualizer.nextPreset();visualizer.selectMode(4);}
+            else if(which==2){visualizer.automatic(!visualizer.automatic());manageProjectM();}
+            else if(!busy)startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),7);
+        }).setNegativeButton("CLOSE",null).show();
+    }
+    private void importPresets(Uri uri){
+        if(busy)return;busy=true;renderTracks();status.setText("IMPORTING PRESETS…");
+        importer.execute(()->{try{ProjectMPresets.Result result=new ProjectMPresets(this).importFile(uri,message->main.post(()->{if(!isDestroyed()&&busy)status.setText(message);}));main.post(()->{busy=false;if(!isDestroyed()){visualizer.refreshPresets();renderTracks();dialog().setTitle("projectM pack imported").setMessage(result.presets+" presets · "+result.textures+" textures\n\n"+(result.presets==0?"This is a texture pack. Import .milk presets separately; these images are available to presets that reference them.":"Choose a preset from Player menu → Visualizers → projectM presets.")).setPositiveButton("OK",(d,w)->manageProjectM()).show();}});
+            }catch(Exception e){main.post(()->{busy=false;if(!isDestroyed()){renderTracks();dialog().setTitle("Could not import projectM pack").setMessage(e.getMessage()).setPositiveButton("OK",null).show();}});}});
     }
     private void manageSoundFonts() {
         try {
@@ -546,6 +566,7 @@ public class MainActivity extends Activity {
                 showFavourites=false;flushPendingQueue();renderTracks();updatePlayer();
             } catch(Exception e){dialog().setTitle("Could not refresh library").setMessage(e.getMessage()).setPositiveButton("OK",null).show();}
         }
+        if(request==7&&result==RESULT_OK&&data!=null&&data.getData()!=null)importPresets(data.getData());
         if(request==1 && result==RESULT_OK && data!=null && data.getData()!=null) importUri(data.getData());
         if(request==3 && result==RESULT_OK && data!=null && data.getData()!=null) importSoundFont(data.getData());
     }
@@ -700,7 +721,7 @@ public class MainActivity extends Activity {
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) tintDialog(((ViewGroup)view).getChildAt(i));
     }
     private void about() {
-        dialog().setTitle("ChipAmp9x · v1.33.1").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+) and libvgm (individual GPL/LGPL/BSD/MIT cores). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
+        dialog().setTitle("ChipAmp9x · v1.34.0").setMessage("A pocket home for retro soundtracks.\n\nOpen SPC tracks, ZIP sets, RAR-based RSN sets PlayStation PSF/minipsf files, XA sector audio, standard mono VAGp samples and Nintendo 64 USF/miniusf files. Import dependent PSF or USF tracks as a ZIP or folder containing their .psflib or .usflib files. MIDI (.mid/.midi) uses the built-in Pixel GM bank or imported .sf2 banks (up to 64 MiB). Open SoundFonts from the menu to manage banks; hold a MIDI track to choose its bank. MIDI type 0/1 with PPQ timing is supported. Game-specific banks may have custom instrument mappings. Also plays NSF/NSFE (NES), GBS (Game Boy), VGM/VGZ (many systems), GYM, HES, KSS, AY and SAP. Multi-song files become individual tracks.\n\nNo ROMs or music are included. Imports are copied into private app storage; no network or broad storage permission is used. Tracks without timing tags play for 3 minutes, followed by a fade. Enable Loop to let an SPC sound program loop naturally without a timed restart. One-shot tracks without a programmed loop may become silent. Shuffle changes the next track, not the current song. The visualizer follows decoded audio and settles when paused.\n\nAudio: Game Music Emu (LGPL 2.1+) and libvgm (individual GPL/LGPL/BSD/MIT cores). PSF: Audio Overload / PeOPS (BSD and GPL 2+). N64: LazyUSF2 / Mupen64Plus (GPL 2+ and CC0). RSN: unarr (LGPL 3). MIDI: TinySoundFont (MIT), original synthetic Pixel GM bank (MIT). Combined build: GPL 3; original app source: MIT. Fonts: Chakra Petch, Pixelify Sans (header), Jersey 15, Press Start 2P and Doto (SIL OFL). projectM visualizer: LGPL 2.1+, with MIT/public-domain dependencies. Original pixel art.").setNeutralButton("LICENSES",(d,w)->licenses()).setPositiveButton("LET’S PLAY",null).show();
     }
     private void licenses() {
         StringBuilder all=new StringBuilder("Source and build instructions:\nhttps://github.com/BaconBaps/androidsnesaudio\n\n");

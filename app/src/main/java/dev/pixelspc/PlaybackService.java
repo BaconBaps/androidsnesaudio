@@ -33,6 +33,7 @@ public class PlaybackService extends Service {
     private volatile boolean sleepExpired;
     private volatile boolean destroyed;
     private final short[] pcm=new short[4096];
+    final VisualizerPcm visualizerPcm=new VisualizerPcm();
     private final AudioSpectrum spectrum=new AudioSpectrum();
     public volatile float[] levels=new float[AudioSpectrum.BANDS];
     public volatile float[] waveform=new float[AudioWaveform.SAMPLES];
@@ -141,7 +142,7 @@ public class PlaybackService extends Service {
                 if(handle==0 || loaded!=track) return;
                 worker.removeCallbacks(pump);
                 cancelSeek();
-                audio.pause();audio.flush();writtenFrames=0;playing=false;
+                audio.pause();audio.flush();visualizerPcm.clear();writtenFrames=0;playing=false;
                 Engine.soundFont(handle,new SoundFonts(this).pathFor(track.path));
                 Engine.start(handle,track.index,track.length);Engine.setLoop(handle,repeat,track.length);
                 pcmOffset=pcm.length;pcmEnded=false;position=0;
@@ -234,7 +235,7 @@ public class PlaybackService extends Service {
             if(handle==0 || loaded==null || loaded!=requested) return;
             try {
                 cancelSeek(); worker.removeCallbacks(pump);
-                if(audio!=null) { audio.pause(); audio.flush(); writtenFrames=0; }
+                if(audio!=null) { audio.pause(); audio.flush(); visualizerPcm.clear(); writtenFrames=0; }
                 pcmOffset=pcm.length; pcmEnded=false;
                 seekTarget=Math.max(0,Math.min(ms,repeat?Math.max(loaded.length,position):loaded.length));
                 seeking.begin(seekTarget); levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES];
@@ -284,6 +285,7 @@ public class PlaybackService extends Service {
             // Never block the control worker waiting for the device's audio sink.
             int n=audio.write(pcm,pcmOffset,pcm.length-pcmOffset,AudioTrack.WRITE_NON_BLOCKING);
             if(n<0) throw new java.io.IOException("Audio output unavailable ("+n+")");
+            visualizerPcm.offer(pcm,pcmOffset,n);
             pcmOffset+=n;writtenFrames+=n/2;
             if(prebufferShorts>0) {
                 prebufferShorts=Math.max(0,prebufferShorts-n);
@@ -297,7 +299,7 @@ public class PlaybackService extends Service {
         } catch(Exception e) { failed(e); }
     }};
     private void failed(Exception e) { error="Cannot play this track: "+e.getMessage(); playing=false; releaseAudio(); changed(); }
-    private void releaseAudio() { mixer=ChannelMixer.empty();writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
+    private void releaseAudio() { visualizerPcm.clear(); mixer=ChannelMixer.empty();writtenFrames=0; cancelSeek(); worker.removeCallbacks(pump); pcmOffset=pcm.length; pcmEnded=false; loaded=null; playing=false; levels=new float[AudioSpectrum.BANDS];waveform=new float[AudioWaveform.SAMPLES]; if(audio!=null) { audio.pause(); audio.flush(); audio.release(); audio=null; } if(handle!=0) { Engine.close(handle); handle=0; } }
     private void changed() { main.post(()->{
         if(destroyed) return;
         if(current!=null) {

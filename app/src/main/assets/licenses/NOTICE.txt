@@ -99,3 +99,16 @@ chip collection, preserving the existing GME route for its console VGM chips.
 OPL4's GPL-2.0-only implementation is not linked into this GPLv3 APK. No game
 tracks or proprietary sample-ROM files are included. Full source and app build
 scripts are available in this repository.
+
+## projectM visualizer
+
+projectM 4.1.8 (4967dc003e5206d7df3ff447287f7609c47d2343), LGPL 2.1 or later,
+from https://github.com/projectM-visualizer/projectm. Complete build sources and
+notices are in third_party/projectm. Built as libprojectM-4.so, dynamically linked
+through our projectm_jni bridge. Recipients can rebuild/replace it and rebuild the
+APK; reverse engineering to debug library modifications is permitted.
+projectm-eval 1.0.7 (e8c311e86f4d8c082e96e02b6a33525034eee6d4), MIT;
+GLM 0.9.9.0, MIT option; hlslparser, MIT; SOIL2 and stb include public-domain,
+MIT/MIT-0 and Apache-2.0 components. Full texts accompany this notice.
+ChipAmp9x includes three original MIT starter presets. Imported third-party
+presets and texture packs retain their authors' terms and are not bundled.

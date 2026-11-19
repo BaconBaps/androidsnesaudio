@@ -202,9 +202,22 @@ public class PlayerUiTest {
             MainActivity a=c.get();PixelVisualizer viz=findVisualizer(a.getWindow().getDecorView());
             String[] names={"spectrum","waveform","stereo-scope","orbit"};
             for(int i=0;i<4;i++){viz.setFrame(service.levels,service.waveform,true,true);assertEquals(i,viz.mode());capture(a,"visualizer-"+names[i]+".png");viz.performClick();}
-            assertEquals(0,viz.mode());viz.performClick();assertEquals(1,viz.mode());c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());
+            assertEquals(4,viz.mode());viz.performClick();assertEquals(0,viz.mode());viz.performClick();assertEquals(1,viz.mode());c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());
             a.beginThemeEdit(ThemeStore.from(PlayerTheme.find("dark"),false));viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());viz.performClick();assertEquals(1,viz.mode());
             c.recreate();a=c.get();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());assertNotNull(a.editDraft());a.cancelThemeEdit();viz=findVisualizer(a.getWindow().getDecorView());assertEquals(1,viz.mode());viz.performLongClick();assertEquals(0,viz.mode());
+        }
+    }
+    @Test public void projectMOptionsPersistWithoutReplacingThePixelDisplays()throws Exception{
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            MainActivity a=c.get();openAppMenu(a);android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Visualizers").performClick();
+            AlertDialog picker=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();assertEquals(5,picker.getListView().getCount());picker.getListView().performItemClick(null,4,4);
+            VisualizerPanel panel=org.robolectric.util.ReflectionHelpers.getField(a,"visualizer");assertEquals(4,panel.mode());assertEquals(View.GONE,panel.pixels.getVisibility());
+            AlertDialog options=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();assertEquals("Next preset",options.getListView().getAdapter().getItem(1));options.dismiss();
+            String before=panel.selectedPreset();panel.nextPreset();assertNotEquals(before,panel.selectedPreset());String chosen=panel.selectedPreset();panel.automatic(false);
+            c.recreate();a=c.get();panel=org.robolectric.util.ReflectionHelpers.getField(a,"visualizer");assertEquals(4,panel.mode());assertEquals(chosen,panel.selectedPreset());assertFalse(panel.automatic());
+            panel.setFrozenFrame(new float[AudioSpectrum.BANDS],new float[AudioWaveform.SAMPLES]);assertEquals(View.VISIBLE,panel.pixels.getVisibility());
+            panel.setFrame(new float[AudioSpectrum.BANDS],new float[AudioWaveform.SAMPLES],false,false);assertEquals(View.GONE,panel.pixels.getVisibility());
+            panel.selectMode(0);assertEquals(View.VISIBLE,panel.pixels.getVisibility());assertEquals(0,app.getSharedPreferences("appearance",0).getInt("visualizer",-1));
         }
     }
     @Test public void mixerAndFontsAppearInThemedPlaybackMenuAndCloseWhenTheTrackChanges()throws Exception{
@@ -499,7 +512,7 @@ public class PlayerUiTest {
                 assertEquals(ImageView.ScaleType.CENTER,((ImageButton)v).getScaleType());
             }
             View deck=findDescription(decor,"Now Playing panel"),spectrum=findDescription(decor,"SPECTRUM visualizer. Tap for WAVEFORM. Hold to return to spectrum.");
-            assertSame(deck,spectrum.getParent());
+            assertTrue(spectrum.getParent() instanceof VisualizerPanel);assertSame(deck,spectrum.getParent().getParent());
             for(String label:new String[]{"TRACKLIST"," NOW PLAYING","♪  44.1 kHz","READY"}) {
                 TextView heading=(TextView)findText(decor,label); assertNotNull(heading);
                 assertFalse(heading.getIncludeFontPadding()); assertEquals(Gravity.CENTER_VERTICAL,heading.getGravity()&Gravity.VERTICAL_GRAVITY_MASK);
@@ -509,7 +522,7 @@ public class PlayerUiTest {
             }
             int[] spectrumAt=new int[2],libraryAt=new int[2]; spectrum.getLocationOnScreen(spectrumAt); findDescription(decor,"Open music library").getLocationOnScreen(libraryAt);
             assertTrue(libraryAt[1]<spectrumAt[1]);
-            assertTrue(((ViewGroup)deck).indexOfChild(spectrum)<((ViewGroup)deck).indexOfChild(findSeek(decor)));
+            assertTrue(((ViewGroup)deck).indexOfChild((View)spectrum.getParent())<((ViewGroup)deck).indexOfChild(findSeek(decor)));
         }
     }
     private Library.Track[] playlistSources()throws Exception{

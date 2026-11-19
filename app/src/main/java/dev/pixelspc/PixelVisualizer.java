@@ -6,7 +6,7 @@ import android.view.View;
 
 /** Four pixel displays, all driven by decoded audio. Tap cycles; hold resets. */
 public class PixelVisualizer extends View {
-    static final String[] MODES={"SPECTRUM","WAVEFORM","STEREO SCOPE","ORBIT"};
+    static final String[] MODES={"SPECTRUM","WAVEFORM","STEREO SCOPE","ORBIT","PROJECTM"};
     private final Paint paint=new Paint();private final Path path=new Path();
     private final Typeface pixel;
     private PlayerTheme theme=PlayerTheme.ALL[0];
@@ -24,7 +24,8 @@ public class PixelVisualizer extends View {
         describe();setPlayerTheme(theme);
     }
     int mode(){return mode;}
-    private void selectMode(int value){mode=value;getContext().getSharedPreferences("appearance",0).edit().putInt("visualizer",mode).apply();describe();invalidate();}
+    Runnable modeChanged=()->{};
+    void selectMode(int value){mode=value;getContext().getSharedPreferences("appearance",0).edit().putInt("visualizer",mode).apply();describe();invalidate();modeChanged.run();}
     private void describe(){setContentDescription(MODES[mode]+" visualizer. Tap for "+MODES[(mode+1)%MODES.length]+". Hold to return to spectrum.");}
     public void setPlayerTheme(PlayerTheme t){theme=t;displayColor=t.spectrumBackground;screen=new PlayerSkin(getContext(),t).display(displayColor);invalidate();}
     public void setFrame(float[] levels,boolean playing,boolean loaded){setFrame(levels,new float[AudioWaveform.SAMPLES],playing,loaded);}

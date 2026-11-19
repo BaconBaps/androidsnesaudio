@@ -783,3 +783,35 @@ ZIPs remain separate, including the import review flow, and generated NSFE sets
 retain independent titles, labels, playlist order and durations after reload.
 Native decoder code is unchanged. APK signing continuity and 16 KiB alignment
 pass. Existing merged library entries are not automatically migrated.
+
+## v1.34.0 — projectM / MilkDrop visualizer
+
+Vendored projectM 4.1.8 and its pinned portable projectm-eval interpreter build
+for ARM64 and x86_64 as a separate GLES 3 library/JNI bridge. No decoder changes
+except a bounded handoff of already-written stereo PCM. Rendering is confined
+to a separate EGL thread; surface teardown/recreation is serialized, and audio
+output never calls the renderer. Pausing/backgrounding/mode changes and theme
+edit stop rendering; existing pixel visualizers remain available.
+
+154 tests pass; the optional arcade JNI integration test is skipped. Tests cover
+five-mode UI selection, retained preset/cycle preferences, frozen editor display,
+PCM ring ordering/overflow/clear, transactional imports, mixed-case paths, path
+traversal, case collisions, invalid textures/presets, size limits and rollback.
+Real supplied packs import successfully: 3996 presets and 67 JPEG textures.
+Downloaded files are private test inputs, not repository or APK assets.
+
+A real headless Mesa GLES 3.2 renderer test produces nonblank output for the three
+original starter presets and 12 reproducibly sampled presets from the supplied
+pack (15 rendered, no load failures). Missing-preset recovery and engine
+recreation pass. scripts/test-projectm.sh rebuilds and repeats the GLES smoke
+test without an Android emulator. Native source snapshots match upstream apart
+from the added missing GLM license text and SOURCE.md. Dependency notices and
+LGPL/MIT/Apache texts are included in the APK.
+
+Full debug APK build and lint pass (zero errors). Signing continuity, ZIP 16 KiB
+alignment and native LOAD segment 16 KiB alignment pass. Native GPU integration
+has been exercised on host Mesa, not a physical Android device; phone GPU
+compatibility/performance, surface lifecycle and expensive desktop shaders still
+need device testing. The entire 3996-preset pack was imported, not exhaustively
+rendered. Incompatible preset-load errors retain the previous visual; renderer
+initialization failures return to Spectrum without stopping audio.

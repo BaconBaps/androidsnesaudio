@@ -713,3 +713,31 @@ The batch still rolls back if any selected file fails.
 
 Existing merged entries are left untouched. Re-import the affected NSF/NSFE
 files to create separate entries; the old entry can be managed through Library.
+
+## projectM visualizer (v1.34.0)
+
+Player menu → Visualizers offers Spectrum, Waveform, Stereo scope, Orbit and
+projectM. Tapping cycles to the next display; projectM returns to Spectrum.
+Holding a display returns to Spectrum. Mode and selected preset persist.
+
+PROJECTM PRESETS opens preset selection, Next preset, automatic cycling (45
+seconds of visible playback, two-second transition), and Import preset / texture
+pack. Import a .milk file or ZIP. Texture-only PNG/JPEG packs are supported and
+shared with all presets. Packs keep nested folders and imports commit atomically;
+failed imports leave the existing collection intact. Limits: 64 MiB input,
+128 MiB expanded, 5000 ZIP entries, 2 MiB per preset, 16 MiB per texture and
+4 megapixels per texture. Imported presets retain their authors' licensing.
+Three original MIT starter presets are bundled; no downloaded packs are bundled.
+
+Rendering uses the player's decoded stereo PCM, including channel-mixer changes;
+no microphone or audio-capture permission is needed. Rendering runs separately
+from audio output, with a bounded PCM handoff, a 32×24 mesh, 768-pixel maximum
+render width and approximately 30 fps. Pausing freezes animation; leaving the
+foreground or selecting another display releases its EGL resources. Theme edit
+uses the existing frozen pixel display. Unsupported devices return to Spectrum;
+preset-load errors are reported without stopping music. Desktop shader presets
+can vary in compatibility and performance on Android GPUs. OpenGL ES 3.0 is
+required only for projectM.
+
+The supplied texture pack (67 JPEGs) and Cream of the Crop collection (3996 .milk
+presets) import as separate packs and can be used together through this menu.

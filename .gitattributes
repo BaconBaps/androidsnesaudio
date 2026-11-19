@@ -1,2 +1,5 @@
 # Preserve the historical whitespace in this unmodified upstream snapshot.
 third_party/libvgm/** -whitespace
+third_party/projectm/** -whitespace
+# Retain the original projectM license line endings.
+app/src/main/assets/licenses/projectM-LGPL-2.1.txt -whitespace
