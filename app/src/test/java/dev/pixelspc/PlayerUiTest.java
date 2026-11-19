@@ -530,6 +530,48 @@ public class PlayerUiTest {
         for(int i=0;i<2;i++){Library.Track t=new Library.Track();t.path="/fixture/playlist-"+i+".spc";t.title="Track "+i;t.game="Game "+i;t.artist="Composer";t.system=i==0?"Super Nintendo":"Game Boy";t.length=180000;t.index=0;tracks[i]=t;games.put(new org.json.JSONObject().put("id","source-"+i).put("name",t.game).put("tracks",new org.json.JSONArray().put(t.json())));}
         Files.write(new File(app.getFilesDir(),"library.json").toPath(),games.toString().getBytes("UTF-8"));return tracks;
     }
+    private void browseGame(MainActivity a,String id){
+        findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog browser=org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        ExpandableListView list=(ExpandableListView)findDescription(browser.getWindow().getDecorView(),"Soundtracks grouped by platform");ExpandableListAdapter adapter=list.getExpandableListAdapter();
+        for(int group=0;group<adapter.getGroupCount();group++)for(int child=0;child<adapter.getChildrenCount(group);child++)if(((Library.Game)adapter.getChild(group,child)).id.equals(id)){
+            list.expandGroup(group);list.performItemClick(null,list.getFlatListPosition(ExpandableListView.getPackedPositionForChild(group,child)),0);return;
+        }
+        fail("Library entry not found: "+id);
+    }
+    @Test public void browsedGameSurvivesColdReopenWithoutChangingPlayback()throws Exception{
+        Library.Track[] sources=playlistSources();service.current=sources[1];service.queue=java.util.Collections.singletonList(sources[1]);service.position=12345;
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            browseGame(c.get(),"source-0");assertNotNull(findText(c.get().getWindow().getDecorView(),"Game 0"));
+        }
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            assertEquals("Game 0",((TextView)org.robolectric.util.ReflectionHelpers.getField(c.get(),"gameTitle")).getText().toString());
+            assertSame(sources[1],service.current);assertEquals(12345,service.position);assertEquals(1,service.queue.size());
+        }
+    }
+    @Test public void rememberedPlaylistSupportsLegacyPreferenceAndNewSelection()throws Exception{
+        Library.Track[] sources=playlistSources();String id=new Playlists(app).save(null,"Remembered mix",java.util.Collections.singletonList(sources[0]));app.getSharedPreferences("library-browser",0).edit().putString("selected-playlist",id).commit();
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            assertEquals("Remembered mix",((TextView)org.robolectric.util.ReflectionHelpers.getField(c.get(),"gameTitle")).getText().toString());browseGame(c.get(),"source-0");browseGame(c.get(),id);
+        }
+        assertFalse(app.getSharedPreferences("library-browser",0).contains("selected-playlist"));
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            assertEquals("Remembered mix",((TextView)org.robolectric.util.ReflectionHelpers.getField(c.get(),"gameTitle")).getText().toString());
+        }
+    }
+    @Test public void missingRememberedGameFallsBackSafelyAndSavedStateTakesPriority()throws Exception{
+        playlistSources();app.getSharedPreferences("library-browser",0).edit().putString("selected-entry","deleted-game").commit();
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            assertEquals("Game 1",((TextView)org.robolectric.util.ReflectionHelpers.getField(c.get(),"gameTitle")).getText().toString());
+        }
+        android.os.Bundle state=new android.os.Bundle();state.putString("selectedGame","source-0");app.getSharedPreferences("library-browser",0).edit().putString("selected-entry","source-1").commit();
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).create(state).start().resume().visible()){
+            assertEquals("Game 0",((TextView)org.robolectric.util.ReflectionHelpers.getField(c.get(),"gameTitle")).getText().toString());
+        }
+        new File(app.getFilesDir(),"library.json").delete();
+        try(org.robolectric.android.controller.ActivityController<MainActivity> c=Robolectric.buildActivity(MainActivity.class).setup()){
+            assertNotNull(findText(c.get().getWindow().getDecorView(),"INSERT SOUNDTRACK"));
+        }
+    }
     private AlertDialog playlistSavePrompt(MainActivity a){findDescription(a.getWindow().getDecorView(),"Open music library").performClick();android.app.Dialog menu=org.robolectric.shadows.ShadowDialog.getLatestDialog();findDescription(menu.getWindow().getDecorView(),"Save current playlist").performClick();return (AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();}
     @Test public void savedMixedPlaylistLoadsFromItsAccordionAndSupportsActionsWithoutInterruptingPlayback()throws Exception{
         Library.Track[] sources=playlistSources();Library.Track aTrack=sources[0],bTrack=sources[1];service.current=bTrack;service.queue=new java.util.ArrayList<>(java.util.Arrays.asList(bTrack,aTrack,bTrack));service.index=0;service.position=12345;service.playing=true;

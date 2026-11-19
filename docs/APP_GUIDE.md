@@ -741,3 +741,12 @@ required only for projectM.
 
 The supplied texture pack (67 JPEGs) and Cream of the Crop collection (3996 .milk
 presets) import as separate packs and can be used together through this menu.
+
+## Remembered tracklist (v1.34.1)
+
+The last game or saved playlist chosen in Library is restored on a fresh launch,
+including after fully exiting the app. This only restores the browsed tracklist;
+it does not change the playback queue or start playback. Activity saved state
+still takes priority during recreation. If an entry has been removed, the player
+falls back to the latest library game or the empty-library view. Previously
+remembered saved playlists remain compatible.

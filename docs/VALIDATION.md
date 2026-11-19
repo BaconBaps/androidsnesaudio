@@ -815,3 +815,15 @@ compatibility/performance, surface lifecycle and expensive desktop shaders still
 need device testing. The entire 3996-preset pack was imported, not exhaustively
 rendered. Incompatible preset-load errors retain the previous visual; renderer
 initialization failures return to Spectrum without stopping audio.
+
+## v1.34.1 — remember the browsed game
+
+Library selections now persist a stable game/playlist ID and resolve it on a
+fresh activity launch, with migration from the prior saved-playlist preference.
+Activity saved state takes priority; missing entries fall back safely to the
+latest game or empty-library view. Playback state is independent of browsing.
+Regression tests select a game through the Library accordion, close/reopen with
+no saved bundle, and verify the selected game and unchanged playback. Additional
+checks cover saved playlists, the legacy preference, deleted entries, an empty
+library and recreation state priority. Full debug build, UI/unit tests and lint
+pass. Signing continuity and APK 16 KiB alignment pass.
